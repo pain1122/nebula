@@ -1,0 +1,31 @@
+# Laravel inside /backend
+/backend/vendor
+/backend/node_modules
+/backend/public/storage
+/backend/storage/*.key
+/backend/storage/pail
+/backend/.env
+/backend/.env.backup
+/backend/.env.production
+/backend/.phpunit.cache
+/backend/.phpunit.result.cache
+/backend/phpunit.xml
+/backend/.phpactor.json
+
+# Docker + build logs
+docker-volume/
+*.log
+
+# Editor + system junk
+/.idea
+/.vscode
+/.nova
+/.zed
+/.fleet
+.DS_Store
+.env  # only if there's an .env in the root
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+auth.json

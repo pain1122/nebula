@@ -8,10 +8,16 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/var/www
+      - ./backend/database:/var/www/database
     env_file:
       - ./backend/.env
     depends_on:
       - db
+    command: 
+      - "sh"
+      - "-c"
+      - "/usr/local/bin/init.sh && php artisan serve --host=0.0.0.0 --port=8000"
+
 
   db:
     image: postgres:13

@@ -1,0 +1,4 @@
+html[dir="rtl"] body { direction: rtl; }
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

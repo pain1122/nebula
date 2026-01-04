@@ -200,7 +200,7 @@ const UserListPage: React.FC = () => {
 
                                 <button
                                     className="btn btn-success"
-                                    onClick={() => nav("/users/new")}
+                                    onClick={() => nav("/panel/users/new")}
                                 >
                                     <i className="ri-add-fill me-1 align-bottom" />
                                     اضافه کردن کاربر
@@ -264,7 +264,7 @@ const UserListPage: React.FC = () => {
                                                     </div>
 
                                                     <div className="text-end">
-                                                        <Link to={`/users/${u.id}`} className="btn btn-light btn-sm">
+                                                        <Link to={`/panel/users/${u.id}`} className="btn btn-light btn-sm">
                                                             ویرایش
                                                         </Link>
                                                     </div>

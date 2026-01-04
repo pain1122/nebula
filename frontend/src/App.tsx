@@ -20,6 +20,13 @@ import UserListPage from "./pages/panel/users/UserListPage";
 import QuestionnairesListPage from './pages/panel/questionary/QuestionnairesListPage'
 import QuestionnaireCreatePage from './pages/panel/questionary/QuestionnaireCreatePage'
 
+
+
+import QuestionnairesGridPage from "./pages/public/QuestionnairesGridPage";
+import QuestionnairePublicPage from "./pages/public/QuestionnairePublicPage";
+
+
+
 import { initVelzonApp } from "./assets/js/app";
 
 function App() {
@@ -56,6 +63,11 @@ function App() {
 
       {/* fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
+
+
+      {/* public pages */}
+      <Route path="/questionnaires" element={<QuestionnairesGridPage />} />
+      <Route path="/questionnaires/:slug" element={<QuestionnairePublicPage />} />
     </Routes>
   );
 }

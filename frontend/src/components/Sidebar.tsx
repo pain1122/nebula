@@ -1,7 +1,7 @@
 // src/components/Sidebar.tsx
 import { NavLink } from "react-router-dom";
 const menuItems = [
-  { to: "/users/new", icon: "ri-user-add-line", label: "افزودن کاربر" },
+  { to: "/panel/users/new", icon: "ri-user-add-line", label: "افزودن کاربر" },
 ];
 const Sidebar: React.FC = () => {
     return (

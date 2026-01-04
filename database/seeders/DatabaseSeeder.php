@@ -21,8 +21,7 @@ class DatabaseSeeder extends Seeder
             RolesSeeder::class,
             SpecialtySeeder::class,
 
-            AdminUserSeeder::class,
-            DoctorUserSeeder::class,
+            LocalUsersSeeder::class,
 
             CheckupCategorySeeder::class,
             CheckupSeeder::class,

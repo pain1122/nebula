@@ -9,6 +9,12 @@ use \App\Http\Controllers\Api\UserProfileController;
 use \App\Http\Controllers\Api\AdminReservationController;
 use App\Http\Controllers\Api\Admin\UserController;
 use App\Http\Controllers\Api\Admin\QuestionnaireController;
+use App\Http\Controllers\Api\Admin\QuestionnaireSubmissionController;
+
+
+
+use App\Http\Controllers\Api\PublicQuestionnaireController;
+
 
 
 Route::prefix('auth')->group(function () {
@@ -24,15 +30,16 @@ Route::prefix('auth')->group(function () {
 
     // اطلاعات کاربر لاگین‌شده + لاگ‌اوت
     Route::middleware('auth:sanctum')->group(function () {
-        Route::get('/me', MeController::class);
         Route::post('/logout', [AuthController::class, 'logout']);
 
         // پروفایل کاربر (Patient)
         Route::get('/profile', [UserProfileController::class, 'show']);
         Route::put('/profile', [UserProfileController::class, 'update']);
     });
-});
+    Route::middleware('auth:sanctum')->get('/me', MeController::class);
 
+
+});
 // بقیه APIها (رزرو و...)
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/checkups', [BookingApiController::class, 'checkups']);
@@ -65,6 +72,9 @@ Route::middleware(['auth:sanctum', 'role:admin,sanctum'])
         Route::post('/questionnaires', [QuestionnaireController::class, 'store']);
         Route::put('/questionnaires/{questionnaire}', [QuestionnaireController::class, 'update']);
         Route::delete('/questionnaires/{questionnaire}', [QuestionnaireController::class, 'destroy']);
+        Route::get('/questionnaire-submissions', [QuestionnaireSubmissionController::class, 'index']);
+        Route::get('/questionnaire-submissions/{submission}', [QuestionnaireSubmissionController::class, 'show']);
+        Route::delete('/questionnaire-submissions/{submission}', [QuestionnaireSubmissionController::class, 'destroy']);
     });
 
 
@@ -80,3 +90,10 @@ Route::middleware(['auth:sanctum', 'role:doctor'])
         Route::post('/reservations/{reservation}/complete', [BookingApiController::class, 'doctorCompleteReservation']);
 
     });
+
+
+
+// public routes
+Route::get('/questionnaires', [PublicQuestionnaireController::class, 'index']);
+Route::get('/questionnaires/{slug}', [PublicQuestionnaireController::class, 'show']);
+Route::post('/questionnaires/{slug}/submit', [PublicQuestionnaireController::class, 'submit']);

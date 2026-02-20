@@ -1,0 +1,375 @@
+🩺 Checkupino — Laravel 11 Full-Stack Medical Platform
+🎯 Purpose
+
+An online health checkup and consultation service where users can:
+
+Explore various medical checkups
+
+Book online consultations with doctors
+
+Upload test results for analysis
+
+Receive medical reports, prescriptions, and personalized advice
+
+Doctors can:
+
+Manage appointments & patients
+
+Review results, write reports & prescriptions
+
+Engage in chat/video consultations
+
+Author blog articles to share medical insights
+
+Admins can:
+
+Manage doctors, users, content, and blog
+
+Control all pages, categories, and SEO meta data
+
+View analytics and system logs
+
+🏗️ Core Architecture
+1️⃣ Frontend (User Website)
+
+Pages: Home, About, Checkup Categories, Checkup Details, Blog, Contact
+
+Booking Flow:
+Select checkup → choose doctor → select date/time → payment → confirmation
+
+User Dashboard:
+
+View appointments
+
+Upload results
+
+View doctor’s report/prescription
+
+Chat with doctor
+
+Read articles & follow doctors
+
+2️⃣ CMS (Admin Panel)
+
+Custom-built CMS (no third-party admin templates like Nova/Voyager):
+
+Manage Doctors, Users, Reservations
+
+Manage Checkups, Categories, Banners
+
+Manage Blog Posts, Comments, SEO, and Static Pages
+
+Dashboard with analytics (appointments, revenue, views)
+
+3️⃣ Doctor Panel
+
+Access patient list & appointment schedule
+
+Upload reports and prescribe medicine
+
+Write blog articles
+
+Respond to patient chats
+
+View analytics (patients served, ratings, etc.)
+
+🧩 Key Entities (Database Models)
+Model	Description
+User	Shared user model for admins, doctors, and patients (role-based).
+DoctorProfile	Doctor details (specialty, experience, consultation fee, availability).
+UserProfile	Extended patient details (blood type, chronic conditions, emergency contact).
+CheckupCategory	Groups of health checkups (e.g., Heart, Hormonal, General).
+Checkup	Individual checkup service with description and price.
+Reservation	Appointment record between a patient and doctor.
+Report	Medical summary after a reservation.
+Prescription	Linked to reports; contains medicine and usage info.
+Chat / ChatMessage	For real-time communication.
+Payment	Handles booking payments and status.
+Page / Banner / FAQ / Setting / SEO Meta	CMS content management.
+Post / PostCategory / PostTag / Comment	Blog system.
+🧮 Database Overview (Combined)
+1. Core
+
+users
+
+roles / permissions (Spatie)
+
+user_profiles
+
+2. Doctors & Checkups
+
+doctor_profiles
+
+specialties
+
+checkup_categories
+
+checkups
+
+checkup_doctor (pivot)
+
+3. Reservations
+
+reservations
+
+reservation_notes
+
+reservation_files
+
+4. Reports & Prescriptions
+
+reports
+
+prescriptions
+
+test_orders
+
+5. Communication
+
+chats
+
+chat_messages
+
+6. Payments
+
+payments
+
+refunds
+
+7. CMS
+
+pages
+
+banners
+
+testimonials
+
+faqs
+
+settings
+
+seo_meta
+
+8. Blog System 📰
+
+posts
+
+post_categories
+
+post_tags
+
+post_tag (pivot)
+
+comments
+
+media_library (optional, for Spatie Media Library)
+
+related_posts (optional, for manual associations)
+
+9. System
+
+activity_logs
+
+notifications
+
+jobs / failed_jobs / tokens
+
+🧠 Blog System Highlights
+Feature	Description
+Doctor/Author Integration	Each post is authored by a doctor or admin (linked to users).
+SEO-Ready	Meta title, description, slug fields per post.
+Categorization	Organized under post_categories.
+Tags System	Related topics under post_tags (many-to-many).
+Comment System	Threaded comments with moderation.
+Scheduling	Auto-publish via published_at.
+Related Posts	Automatically by tags or manually defined.
+Featured Articles	Flag posts for homepage display.
+🧰 Technologies & Integrations
+Layer	Technology
+Framework	Laravel 11
+Frontend	Blade + TailwindCSS (or Inertia + Vue 3)
+Auth	Laravel Breeze (or Jetstream for advanced teams)
+Permissions	Spatie Laravel Permission
+File Uploads	Spatie Media Library
+Payments	Laravel Cashier (Stripe integration)
+Scheduling	Laravel Scheduler (for blog posts, reminders)
+Chat	Laravel WebSockets / Pusher
+Editor	Tiptap / CKEditor for CMS & Blog
+SEO	Dynamic meta with seo_meta table
+Caching	Redis / Laravel Cache
+Queueing	Redis or Database driver
+Testing	PestPHP
+🗂️ Suggested Folder Structure
+app/
+ ├── Http/
+ │    ├── Controllers/
+ │    │    ├── Front/
+ │    │    ├── Admin/
+ │    │    └── Doctor/
+ │    ├── Middleware/
+ │    ├── Requests/
+ │    └── Resources/
+ ├── Models/
+ ├── Services/
+ ├── ViewModels/
+resources/
+ ├── views/
+ │    ├── front/
+ │    │    ├── blog/
+ │    │    ├── checkups/
+ │    │    └── layouts/
+ │    ├── admin/
+ │    └── doctor/
+routes/
+ ├── web.php
+ ├── admin.php
+ ├── doctor.php
+ └── api.php
+
+🔒 User Roles & Access Flow
+Role	Access
+Visitor	Public site, blog, and checkup browsing.
+User (Patient)	Book checkups, upload results, chat, view reports.
+Doctor	Manage patients, publish reports, write blog articles.
+Admin	Manage everything: doctors, users, content, and settings.
+🚀 Step 1 — Project Initialization
+composer create-project laravel/laravel checkupino
+cd checkupino
+
+# Install Breeze for Auth
+php artisan breeze:install blade
+
+# Spatie Permission for Roles
+composer require spatie/laravel-permission
+php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"
+php artisan migrate
+
+# Create roles
+php artisan tinker
+>>> Role::create(['name' => 'admin']);
+>>> Role::create(['name' => 'doctor']);
+>>> Role::create(['name' => 'user']);
+
+
+
+Below is the complete and unified database schema — everything from users and checkups to CMS and blog, structured cleanly for a full Laravel implementation.
+
+🧩 CHECKUPINO DATABASE SCHEMA (FINAL VERSION)
+🧱 1. Core Tables
+Table	Description
+users	Core user table for patients, doctors, and admins.
+roles, permissions, model_has_roles, role_has_permissions	From Spatie Permission.
+user_profiles	Extended patient data (address, bio, medical info, emergency contact).
+⚕️ 2. Doctor & Medical Structure
+Table	Description
+doctor_profiles	Doctor details (specialty, bio, verification, fees).
+specialties	Doctor specialties (Cardiology, Endocrinology, etc.).
+checkup_categories	Groups of checkups (Heart Health, Hormonal, etc.).
+checkups	Specific health checkups offered.
+checkup_doctor	Pivot between checkups and doctors.
+📅 3. Reservations & Appointments
+Table	Description
+reservations	Bookings between users and doctors for checkups.
+reservation_notes	Doctor’s comments and notes for each session.
+reservation_files	Uploaded results, lab reports, or related files.
+💊 4. Reports, Prescriptions, Tests
+Table	Description
+reports	Doctor-created reports for a reservation.
+prescriptions	Linked to reports, includes medicine info and dosage.
+test_orders	Tests requested by a doctor with optional result upload.
+💬 5. Communication
+Table	Description
+chats	Chat session tied to a reservation.
+chat_messages	Messages exchanged (text/files).
+💳 6. Payments & Transactions
+Table	Description
+payments	Payment records linked to reservations.
+refunds	Optional refunds table.
+🖥️ 7. CMS (Admin Content Management)
+Table	Description
+pages	Static content pages (About, Contact, etc.).
+banners	Visual sections and homepage slides.
+testimonials	Reviews from users/doctors.
+faqs	Frequently asked questions.
+settings	Global settings (email, logo, etc.).
+seo_meta	Model-based SEO entries.
+📰 8. Blog System
+Table	Description
+posts	Blog articles (authored by admin or doctor).
+post_categories	Categories for blog organization.
+post_tags	Keyword tags for posts.
+post_tag	Pivot between posts and tags.
+comments	Comments with nested replies and moderation.
+✅ Optional Blog Enhancements
+Table	Description
+media_library (optional)	Centralized image/file storage for blog & CMS (via Spatie Media Library).
+scheduled_posts (optional)	Separate scheduler if not using published_at.
+related_posts (optional)	Custom table for manually linking related articles.
+🧰 9. System & Infrastructure
+Table	Description
+activity_logs	Tracks user/admin actions for audit.
+notifications	Laravel notification system.
+jobs, failed_jobs, personal_access_tokens, migrations	Default Laravel system tables.
+🧭 RELATION MAP OVERVIEW
+User
+ ├── hasOne(UserProfile)
+ ├── hasOne(DoctorProfile)
+ ├── hasMany(Reservation)
+ ├── hasMany(Post)  ← (blog author)
+ └── hasMany(Comment)
+
+DoctorProfile
+ ├── belongsTo(User)
+ ├── belongsTo(Specialty)
+ ├── belongsToMany(Checkup)
+
+Checkup
+ ├── belongsTo(Category)
+ ├── belongsToMany(Doctor)
+ └── hasMany(Reservation)
+
+Reservation
+ ├── belongsTo(User)
+ ├── belongsTo(Doctor)
+ ├── belongsTo(Checkup)
+ ├── hasOne(Report)
+ ├── hasMany(ReservationNote)
+ ├── hasMany(ReservationFile)
+ ├── hasOne(Chat)
+ └── hasOne(Payment)
+
+Report
+ ├── belongsTo(Reservation)
+ └── hasMany(Prescription)
+
+Chat
+ ├── belongsTo(Reservation)
+ └── hasMany(ChatMessage)
+
+Post
+ ├── belongsTo(User, author_id)
+ ├── belongsTo(Category)
+ ├── belongsToMany(Tag)
+ └── hasMany(Comment)
+
+🧭 Example: How It All Connects
+Action	Tables Involved
+User books a checkup	users → reservations → payments
+Doctor uploads report	reports → prescriptions → reservation
+User chats with doctor	chats → chat_messages
+Doctor writes blog post	posts → post_categories → post_tags
+Visitor comments on article	comments
+Admin edits site content	pages → seo_meta → banners
+📈 Scalability & Future-Proof Additions
+
+We’ve structured this database so it’s modular — future features can plug in easily:
+
+🧾 Subscription plans (new subscriptions table linking to users)
+
+🩻 AI diagnosis assistant (new ai_insights table linked to reports)
+
+📊 Analytics dashboard (aggregate views, revenue, appointments)
+
+💬 Teleconsultations / video calls (via consultations table)
+
+📦 API tokens / external integrations (for mobile apps)

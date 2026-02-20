@@ -1,10 +1,14 @@
 *.log
+
 .DS_Store
 .env
 .env.backup
 .env.production
 .phpactor.json
 .phpunit.result.cache
+Homestead.json
+Homestead.yaml
+Thumbs.db
 /.fleet
 /.idea
 /.nova
@@ -22,7 +26,9 @@
 /storage/framework/sessions
 /storage/framework/views
 /vendor
-bootstrap/cache/*.php
-Homestead.json
-Homestead.yaml
-Thumbs.db
+/bootstrap/cache/*.php
+
+# Frontend
+/frontend/node_modules/
+/frontend/dist/
+/frontend/.vite/

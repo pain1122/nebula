@@ -1,47 +1,66 @@
 # Checkupino (Nebula)
 
-Laravel 12 medical checkup and consultation platform with:
-- Blade + Vite web UI (current primary runtime)
-- Sanctum-based API for auth, booking, admin, and questionnaires
-- Optional React workspace in `frontend/` for panel/public questionnaire UIs
+Laravel 12 medical checkup and consultation platform.
 
-## Current Scope (Implemented)
+Current primary runtime:
+- Laravel Blade web UI with root Vite assets.
+- Sanctum-backed API for auth, booking, admin, doctor, profile, and questionnaire flows.
+- Docker local stack with Nginx, PHP-FPM, MySQL, and Redis.
 
-- Authentication: Laravel Breeze (web) + Sanctum token auth (API)
-- Roles/permissions: Spatie Permission (`admin`, `doctor`, `user`, `patient`)
-- Booking domain: checkup categories, checkups, doctor profiles, reservations, payments
-- Admin panel (Blade): specialties, checkup categories, checkups
-- Doctor panel (Blade): dashboard, profile edit, service selection
-- Questionnaire domain (API + React pages): questionnaire CRUD, public submission, admin submissions
+Parked frontend workspace:
+- `frontend/` currently contains a Velzon React-TS Create React App template.
+- It is not the canonical production admin/client surface yet.
+- Treat it as a future rebuild workspace until the `/panel/*` SPA boundary and auth flow are wired intentionally.
+
+## Current Scope
+
+Implemented backend/domain foundations:
+- Authentication: Laravel Breeze web auth plus Sanctum API token auth.
+- Roles/permissions: Spatie Permission with `admin`, `doctor`, and `patient` roles.
+- Role source of truth: Spatie role tables only. The legacy `users.role` column has been migrated out.
+- User classification: public/free-form captures live in `leads`; authenticated users with the patient role are patients.
+- Patient lifecycle flag: nullable `users.patient_status` for values such as `free`, `trial`, `active`, `expired`, and `suspended`.
+- Booking domain: checkup categories, checkups, doctor profiles, reservations, payments, and the `checkup_doctor` eligibility pivot.
+- Admin Blade panel: specialties, checkup categories, checkups.
+- Doctor Blade panel: dashboard, profile edit, service selection.
+- Medical profile API: `user_profiles` table plus `/api/auth/profile` endpoints.
+- Questionnaire domain: questionnaire CRUD, public submission, admin submissions, and lead creation for unknown submitters.
 
 ## Stack
 
-- Backend: PHP 8.3, Laravel 12
+- Backend: PHP 8.2+, Laravel 12
 - Database: MySQL 8
 - Cache/queue infra: Redis 7
-- Web server: Nginx + PHP-FPM (Docker)
-- Frontend (root): Blade + Tailwind + Vite
-- Frontend (optional workspace): React 19 + TypeScript + Vite
+- Web server: Nginx + PHP-FPM through Docker
+- Root frontend: Blade + Tailwind + Laravel Vite
+- Optional frontend workspace: React 18 + TypeScript + Bootstrap + CRA via Velzon template
+- Auth packages: Laravel Sanctum, Laravel Breeze, Spatie Laravel Permission
 
 ## Repository Layout
 
-- `app/` domain models, controllers, requests, services
-- `routes/` web + api + admin + doctor route groups
-- `database/migrations/` schema
-- `database/seeders/` local roles/users/domain seed data
+- `app/Enums/` role enums and other explicit value sets
+- `app/Http/Controllers/` web and API controllers
+- `app/Http/Requests/` form request validation
+- `app/Models/` Eloquent models
+- `app/Policies/` authorization policies
+- `app/Services/` shared domain services
+- `routes/` web, API, admin, and doctor routes
+- `database/migrations/` schema migrations
+- `database/seeders/` local roles, users, and domain seed data
 - `resources/views/` Blade UI
-- `resources/js` and `resources/css` Vite entrypoints
+- `resources/js/` and `resources/css/` root Vite entrypoints
+- `frontend/` separate parked Velzon React-TS CRA workspace
+- `docs/` architecture notes and ADRs
 - `docker/` Dockerfiles and Nginx config
-- `frontend/` separate React app workspace
 
-## 🚀 Local Installation
+## Local Installation
 
 This project is designed for Docker-based local development.
 
 ### 1) Requirements
 
-- Docker Desktop (with Compose v2)
-- Node.js 20.19+ (recommended for Vite 7)
+- Docker Desktop with Compose v2
+- Node.js 20.19+ for the root Vite toolchain
 - Git
 
 ### 2) Clone
@@ -57,7 +76,7 @@ cd checkupino
 cp .env.example .env
 ```
 
-Verify these values in `.env`:
+Verify these values in `.env` for Docker-based Laravel commands:
 
 ```env
 APP_URL=http://localhost:8080
@@ -77,6 +96,11 @@ CACHE_STORE=file
 QUEUE_CONNECTION=database
 ```
 
+Important local rule:
+- `DB_HOST=db` only resolves inside the Docker network.
+- Prefer `docker compose exec app php artisan ...` for Artisan commands.
+- If you run host-side PHP directly from Windows, use `DB_HOST=127.0.0.1` and `DB_PORT=3307` for that host process.
+
 ### 4) Start containers
 
 ```bash
@@ -85,9 +109,9 @@ docker compose ps
 ```
 
 Expected exposed ports:
-- App (nginx): `8080`
-- MySQL: `3307` (host) -> `3306` (container)
-- Redis: `6380` (host) -> `6379` (container)
+- App through Nginx: `http://localhost:8080`
+- MySQL host port: `3307` -> container `3306`
+- Redis host port: `6380` -> container `6379`
 
 ### 5) Install backend dependencies and bootstrap Laravel
 
@@ -109,7 +133,12 @@ Seeded local users:
 - `doctor@checkupino.test` / `Password123!`
 - `patient@checkupino.test` / `Password123!`
 
-### 7) Install and run Vite (root Blade frontend)
+Seeded roles:
+- `admin`
+- `doctor`
+- `patient`
+
+### 7) Install and run root Vite assets
 
 ```bash
 npm install
@@ -122,16 +151,20 @@ If you prefer production assets:
 npm run build
 ```
 
-If you see `Vite manifest not found at public/build/manifest.json`, run `npm run dev` or `npm run build`.
+If you see `Vite manifest not found at public/build/manifest.json`, run `npm run dev` or `npm run build` from the repository root.
 
 ### 8) Access URLs
 
 - App: `http://localhost:8080`
 - Login: `http://localhost:8080/login`
 - Dashboard: `http://localhost:8080/dashboard`
-- Admin panel: `http://localhost:8080/admin` (admin role)
-- Doctor panel: `http://localhost:8080/doctor` (doctor role)
+- Admin Blade panel: `http://localhost:8080/admin` with admin role
+- Doctor Blade panel: `http://localhost:8080/doctor` with doctor role
 - API base: `http://localhost:8080/api`
+
+Local-only debug route:
+- `/debug/res-last` is registered only when `APP_ENV=local`.
+- It must not appear in production route lists.
 
 ### 9) API quick smoke test
 
@@ -150,22 +183,53 @@ curl http://localhost:8080/api/auth/me \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
-### 10) Optional: run the separate React workspace (`frontend/`)
+### 10) Optional: run the parked React workspace
 
-Use this only if you are actively working on the React app:
+Use this only if you are actively exploring or rebuilding the Velzon React admin/client workspace:
 
 ```bash
 cd frontend
 npm install
-npm run dev
+npm start
 ```
 
-Important warning:
-- `frontend/vite.config.ts` currently builds into `../public` with `emptyOutDir: true`.
-- Running `npm run build` inside `frontend/` can wipe Laravel `public/` files (including `index.php`).
-- Do not run `frontend` build until this output strategy is adjusted.
+Current frontend workspace facts:
+- It is Create React App, not Vite.
+- It uses Bootstrap-oriented Velzon assets and template auth assumptions.
+- It may still reference demo/default API configuration until adapted.
+- Laravel API target for future local integration should be `http://localhost:8080/api`.
+- Do not treat `frontend/` as the canonical admin surface until the `/panel/*` route, API client, and Sanctum session/cookie auth contract are implemented.
+
+## Useful Commands
+
+```bash
+# app shell
+docker compose exec app bash
+
+# routes
+docker compose exec app php artisan route:list --except-vendor
+
+# production route sanity check
+docker compose exec app php artisan route:list --except-vendor --env=production
+
+# tests
+docker compose exec app php artisan test
+
+# role/schema check
+docker compose exec db mysql -ucheckupino -pcheckupino_pass checkupino -e "SELECT id, name, guard_name FROM roles ORDER BY name; SHOW COLUMNS FROM users LIKE 'role';"
+
+# stop containers
+docker compose down
+
+# full reset, including DB volume
+docker compose down -v
+```
 
 ## Troubleshooting
+
+- `php_network_getaddresses: getaddrinfo for db failed` from host PHP:
+  - You ran Artisan on the host while `.env` points to Docker-only `DB_HOST=db`.
+  - Run `docker compose exec app php artisan ...`, or temporarily use host DB settings: `DB_HOST=127.0.0.1`, `DB_PORT=3307`.
 
 - `Please provide a valid cache path`:
   ```bash
@@ -178,36 +242,28 @@ Important warning:
   ```
   Then rerun migration command when MySQL is healthy.
 
-- Port conflicts (8080/3307/6380):
+- Port conflicts on `8080`, `3307`, or `6380`:
   - Stop conflicting local services or change host ports in `docker-compose.yml`.
 
-- Tests currently failing out of the box:
-  - `php artisan test` fails because `users` now requires `first_name`, `last_name`, `phone`, `birth_date`, and `NID`, while `database/factories/UserFactory.php` is still Breeze-default.
+- Missing Vite manifest:
+  - Run `npm run dev` or `npm run build` from the repository root, not from `frontend/`.
 
-## Useful Commands
+## Current Verification Snapshot
 
-```bash
-# app shell
-docker compose exec app bash
+As of 2026-06-03:
+- Backend tests pass: 25 tests, 61 assertions.
+- Runtime roles are `admin`, `doctor`, and `patient`.
+- `users.role` is not present in the migrated schema.
+- `/debug/res-last` is local-only and excluded from production route lists.
 
-# routes
-docker compose exec app php artisan route:list
+## Known Gaps
 
-# tests
-docker compose exec app php artisan test
-
-# stop
-docker compose down
-
-# full reset (containers + DB volume)
-docker compose down -v
-```
-
-## Known Gaps (Workspace Snapshot)
-
-- API routes reference `AuthController@registerPatient` and `AuthController@refresh`, but those methods are not present in `app/Http/Controllers/Api/AuthController.php`.
-- Blade views for booking (`front.booking.*`) are referenced by routes/controllers but are missing under `resources/views/front/booking/`.
-- `doctor.services.edit` view file exists in the wrong location: `app/Http/Controllers/Doctor/services/edit.blade.php` instead of `resources/views/doctor/services/edit.blade.php`.
-- `DoctorProfileSeeder` and `DoctorServicesSeeder` target `doc@checkupino.local`, but `LocalUsersSeeder` creates `doctor@checkupino.test`.
-
-
+Next technical gaps are architectural/product work, not boot blockers:
+- First-party browser SPA auth still needs Sanctum session/cookie implementation.
+- Parked React admin/client workspace still needs route ownership, API client consolidation, and auth cleanup.
+- Booking runtime still needs full `checkup_doctor` pivot enforcement.
+- Reservation creation still needs generated-slot enforcement.
+- Web/API booking rules should be consolidated into a shared domain service.
+- Reservation/payment lifecycle and callbacks need deterministic status transitions.
+- API response envelopes are not fully uniform yet, especially around public questionnaire endpoints.
+- Reservation policy behavior needs enum-safe tests.

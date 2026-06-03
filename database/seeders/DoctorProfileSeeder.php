@@ -11,7 +11,7 @@ class DoctorProfileSeeder extends Seeder
 {
     public function run(): void
     {
-        $user = User::where('email','doc@checkupino.local')->first();
+        $user = User::whereIn('email', ['doctor@checkupino.test', 'doc@checkupino.local'])->first();
         if (!$user) return;
 
         // یک تخصص مناسب انتخاب کنیم (ترجیحاً فرزندِ قلب)

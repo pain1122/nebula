@@ -42,4 +42,14 @@ class DoctorProfile extends Model
         return $this->hasMany(\App\Models\Reservation::class, 'doctor_profile_id');
     }
 
+    public function checkups()
+    {
+        return $this->belongsToMany(
+            \App\Models\Checkup::class,
+            'checkup_doctor',
+            'doctor_profile_id',
+            'checkup_id'
+        )->withTimestamps();
+    }
+
 }

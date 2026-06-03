@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use App\Enums\UserRole;
 
 class LocalUsersSeeder extends Seeder
 {
@@ -51,9 +52,9 @@ class LocalUsersSeeder extends Seeder
 
         // اگر Spatie Roles دارید:
         if (method_exists($admin, 'assignRole')) {
-            $admin->assignRole('admin');
-            $doctor->assignRole('doctor');
-            $patient->assignRole('patient');
+            $admin->assignRole(UserRole::Admin->value);
+            $doctor->assignRole(UserRole::Doctor->value);
+            $patient->assignRole(UserRole::Patient->value);
         }
     }
 }

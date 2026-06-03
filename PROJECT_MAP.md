@@ -1,76 +1,107 @@
 # Project Map - Checkupino (Nebula)
 
-Snapshot date: 2026-02-20
+Snapshot date: 2026-06-03
 
 ## 1) Project Reality
 
-Checkupino is currently a Laravel 12 monolith with two UI tracks:
-- Primary runtime: Blade + Vite (`resources/views`, `resources/js`, `resources/css`)
-- Secondary workspace: React + Vite (`frontend/`), partially integrated and still risky to build
+Checkupino is currently a Laravel 12 medical platform with a stable backend foundation and a frontend transition in progress.
+
+Current primary runtime:
+- Blade + Laravel Vite for server-rendered web pages.
+- Sanctum API routes for auth, booking, profiles, admin, doctor, and questionnaires.
+- Docker local environment with Nginx, PHP-FPM, MySQL, and Redis.
+
+Target UI direction:
+- Admin web app: React + Bootstrap under `/panel/*`.
+- Client/public web app: React + Tailwind.
+- Current `frontend/` folder is a parked Velzon React-TS CRA template, not the canonical production UI yet.
 
 Core implemented domains:
-- Auth + roles (Breeze + Sanctum + Spatie Permission)
-- Booking (checkups, doctors, reservations, payments)
-- Admin CRUD (specialties, checkup categories, checkups)
-- Doctor profile/services
-- Questionnaire API + React questionnaire pages
+- Auth + roles: Breeze + Sanctum + Spatie Permission.
+- Role authority: Spatie only. `users.role` has been removed from the active schema.
+- Patient/lead model: unknown public submitters become `leads`; registered patients are users with the `patient` Spatie role.
+- Booking: checkups, doctors, reservations, payments, and the `checkup_doctor` pivot foundation.
+- Admin CRUD: specialties, checkup categories, checkups, users, reservations, questionnaires.
+- Doctor profile/services.
+- Medical user profile via `user_profiles`.
+- Questionnaire API + public submission + lead capture.
 
 ## 2) High-Signal Paths (Load First)
 
+- `CODEX_RULES.md`
+- `TODO.md`
+- `README.md`
+- `PROJECT_MAP.md`
+- `docs/adr/ADR-0001-ui-auth-role-architecture.md`
+- `docs/architecture/boundaries.md`
 - `routes/web.php`
 - `routes/api.php`
 - `routes/admin.php`
 - `routes/doctor.php`
+- `app/Enums/UserRole.php`
 - `app/Http/Controllers/`
 - `app/Models/`
+- `app/Policies/`
 - `app/Services/SchedulingService.php`
 - `database/migrations/`
 - `database/seeders/`
-- `resources/views/`
+- `tests/TestCase.php`
 - `docker-compose.yml`
-- `docker/php/Dockerfile`
-- `docker/nginx/default.conf`
-- `composer.json`
-- `package.json`
 
 ## 3) Low-Signal / Heavy Paths (Skip by Default)
 
 These are the main context-window sinks:
-- `frontend/public/assets/` (~134 MB, thousands of vendored/static files)
-- `frontend/public/` overall (~145 MB)
-- `vendor/` (~54 MB)
-- `node_modules/` (~63 MB)
-- Generated caches/builds (`public/build`, `storage/framework/*`, etc.)
+- `frontend/public/assets/` and other vendored template assets.
+- `frontend/src/pages/` when not working on the frontend rebuild.
+- `vendor/`.
+- `node_modules/`.
+- Generated caches/builds such as `public/build` and `storage/framework/*`.
 
-Unless debugging static asset issues, avoid loading these first.
+Unless debugging static assets or template migration issues, avoid loading these first.
 
 ## 4) Route Surface
 
-Web (session auth):
-- Public root: `/`
-- User profile/dashboard: `/dashboard`, `/profile`
-- Booking pages: `/book*`, `/my/reservations`
-- Admin Blade panel: `/admin/*` (middleware `auth`, `verified`, `role:admin`)
-- Doctor Blade panel: `/doctor/*` (middleware `auth`, `verified`, `role:doctor`)
+Web routes using session auth:
+- Public root: `/`.
+- User dashboard/profile: `/dashboard`, `/profile`.
+- Booking pages: `/book*`, `/my/reservations`.
+- Admin Blade panel: `/admin/*` with `auth`, `verified`, and enum-backed admin role middleware.
+- Doctor Blade panel: `/doctor/*` with `auth`, `verified`, and enum-backed doctor role middleware.
+- Local debug: `/debug/res-last`, registered only in local env.
 
-API (Sanctum):
-- `/api/auth/*` login/logout/profile/me
-- `/api/checkups*`, `/api/reservations*`
-- `/api/doctor/*` doctor-side reservation/profile endpoints
-- `/api/admin/*` users, doctors verify, reservations, questionnaires, submissions
-- Public questionnaire endpoints: `/api/questionnaires*`
+API routes using Sanctum:
+- `/api/auth/*` for register, doctor register, login, refresh, logout, profile, and me.
+- `/api/checkups*`, `/api/reservations*`, `/api/my/reservations`.
+- `/api/doctor/*` for doctor profile and reservation workflows.
+- `/api/admin/*` for users, doctor verification, reservations, questionnaires, and submissions.
+- Public questionnaire endpoints: `/api/questionnaires*`.
+
+Role middleware strategy:
+- Role names come from `App\Enums\UserRole`.
+- API role checks specify the `sanctum` guard.
+- Spatie roles are seeded as `admin`, `doctor`, and `patient`.
 
 ## 5) Data Model Clusters
 
 Identity and auth:
-- `users` + Spatie permission tables + `personal_access_tokens`
+- `users`
 - `user_profiles`
+- `leads`
+- Spatie permission tables
+- `personal_access_tokens`
+
+User classification:
+- `leads`: anonymous/free-form public captures and unconverted prospects.
+- `users` + `patient` role: authenticated patient accounts.
+- `users.patient_status`: nullable patient lifecycle/capability flag.
+- No active `users.role` column.
 
 Medical booking:
 - `specialties`
 - `doctor_profiles`
 - `checkup_categories`
 - `checkups`
+- `checkup_doctor`
 - `reservations`
 - `reservation_notes`
 - `reservation_files`
@@ -82,53 +113,76 @@ Questionnaires:
 - `questionnaire_choices`
 - `questionnaire_recommendations`
 - `questionnaire_submissions`
+- `leads` linked to questionnaire submissions when submitters are not registered users
 
 ## 6) Local Runtime Topology
 
 Defined in `docker-compose.yml`:
-- `app` (PHP-FPM, code mounted at `/var/www`)
-- `nginx` (host `8080` -> container `80`)
-- `db` MySQL (host `3307` -> container `3306`)
-- `redis` (host `6380` -> container `6379`)
+- `app`: PHP-FPM, code mounted at `/var/www`.
+- `nginx`: host `8080` -> container `80`.
+- `db`: MySQL host `3307` -> container `3306`.
+- `redis`: host `6380` -> container `6379`.
 
-Important env defaults in `.env.example`:
+Important env defaults for Docker-run Laravel:
+- `APP_URL=http://localhost:8080`
 - `DB_HOST=db`
 - `DB_PORT=3306`
 - `REDIS_HOST=redis`
-- `APP_URL=http://localhost:8080`
 
-## 7) Known Breakpoints (Current)
+Important host-side caveat:
+- `db` is a Docker network hostname.
+- If running PHP directly on Windows, use `127.0.0.1:3307` for MySQL instead.
 
-1. Route-method mismatch:
-- `routes/api.php` references `AuthController@registerPatient` and `AuthController@refresh`
-- `app/Http/Controllers/Api/AuthController.php` does not implement those methods
+## 7) Frontend State
 
-2. Missing booking Blade views:
-- `Front\BookingController` returns `front.booking.*`
-- `resources/views/front/booking/*` does not exist
+Root frontend:
+- Active for Blade pages.
+- Uses Laravel Vite from root `package.json`.
+- Root build output is Laravel's normal `public/build`.
 
-3. Doctor services view in wrong path:
-- Present: `app/Http/Controllers/Doctor/services/edit.blade.php`
-- Expected: `resources/views/doctor/services/edit.blade.php`
+`frontend/` workspace:
+- Current source is Velzon React-TS Create React App.
+- Script is `npm start`, not `npm run dev`.
+- It is Bootstrap/template-heavy and still contains default template API/auth assumptions.
+- Local Laravel API target should eventually be `http://localhost:8080/api`.
+- Do not use this folder as the source of architectural truth until Phase 3/4 work reconnects it intentionally.
 
-4. Seeder mismatch:
-- `LocalUsersSeeder` creates `doctor@checkupino.test`
-- `DoctorProfileSeeder` / `DoctorServicesSeeder` search for `doc@checkupino.local`
+## 8) Current Verification Snapshot
 
-5. Tests failing:
-- `users` table has new NOT NULL profile fields
-- `database/factories/UserFactory.php` still uses Breeze default fields
+As of 2026-06-03:
+- `php artisan test` passes with 25 tests and 61 assertions.
+- `tests/TestCase.php` disables Vite and seeds core roles during feature tests.
+- Production route list excludes `/debug/res-last`.
+- Roles table contains `admin`, `doctor`, and `patient`.
+- Migrated `users` schema has no `role` column.
 
-6. Frontend build hazard:
-- `frontend/vite.config.ts` outputs to `../public` with `emptyOutDir: true`
-- Running `frontend` build can delete Laravel public entry files
+## 9) Current Open Risks
 
-## 8) Recommended Scan Order (Future Sessions)
+1. Booking eligibility source:
+- `checkup_doctor` exists, but runtime booking still needs to enforce it consistently.
 
-1. Read `README.md` and this `PROJECT_MAP.md`
-2. Read route files (`routes/*.php`)
-3. Read controllers directly referenced by those routes
-4. Read related models + service classes
-5. Read migrations/seeders for schema and local credentials
-6. Only then open `resources/views` or `frontend/src` based on the target task
-7. Avoid `frontend/public/assets`, `vendor`, and `node_modules` unless explicitly needed
+2. Slot validity:
+- Reservation creation checks conflicts, but must also prove the requested slot came from generated availability.
+
+3. Domain duplication:
+- Web and API booking controllers still need shared booking decision logic.
+
+4. Reservation/payment lifecycle:
+- Payment callbacks and deterministic status transitions are not finished.
+
+5. API response contracts:
+- API envelope consistency still needs tests and cleanup, especially questionnaire public responses.
+
+6. Frontend boundary:
+- React admin/client boundaries, route ownership, CSS separation, and cookie/session auth are planned but not complete.
+
+## 10) Recommended Scan Order (Future Sessions)
+
+1. Read `CODEX_RULES.md`, `TODO.md`, `README.md`, and this `PROJECT_MAP.md`.
+2. Read ADR/boundary docs under `docs/`.
+3. Read route files in `routes/`.
+4. Read controllers directly referenced by the target routes.
+5. Read related models, policies, services, migrations, and seeders.
+6. Read tests relevant to the target behavior.
+7. Open `resources/views` or `frontend/src` only when the task is UI-specific.
+8. Avoid `frontend/public/assets`, `vendor`, and `node_modules` unless explicitly needed.

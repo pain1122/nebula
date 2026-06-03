@@ -2,11 +2,12 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\UserRole;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreCheckupRequest extends FormRequest
 {
-    public function authorize(): bool { return auth()->check() && auth()->user()->hasRole('admin'); }
+    public function authorize(): bool { return auth()->check() && auth()->user()->hasRole(UserRole::Admin->value); }
 
     public function rules(): array {
         return [

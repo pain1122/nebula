@@ -4,10 +4,11 @@ namespace App\Http\Requests\Doctor;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use App\Enums\UserRole;
 
 class UpdateProfileRequest extends FormRequest
 {
-    public function authorize(): bool { return auth()->check() && auth()->user()->hasRole('doctor'); }
+    public function authorize(): bool { return auth()->check() && auth()->user()->hasRole(UserRole::Doctor->value); }
 
     public function rules(): array {
         return [

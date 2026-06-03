@@ -1,38 +1,43 @@
 # Codex Rules for Checkupino
 
-## Primary Rule (Non-Negotiable)
-- DO NOT modify any file automatically.
-- Only inspect, report issues, and propose exact changes as patches/snippets.
-- Wait for explicit confirmation before any edit.
+## Primary Rule
+- Default mode is inspect, explain, and propose exact changes without editing files.
+- Modify files only when the user explicitly asks for edits or approves a proposed change.
+- When edits are approved, keep them limited to the requested scope and verify them.
 
-## Project Reality (So you don’t assume wrong things)
-- Backend: Laravel (runs in Docker)
-- Frontend assets: Blade + Vite (Laravel Vite)
-- A separate React app may exist under `frontend/`, but the current UI also relies on Laravel Vite assets.
-- Local environment uses Docker (nginx + php-fpm + mysql + redis).
+## Project Reality
+- Backend: Laravel 12 running in Docker.
+- Root frontend assets: Blade + Laravel Vite.
+- Separate frontend workspace: `frontend/` currently holds a parked Velzon React-TS Create React App template.
+- Local environment: Docker with Nginx, PHP-FPM, MySQL, and Redis.
+- Local app URL: `http://localhost:8080`.
+- Local API base: `http://localhost:8080/api`.
 
-## What to do
-- Identify bugs, security issues, missing env/config, broken imports, and Windows→Linux case-sensitivity risks.
-- Provide step-by-step fix instructions.
-- Provide minimal diffs (unified diff) or file snippets with exact file paths and where to paste them.
-- When suggesting commands, assume Docker:
+## What To Do
+- Identify bugs, security issues, missing env/config, broken imports, stale docs, and Windows-to-Linux case-sensitivity risks.
+- Explain why a change is needed before broad edits.
+- Prefer small, verifiable changes.
+- When suggesting backend commands, assume Docker by default:
+  - `docker compose exec app php artisan ...`
   - `docker compose exec app bash`
-  - `php artisan ...`
+- Remember that `DB_HOST=db` works inside Docker, not from host-side PHP.
 
-## What NOT to do
-- Do not rename files/folders automatically.
+## What Not To Do
+- Do not rename files/folders automatically without explicit approval.
 - Do not change routes/components silently.
 - Do not generate large refactors without a plan and approval.
 - Do not invent credentials, API keys, or production settings.
+- Do not treat `frontend/` as production-ready until the frontend rebuild phase wires routing, auth, and API clients intentionally.
 
-## Required output format
-1) Problem summary
-2) Where it happens (file paths + line hints)
-3) Why it breaks (especially Linux deploy risks)
-4) Proposed fix (snippets/diff + exact commands)
-5) Verification steps (how to confirm the fix)
+## Preferred Report Format For Reviews
+1. Problem summary.
+2. Where it happens, with file paths and line hints.
+3. Why it breaks, especially Linux deploy or runtime risks.
+4. Proposed fix, using snippets or diffs.
+5. Verification steps.
 
-## Known setup pitfalls (mention these when relevant)
-- Missing Vite manifest: `public/build/manifest.json` (fixed by `npm run dev` or `npm run build`)
-- Laravel cache path issues on fresh clones (ensure `storage/framework/*` exists and is writable)
-- Database is empty until seeding is run (`php artisan db:seed` or `php artisan migrate:fresh --seed`)
+## Known Setup Pitfalls
+- Missing Vite manifest: `public/build/manifest.json`, fixed by running root `npm run dev` or `npm run build`.
+- Laravel cache path issues on fresh clones: ensure `storage/framework/*` and `bootstrap/cache` exist and are writable.
+- Database is empty until migrations/seeders run: use `docker compose exec app php artisan migrate --seed`.
+- Host PHP cannot resolve Docker hostname `db`; run Artisan inside Docker or use host MySQL port `3307`.

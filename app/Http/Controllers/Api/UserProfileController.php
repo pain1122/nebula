@@ -13,7 +13,7 @@ class UserProfileController extends ApiController
      */
     public function show(Request $request)
     {
-        $user = $request->user()->load('profile');
+        $user = $request->user()->load(['profile', 'roles']);
 
         /** @var UserProfile|null $profile */
         $profile = $user->profile;
@@ -25,25 +25,27 @@ class UserProfileController extends ApiController
                     // ولی من صریحاً فیلدهای جدید را هم اضافه می‌کنم که مطمئن باشیم به فرانت می‌رسد
                     ...$this->formatUser($user),
 
-                    'role'       => $user->role,
+                    'role' => $user->roles->pluck('name')->first(),
+                    'roles' => $user->roles->pluck('name'),
                     'first_name' => $user->first_name,
-                    'last_name'  => $user->last_name,
-                    'phone'      => $user->phone,
-                    'email'      => $user->email,
+                    'last_name' => $user->last_name,
+                    'phone' => $user->phone,
+                    'email' => $user->email,
                     'birth_date' => $user->birth_date?->format('Y-m-d'),
-                    'NID'        => $user->NID,
+                    'NID' => $user->NID,
 
-                    'city'       => $user->city,
-                    'country'    => $user->country,
-                    'zip_code'   => $user->zip_code,
-                    'bio'        => $user->bio,
+                    'city' => $user->city,
+                    'country' => $user->country,
+                    'zip_code' => $user->zip_code,
+                    'bio' => $user->bio,
+                    'patient_status' => $user->patient_status,
                 ],
 
                 'profile' => $profile ? [
-                    'blood_type'              => $profile->blood_type,
-                    'allergies'               => $profile->allergies,
-                    'chronic_diseases'        => $profile->chronic_diseases,
-                    'emergency_contact_name'  => $profile->emergency_contact_name,
+                    'blood_type' => $profile->blood_type,
+                    'allergies' => $profile->allergies,
+                    'chronic_diseases' => $profile->chronic_diseases,
+                    'emergency_contact_name' => $profile->emergency_contact_name,
                     'emergency_contact_phone' => $profile->emergency_contact_phone,
                 ] : null,
             ],
@@ -61,7 +63,7 @@ class UserProfileController extends ApiController
         // 1) validate user core fields (required)
         $userData = $request->validate([
             'first_name' => ['required', 'string', 'max:100'],
-            'last_name'  => ['required', 'string', 'max:100'],
+            'last_name' => ['required', 'string', 'max:100'],
 
             // اگر می‌خواهی شماره تلفن/کدملی در سیستم unique باشد:
             // در migration گفتی unique می‌شود، پس validation هم باید unique باشد و رکورد خودش exclude شود
@@ -82,10 +84,10 @@ class UserProfileController extends ApiController
             ],
 
             // optional user fields
-            'city'     => ['nullable', 'string', 'max:120'],
-            'country'  => ['nullable', 'string', 'max:120'],
+            'city' => ['nullable', 'string', 'max:120'],
+            'country' => ['nullable', 'string', 'max:120'],
             'zip_code' => ['nullable', 'string', 'max:20'],
-            'bio'      => ['nullable', 'string', 'max:2000'],
+            'bio' => ['nullable', 'string', 'max:2000'],
 
             // role را در پروفایل کاربر عادی اجازه تغییر نمی‌دهیم
             // اگر لازم شد، یک endpoint ادمین جدا می‌زنیم
@@ -93,10 +95,10 @@ class UserProfileController extends ApiController
 
         // 2) validate medical profile fields (nullable)
         $profileData = $request->validate([
-            'blood_type'              => ['nullable', 'string', 'max:10'],
-            'allergies'               => ['nullable', 'string', 'max:1000'],
-            'chronic_diseases'        => ['nullable', 'string', 'max:1000'],
-            'emergency_contact_name'  => ['nullable', 'string', 'max:255'],
+            'blood_type' => ['nullable', 'string', 'max:10'],
+            'allergies' => ['nullable', 'string', 'max:1000'],
+            'chronic_diseases' => ['nullable', 'string', 'max:1000'],
+            'emergency_contact_name' => ['nullable', 'string', 'max:255'],
             'emergency_contact_phone' => ['nullable', 'string', 'max:50'],
         ]);
 
@@ -111,23 +113,25 @@ class UserProfileController extends ApiController
         $profile->user_id = $user->id;
         $profile->save();
 
-        $freshUser = $user->fresh()->load('profile');
+        $freshUser = $user->fresh()->load(['profile', 'roles']);
 
         return $this->successResponse(
             data: [
                 'user' => [
                     ...$this->formatUser($freshUser),
-                    'role'       => $freshUser->role,
+                    'role' => $freshUser->roles->pluck('name')->first(),
+                    'roles' => $freshUser->roles->pluck('name'),
                     'first_name' => $freshUser->first_name,
-                    'last_name'  => $freshUser->last_name,
-                    'phone'      => $freshUser->phone,
-                    'email'      => $freshUser->email,
+                    'last_name' => $freshUser->last_name,
+                    'phone' => $freshUser->phone,
+                    'email' => $freshUser->email,
                     'birth_date' => $freshUser->birth_date?->format('Y-m-d'),
-                    'NID'        => $freshUser->NID,
-                    'city'       => $freshUser->city,
-                    'country'    => $freshUser->country,
-                    'zip_code'   => $freshUser->zip_code,
-                    'bio'        => $freshUser->bio,
+                    'NID' => $freshUser->NID,
+                    'city' => $freshUser->city,
+                    'country' => $freshUser->country,
+                    'zip_code' => $freshUser->zip_code,
+                    'bio' => $freshUser->bio,
+                    'patient_status' => $freshUser->patient_status,
                 ],
                 'profile' => $freshUser->profile,
             ],

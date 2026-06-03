@@ -4,12 +4,14 @@ namespace App\Policies;
 
 use App\Models\Reservation;
 use App\Models\User;
+use App\Enums\UserRole;
+
 
 class ReservationPolicy
 {
     public function view(User $user, Reservation $reservation): bool
     {
-        return $user->hasRole('admin')
+        return $user->hasRole(UserRole::Admin->value)
             || $reservation->user_id === $user->id
             || $reservation->doctor?->user_id === $user->id;
     }
@@ -17,7 +19,7 @@ class ReservationPolicy
     public function update(User $user, Reservation $reservation): bool
     {
         // فعلاً: ادمین یا خود دکتر
-        return $user->hasRole('admin')
+        return $user->hasRole(UserRole::Admin->value)
             || $reservation->doctor?->user_id === $user->id;
     }
 
@@ -27,7 +29,7 @@ class ReservationPolicy
             return false;
         }
 
-        return $user->hasRole('admin')
+        return $user->hasRole(UserRole::Admin->value)
             || $reservation->doctor?->user_id === $user->id
             || $reservation->user_id === $user->id;
     }
@@ -38,7 +40,7 @@ class ReservationPolicy
             return false;
         }
 
-        return $user->hasRole('admin')
+        return $user->hasRole(UserRole::Admin->value)
             || $reservation->doctor?->user_id === $user->id;
     }
 }

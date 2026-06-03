@@ -35,6 +35,7 @@ class User extends Authenticatable
         'country',
         'zip_code',
         'bio',
+        'patient_status',
         'tenant_id',
     ];
 

@@ -1,5 +1,7 @@
 <?php
 
+
+use App\Enums\UserRole;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Admin\SpecialtyController;
@@ -7,7 +9,7 @@ use App\Http\Controllers\Admin\CheckupCategoryController;
 use App\Http\Controllers\Admin\CheckupController;
 
 
-Route::middleware(['auth','verified','role:admin'])
+Route::middleware(['auth','verified','role:' . UserRole::Admin->value])
     ->prefix('admin')->name('admin.')
     ->group(function () {
         Route::get('/', [AdminDashboard::class,'__invoke'])->name('dashboard');

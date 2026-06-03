@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Questionnaire;
 use App\Models\QuestionnaireSubmission;
+use App\Models\Lead;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -164,6 +165,27 @@ class PublicQuestionnaireController extends Controller
                 'result_title' => $rec?->title,
                 'result_body_html' => $rec?->body_html,
             ]);
+
+            if(!$user){
+                Lead::updateOrCreate(
+                    [
+                        'phone' => $payload['submitter_phone'],
+                        'source' => 'questionnaire',
+                        'source_key' => $q->slug,
+                    ],
+                    [
+                        'name' => $payload['submitter_name'],
+                        'status' => 'new',
+                        'questionnaire_submission_id' => $submission->id,
+                        'meta' => [
+                            'questionnaire_id' => $q->id,
+                            'questionnaire_title' => $q->title,
+                            'total_score' => $total,
+                            'result_title' => $rec?->title,
+                        ],
+                    ]
+                );
+            }
 
             return response()->json([
                 'submission_id' => $submission->id,

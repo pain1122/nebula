@@ -11,7 +11,7 @@ class DoctorServicesSeeder extends Seeder
 {
     public function run(): void
     {
-        $user = User::where('email','doc@checkupino.local')->first();
+        $user = User::whereIn('email', ['doctor@checkupino.test', 'doc@checkupino.local'])->first();
         if (!$user) return;
 
         $profile = DoctorProfile::where('user_id',$user->id)->first();

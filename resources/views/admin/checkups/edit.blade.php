@@ -3,8 +3,9 @@
         <h2 class="font-semibold text-xl">ایجاد چکاپ</h2>
     </x-slot>
     <div class="max-w-xl mx-auto p-4">
-        <form method="POST" action="{{ route('admin.checkups.store') }}" class="bg-white p-4 rounded shadow space-y-3">
+        <form method="POST" action="{{ route('admin.checkups.update', $item) }}" class="bg-white p-4 rounded shadow space-y-3">
             @csrf
+            @method('PUT')
             <div>
                 <label class="block mb-1">دسته</label>
                 <select name="checkup_category_id" class="w-full border rounded p-2">

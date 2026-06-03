@@ -1,5 +1,7 @@
 <?php
 
+
+use App\Enums\UserRole;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\MeController;
@@ -51,7 +53,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 });
 
-Route::middleware(['auth:sanctum', 'role:admin,sanctum'])
+Route::middleware(['auth:sanctum', 'role:' . UserRole::Admin->value . ',sanctum'])
     ->prefix('admin')
 
     ->group(function () {
@@ -78,7 +80,7 @@ Route::middleware(['auth:sanctum', 'role:admin,sanctum'])
     });
 
 
-Route::middleware(['auth:sanctum', 'role:doctor'])
+Route::middleware(['auth:sanctum', 'role:' . UserRole::Doctor->value . ',sanctum'])
     ->prefix('doctor')
     ->group(function () {
         Route::get('/profile', [DoctorProfileController::class, 'show']);

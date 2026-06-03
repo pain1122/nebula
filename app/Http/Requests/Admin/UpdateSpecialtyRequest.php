@@ -3,10 +3,11 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use App\Enums\UserRole;
 
 class UpdateSpecialtyRequest extends FormRequest
 {
-    public function authorize(): bool { return auth()->check() && auth()->user()->hasRole('admin'); }
+    public function authorize(): bool { return auth()->check() && auth()->user()->hasRole(UserRole::Admin->value); }
 
     public function rules(): array {
         $id = $this->route('specialty')->id ?? null;

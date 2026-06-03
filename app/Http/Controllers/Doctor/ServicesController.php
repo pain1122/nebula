@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Http\Controllers\Doctor;
 
 use App\Http\Controllers\Controller;
@@ -13,13 +12,24 @@ class ServicesController extends Controller
     {
         $profile = auth()->user()->doctorProfile;
         $checkups = Checkup::with('category')->orderBy('title')->get();
-        return view('doctor.services.edit', compact('profile','checkups'));
+
+        return view('doctor.services.edit', compact('profile', 'checkups'));
     }
 
-    public function update(Request $r)
+    public function update(Request $request)
     {
-        $ids = collect($r->input('checkups', []))->map(fn($i)=>(int)$i)->all();
-        auth()->user()->doctorProfile->checkups()->sync($ids);
-        return back()->with('status','سرویس‌ها به‌روزرسانی شد.');
+        $ids = collect($request->input('checkups', []))
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        $profile = auth()->user()->doctorProfile;
+
+        if (! $profile) {
+            return back()->withErrors(['profile' => 'Doctor profile not found.']);
+        }
+
+        $profile->checkups()->sync($ids);
+
+        return back()->with('status', 'Services updated successfully.');
     }
 }

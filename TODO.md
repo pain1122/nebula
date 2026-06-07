@@ -2,7 +2,7 @@
 
 Date locked: 2026-05-03
 Last assessed: 2026-06-07
-Assessment basis: repo inspection, `php artisan route:list --except-vendor` in local and production envs, `php artisan test`, database role/schema checks, and production Compose config validation.
+Assessment basis: repo inspection, `php artisan route:list --except-vendor` in local and production envs, `php artisan test`, database role/schema checks, production Compose config validation, Sanctum session smoke testing, and frontend Vite build/dev verification.
 
 ## Locked Decisions
 - [x] Admin panel UI stack: React + Bootstrap
@@ -24,8 +24,10 @@ Assessment basis: repo inspection, `php artisan route:list --except-vendor` in l
 - [x] `/debug/res-last` is local-only.
 - [x] Architecture docs exist under `docs/adr/` and `docs/architecture/`.
 - [x] `checkup_doctor` pivot migration and model relationships exist.
-- [x] Old frontend Vite workspace was replaced by the Velzon React-TS CRA template and is parked until the frontend rebuild phase.
+- [x] Old frontend Vite workspace was replaced by the Velzon React-TS template, then migrated from CRA/react-scripts back to Vite.
 - [x] Production Docker skeleton exists via `docker-compose.prod.yml`, `docker/prod/Dockerfile`, and `docs/deployment/docker-production.md`.
+- [x] Backend session-cookie auth contract works for first-party SPA calls: `/sanctum/csrf-cookie` -> JSON `POST /login` -> `/api/auth/me`.
+- [x] `frontend/` Vite dev server and production build are green.
 
 ## Working Principles
 - One business rule path per domain behavior. No duplicated controller logic.
@@ -93,7 +95,7 @@ Done when: allowed roles are consistent everywhere.
 Status: Database roles contain `admin`, `doctor`, and `patient`; old `user` role is gone.
 
 ## Phase 2.5 - Frontend Tooling Rebase: CRA to Vite
-Reason: `frontend/` is currently the Velzon React-TS Create React App template. Create React App is deprecated for new React work, and Phase 3 auth will touch env variables, routing, and Axios. Migrating to Vite first avoids wiring Sanctum auth against a toolchain we already intend to replace.
+Reason: `frontend/` was imported as the Velzon React-TS Create React App template. Create React App is deprecated for new React work, and Phase 3 auth will touch env variables, routing, and Axios. Migrating to Vite first avoids wiring Sanctum auth against a toolchain we already intended to replace.
 
 Guardrail: migrate tooling only. Do not redesign pages, trim menus, or rewrite auth logic in this phase except for mechanical env/build compatibility.
 
@@ -170,25 +172,28 @@ Done when: Vite build completes successfully.
 Status: `npm run build` succeeds. Remaining warning: large chunks from template/demo inventory.
 
 
-10. [ ] Update docs after migration.
+10. [x] Update docs after migration.
 Scope: update `README.md`, `PROJECT_MAP.md`, and this TODO section.
 Scope: mention that `frontend/` is now Velzon React-TS on Vite, still parked for Phase 3 auth wiring.
 Why: docs must say how to run the actual frontend toolchain.
 Done when: frontend commands in docs use Vite, not CRA.
+Status: Root README, project map, frontend README, and this TODO now describe `frontend/` as Vite-powered.
 
-11. [ ] Commit the tooling migration separately.
+11. [x] Commit the tooling migration separately.
 Scope: do not combine with Sanctum auth, route namespace, or UI cleanup.
 Why: a clean checkpoint makes later frontend auth bugs easier to isolate.
 Done when: Git history has a dedicated CRA-to-Vite migration commit.
+Status: Pushed as `6267c1b chore: migrate frontend template to vite`.
 
 ## Phase 3 - Session/Cookie First-Party SPA Integration
 1. [ ] Implement first-party SPA auth flow using Sanctum cookies.
 Scope: CSRF bootstrap endpoint usage.
 Scope: session-based login/logout/me flow for browser SPA.
 Done when: admin SPA operates without bearer token storage in localStorage.
+Status: Backend contract is ready and smoke-tested. Frontend still needs wiring to call `/sanctum/csrf-cookie`, JSON `POST /login`, `/api/auth/me`, and `POST /logout` with credentials.
 
 2. [ ] Remove browser-admin dependence on bearer tokens stored in browser storage.
-Evidence: The parked Velzon CRA template still carries template auth/localStorage patterns and is not yet wired to the Laravel session-first contract.
+Evidence: The parked Velzon Vite template still carries template auth/sessionStorage/token patterns and is not yet wired to the Laravel session-first contract.
 Done when: `/panel/*` authenticated calls use cookie/session auth.
 
 3. [ ] Keep bearer token flow for mobile/external clients only.
@@ -208,7 +213,7 @@ Evidence: Blade `/admin/*` remains active while the React admin surface is parke
 Done when: non-canonical admin UI paths are deprecated, redirected, or explicitly legacy.
 
 2. [ ] Fix React route/auth path drift.
-Evidence: The current `frontend/` is a Velzon React-TS CRA template and still contains template routing/auth assumptions.
+Evidence: The current `frontend/` is a Velzon React-TS Vite template and still contains template routing/auth assumptions.
 Done when: all redirects and links resolve inside the canonical route map.
 
 3. [ ] Consolidate shared frontend API client utilities.

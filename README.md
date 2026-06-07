@@ -8,7 +8,7 @@ Current primary runtime:
 - Docker local stack with Nginx, PHP-FPM, MySQL, and Redis.
 
 Parked frontend workspace:
-- `frontend/` currently contains a Velzon React-TS Create React App template.
+- `frontend/` currently contains a Velzon React-TS template migrated from Create React App to Vite.
 - It is not the canonical production admin/client surface yet.
 - Treat it as a future rebuild workspace until the `/panel/*` SPA boundary and auth flow are wired intentionally.
 
@@ -33,7 +33,7 @@ Implemented backend/domain foundations:
 - Cache/queue infra: Redis 7
 - Web server: Nginx + PHP-FPM through Docker
 - Root frontend: Blade + Tailwind + Laravel Vite
-- Optional frontend workspace: React 18 + TypeScript + Bootstrap + CRA via Velzon template
+- Optional frontend workspace: React 18 + TypeScript + Bootstrap + Vite via Velzon template
 - Auth packages: Laravel Sanctum, Laravel Breeze, Spatie Laravel Permission
 
 ## Repository Layout
@@ -49,7 +49,7 @@ Implemented backend/domain foundations:
 - `database/seeders/` local roles, users, and domain seed data
 - `resources/views/` Blade UI
 - `resources/js/` and `resources/css/` root Vite entrypoints
-- `frontend/` separate parked Velzon React-TS CRA workspace
+- `frontend/` separate parked Velzon React-TS Vite workspace
 - `docs/` architecture notes and ADRs
 - `docker/` Dockerfiles and Nginx config
 
@@ -191,13 +191,17 @@ Use this only if you are actively exploring or rebuilding the Velzon React admin
 cd frontend
 npm install
 npm start
+# optional production build check
+npm run build
 ```
 
 Current frontend workspace facts:
-- It is Create React App, not Vite.
+- It is Vite-powered; the CRA/react-scripts toolchain has been removed.
 - It uses Bootstrap-oriented Velzon assets and template auth assumptions.
 - It may still reference demo/default API configuration until adapted.
-- Laravel API target for future local integration should be `http://localhost:8080/api`.
+- Vite dev server runs at `http://localhost:3000`.
+- Laravel backend target for future local integration is `http://localhost:8080`; Laravel API routes are under `http://localhost:8080/api`.
+- `frontend/vite.config.ts` currently carries a temporary `process.env.REACT_APP_*` compatibility bridge. Convert active frontend env usage to `import.meta.env.VITE_*` during Phase 3/4 cleanup.
 - Do not treat `frontend/` as the canonical admin surface until the `/panel/*` route, API client, and Sanctum session/cookie auth contract are implemented.
 
 ## Production Docker Skeleton
@@ -225,7 +229,7 @@ Important differences from local Docker:
 - No whole-project bind mount.
 - Laravel code, Composer dependencies, and root Vite assets are baked into images.
 - MySQL, Redis, and Laravel storage use named volumes.
-- The parked `frontend/` CRA template is excluded from the production image for now.
+- The parked `frontend/` Vite template is excluded from the production image for now.
 - Queue and scheduler containers are available through the optional `workers` profile.
 
 Health endpoint:
@@ -291,17 +295,20 @@ docker compose down -v
 
 ## Current Verification Snapshot
 
-As of 2026-06-03:
+As of 2026-06-07:
 - Backend tests pass: 25 tests, 61 assertions.
 - Runtime roles are `admin`, `doctor`, and `patient`.
 - `users.role` is not present in the migrated schema.
 - `/debug/res-last` is local-only and excluded from production route lists.
+- Backend Sanctum session-cookie smoke test passes for CSRF, JSON login, and `/api/auth/me`.
+- `frontend/` has been migrated from CRA/react-scripts to Vite and builds successfully.
+- `frontend` dev server runs at `http://localhost:3000`.
 
 ## Known Gaps
 
 Next technical gaps are architectural/product work, not boot blockers:
 - First-party browser SPA auth still needs Sanctum session/cookie implementation.
-- Parked React admin/client workspace still needs route ownership, API client consolidation, and auth cleanup.
+- Parked React admin/client workspace still needs route ownership, Vite-native env cleanup, API client consolidation, and auth cleanup.
 - Booking runtime still needs full `checkup_doctor` pivot enforcement.
 - Reservation creation still needs generated-slot enforcement.
 - Web/API booking rules should be consolidated into a shared domain service.

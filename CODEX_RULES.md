@@ -8,7 +8,8 @@
 ## Project Reality
 - Backend: Laravel 12 running in Docker.
 - Root frontend assets: Blade + Laravel Vite.
-- Separate frontend workspace: `frontend/` currently holds a parked Velzon React-TS Create React App template.
+- Separate frontend workspace: `frontend/` currently holds a parked Velzon React-TS Vite template.
+- `frontend/` is not production-ready yet; it still has Velzon demo routes, fake backend data, token-style auth assumptions, and a temporary CRA env compatibility bridge in `vite.config.ts`.
 - Local environment: Docker with Nginx, PHP-FPM, MySQL, and Redis.
 - Local app URL: `http://localhost:8080`.
 - Local API base: `http://localhost:8080/api`.
@@ -29,6 +30,7 @@
 - Do not generate large refactors without a plan and approval.
 - Do not invent credentials, API keys, or production settings.
 - Do not treat `frontend/` as production-ready until the frontend rebuild phase wires routing, auth, and API clients intentionally.
+- Do not remove fake backend/demo routes in the same commit as Sanctum auth unless explicitly requested.
 - Do not use local bind-mount Docker patterns as production deployment patterns.
 
 ## Preferred Report Format For Reviews

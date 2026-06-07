@@ -1,6 +1,6 @@
 # Project Map - Checkupino (Nebula)
 
-Snapshot date: 2026-06-03
+Snapshot date: 2026-06-07
 
 ## 1) Project Reality
 
@@ -144,10 +144,13 @@ Root frontend:
 - Root build output is Laravel's normal `public/build`.
 
 `frontend/` workspace:
-- Current source is Velzon React-TS Create React App.
-- Script is `npm start`, not `npm run dev`.
+- Current source is Velzon React-TS migrated from Create React App to Vite.
+- Scripts are Vite-backed: `npm start`/`npm run dev` for dev, `npm run build` for production build.
+- Dev server runs at `http://localhost:3000`.
 - It is Bootstrap/template-heavy and still contains default template API/auth assumptions.
-- Local Laravel API target should eventually be `http://localhost:8080/api`.
+- Local Laravel backend is `http://localhost:8080`; API routes live under `http://localhost:8080/api`.
+- Vite config currently has a temporary compatibility bridge for CRA-style `process.env.REACT_APP_*` and `process.env.PUBLIC_URL`.
+- Phase 2.5 Step 4 remains open: convert active frontend env usage to `import.meta.env.VITE_*`.
 - Do not use this folder as the source of architectural truth until Phase 3/4 work reconnects it intentionally.
 
 ## 8) Production Docker Skeleton
@@ -173,15 +176,38 @@ The parked `frontend/` Vite-powered Velzon React-TS template is excluded from th
 
 ## 9) Current Verification Snapshot
 
-As of 2026-06-03:
+As of 2026-06-07:
 - `php artisan test` passes with 25 tests and 61 assertions.
 - `tests/TestCase.php` disables Vite and seeds core roles during feature tests.
 - Production route list excludes `/debug/res-last`.
 - Roles table contains `admin`, `doctor`, and `patient`.
 - Migrated `users` schema has no `role` column.
 - `/healthz` exists for container health checks.
+- Backend Sanctum session-cookie smoke test passed: `/sanctum/csrf-cookie` -> JSON `POST /login` -> `/api/auth/me`.
+- Frontend Vite migration is pushed as `6267c1b chore: migrate frontend template to vite`.
+- `cd frontend && npm run build` succeeds.
+- `cd frontend && npm start` runs Vite on `localhost:3000`; template renders and redirects to `/login`.
+- Known frontend warnings: large chunks from full Velzon demo inventory; stale Browserslist/baseline data; Tailwind content warning is not an admin blocker yet.
 
-## 10) Current Open Risks
+## 10) Immediate Next Work
+
+1. Finish frontend env cleanup or consciously carry the bridge:
+- Replace active `process.env.REACT_APP_*` with `import.meta.env.VITE_*`.
+- Replace active `process.env.PUBLIC_URL` with `import.meta.env.BASE_URL` or a small helper.
+- Remove the temporary `define` bridge from `frontend/vite.config.ts` only after the search is clean.
+
+2. Wire Phase 3 frontend auth:
+- Create/use an Axios client with `withCredentials: true` and `Accept: application/json`.
+- Browser login flow should call `/sanctum/csrf-cookie`, JSON `POST /login`, then `/api/auth/me`.
+- Logout should call JSON `POST /logout`.
+- Protected routes should trust `/api/auth/me`, not `sessionStorage` or bearer tokens.
+- Keep `/api/auth/login` bearer-token flow for mobile/external clients only.
+
+3. Keep fake/demo cleanup separate:
+- `fakeBackend()` still exists and many template pages depend on demo data.
+- Do not remove fake backend, demo routes, or menus in the same commit as session auth unless the scope is explicit.
+
+## 11) Current Open Risks
 
 1. Booking eligibility source:
 - `checkup_doctor` exists, but runtime booking still needs to enforce it consistently.
@@ -201,7 +227,7 @@ As of 2026-06-03:
 6. Frontend boundary:
 - React admin/client boundaries, route ownership, CSS separation, and cookie/session auth are planned but not complete.
 
-## 11) Recommended Scan Order (Future Sessions)
+## 12) Recommended Scan Order (Future Sessions)
 
 1. Read `CODEX_RULES.md`, `TODO.md`, `README.md`, and this `PROJECT_MAP.md`.
 2. Read ADR/boundary docs under `docs/`.

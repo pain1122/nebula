@@ -1,7 +1,7 @@
 import React from "react";
 import ReactApexChart from "react-apexcharts";
 import { seriesData1, seriesDataLinear } from "../series";
-import * as moment from "moment";
+import moment from "moment";
 import getChartColorsArray from "../../../../Components/Common/ChartsDynamicColor";
 
 const Basic = ({dataColors}:any) => {

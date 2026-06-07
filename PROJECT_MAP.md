@@ -14,7 +14,7 @@ Current primary runtime:
 Target UI direction:
 - Admin web app: React + Bootstrap under `/panel/*`.
 - Client/public web app: React + Tailwind.
-- Current `frontend/` folder is a parked Velzon React-TS CRA template, not the canonical production UI yet.
+- Current `frontend/` folder is a parked Vite-powered Velzon React-TS template, not the canonical production UI yet.
 
 Core implemented domains:
 - Auth + roles: Breeze + Sanctum + Spatie Permission.
@@ -169,7 +169,7 @@ Target shape:
 - no whole-project bind mount
 - optional queue/scheduler services under the `workers` profile
 
-The parked `frontend/` CRA template is excluded from the production build context until it becomes a canonical built frontend surface.
+The parked `frontend/` Vite-powered Velzon React-TS template is excluded from the production build context until it becomes a canonical built frontend surface.
 
 ## 9) Current Verification Snapshot
 

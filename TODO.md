@@ -105,18 +105,22 @@ Done when: current `frontend/` start/build status is written in notes or commit 
 Status: CRA baseline build succeeds. Warnings confirm stale CRA/Babel/TypeScript toolchain; main JS bundle is ~3.03 MB gzip. `npm install` normalized `frontend/package-lock.json` to the current package metadata.
 
 
-2. [ ] Replace CRA package scripts with Vite scripts.
+2. [x] Replace CRA package scripts with Vite scripts.
 Scope: remove `react-scripts`.
 Scope: add `vite`, `@vitejs/plugin-react`, and likely `vite-tsconfig-paths`.
 Scope: change scripts to `dev`, `start`, `build`, and `preview` using Vite.
 Why: Vite becomes the frontend build/dev server, while `start` remains convenient muscle memory.
 Done when: `frontend/package.json` no longer depends on `react-scripts`.
+Status: `react-scripts` removed; Vite and React plugin installed.
 
-3. [ ] Move the HTML entry contract to Vite.
+
+3. [x] Move the HTML entry contract to Vite.
 Scope: create `frontend/index.html` with `<script type="module" src="/src/index.tsx"></script>`.
 Scope: preserve required template metadata/assets from CRA `public/index.html` only if still needed.
 Why: CRA serves `public/index.html`; Vite expects the app HTML entry at the project root.
 Done when: Vite can find `src/index.tsx` from `frontend/index.html`.
+Status: `frontend/index.html` is the Vite entry and loads `/src/index.tsx`.
+
 
 4. [ ] Convert CRA environment variable usage to Vite.
 Scope: replace active `process.env.REACT_APP_*` usage with `import.meta.env.VITE_*`.
@@ -124,35 +128,47 @@ Scope: replace active `process.env.PUBLIC_URL` usage with `import.meta.env.BASE_
 Scope: rename frontend env keys from `REACT_APP_*` to `VITE_*`.
 Why: CRA and Vite expose env variables differently; leaving this mixed causes runtime `process is not defined` errors.
 Done when: `rg "process\\.env|REACT_APP_|PUBLIC_URL" frontend/src` has only comments or intentionally deferred template code.
+Status: Deferred. Current `vite.config.ts` uses a compatibility `define` bridge for `process.env.REACT_APP_*` and `process.env.PUBLIC_URL`.
 
-5. [ ] Preserve TypeScript path resolution.
+
+5. [x] Preserve TypeScript path resolution.
 Scope: keep `baseUrl: "./src"` behavior or replace it with explicit Vite aliases.
 Scope: support template imports such as `pages/...`, `common/...`, and other absolute-from-src paths if present.
 Why: CRA tolerated the template's absolute imports through TypeScript config; Vite needs matching resolver behavior.
 Done when: Vite dev/build resolves existing imports without path alias errors.
+Status: Vite native `resolve.tsconfigPaths` handles existing absolute-from-src imports.
 
-6. [ ] Add Vite type declarations.
+
+6. [x] Add Vite type declarations.
 Scope: replace CRA-specific `react-app-env.d.ts` usage with `vite-env.d.ts` if needed.
 Scope: ensure TypeScript recognizes `import.meta.env`.
 Why: TypeScript needs Vite's client types for env access and asset imports.
 Done when: TypeScript no longer complains about `import.meta.env`.
+Status: `src/vite-env.d.ts` added and CRA `react-app-env.d.ts` removed.
 
-7. [ ] Keep the fake backend untouched during tooling migration.
+
+7. [x] Keep the fake backend untouched during tooling migration.
 Scope: leave `fakeBackend()` behavior in place until Vite boot/build is green.
 Why: removing fake data and changing auth at the same time would mix two migrations and make failures ambiguous.
 Done when: demo pages behave at least as well as they did before migration.
+Status: `fakeBackend()` remains active.
 
-8. [ ] Verify Vite dev server.
+
+8. [x] Verify Vite dev server.
 Scope: run `cd frontend && npm run dev` or `npm start`.
 Scope: open the Vite local URL and confirm the template renders.
 Why: this proves the dev experience works before testing production build.
 Done when: the app renders without a blank page or console-breaking module errors.
+Status: `npm start` runs Vite on `localhost:3000`; app renders and redirects to `/login`.
 
-9. [ ] Verify Vite production build.
+
+9. [x] Verify Vite production build.
 Scope: run `cd frontend && npm run build`.
 Scope: inspect output directory and confirm assets are generated.
 Why: deployment work depends on a repeatable production build, not just the dev server.
 Done when: Vite build completes successfully.
+Status: `npm run build` succeeds. Remaining warning: large chunks from template/demo inventory.
+
 
 10. [ ] Update docs after migration.
 Scope: update `README.md`, `PROJECT_MAP.md`, and this TODO section.

@@ -92,6 +92,79 @@ Evidence: `RolesSeeder`, API routes, admin user validation, registration flows, 
 Done when: allowed roles are consistent everywhere.
 Status: Database roles contain `admin`, `doctor`, and `patient`; old `user` role is gone.
 
+## Phase 2.5 - Frontend Tooling Rebase: CRA to Vite
+Reason: `frontend/` is currently the Velzon React-TS Create React App template. Create React App is deprecated for new React work, and Phase 3 auth will touch env variables, routing, and Axios. Migrating to Vite first avoids wiring Sanctum auth against a toolchain we already intend to replace.
+
+Guardrail: migrate tooling only. Do not redesign pages, trim menus, or rewrite auth logic in this phase except for mechanical env/build compatibility.
+
+1. [x] Capture current frontend baseline before touching files.
+Scope: run `cd frontend && npm install` if dependencies are missing.
+Scope: run the current CRA dev/build command enough to know the starting failure/success state.
+Why: a migration is easier to debug when the pre-migration template state is known.
+Done when: current `frontend/` start/build status is written in notes or commit message.
+Status: CRA baseline build succeeds. Warnings confirm stale CRA/Babel/TypeScript toolchain; main JS bundle is ~3.03 MB gzip. `npm install` normalized `frontend/package-lock.json` to the current package metadata.
+
+
+2. [ ] Replace CRA package scripts with Vite scripts.
+Scope: remove `react-scripts`.
+Scope: add `vite`, `@vitejs/plugin-react`, and likely `vite-tsconfig-paths`.
+Scope: change scripts to `dev`, `start`, `build`, and `preview` using Vite.
+Why: Vite becomes the frontend build/dev server, while `start` remains convenient muscle memory.
+Done when: `frontend/package.json` no longer depends on `react-scripts`.
+
+3. [ ] Move the HTML entry contract to Vite.
+Scope: create `frontend/index.html` with `<script type="module" src="/src/index.tsx"></script>`.
+Scope: preserve required template metadata/assets from CRA `public/index.html` only if still needed.
+Why: CRA serves `public/index.html`; Vite expects the app HTML entry at the project root.
+Done when: Vite can find `src/index.tsx` from `frontend/index.html`.
+
+4. [ ] Convert CRA environment variable usage to Vite.
+Scope: replace active `process.env.REACT_APP_*` usage with `import.meta.env.VITE_*`.
+Scope: replace active `process.env.PUBLIC_URL` usage with `import.meta.env.BASE_URL` or a small compatibility helper.
+Scope: rename frontend env keys from `REACT_APP_*` to `VITE_*`.
+Why: CRA and Vite expose env variables differently; leaving this mixed causes runtime `process is not defined` errors.
+Done when: `rg "process\\.env|REACT_APP_|PUBLIC_URL" frontend/src` has only comments or intentionally deferred template code.
+
+5. [ ] Preserve TypeScript path resolution.
+Scope: keep `baseUrl: "./src"` behavior or replace it with explicit Vite aliases.
+Scope: support template imports such as `pages/...`, `common/...`, and other absolute-from-src paths if present.
+Why: CRA tolerated the template's absolute imports through TypeScript config; Vite needs matching resolver behavior.
+Done when: Vite dev/build resolves existing imports without path alias errors.
+
+6. [ ] Add Vite type declarations.
+Scope: replace CRA-specific `react-app-env.d.ts` usage with `vite-env.d.ts` if needed.
+Scope: ensure TypeScript recognizes `import.meta.env`.
+Why: TypeScript needs Vite's client types for env access and asset imports.
+Done when: TypeScript no longer complains about `import.meta.env`.
+
+7. [ ] Keep the fake backend untouched during tooling migration.
+Scope: leave `fakeBackend()` behavior in place until Vite boot/build is green.
+Why: removing fake data and changing auth at the same time would mix two migrations and make failures ambiguous.
+Done when: demo pages behave at least as well as they did before migration.
+
+8. [ ] Verify Vite dev server.
+Scope: run `cd frontend && npm run dev` or `npm start`.
+Scope: open the Vite local URL and confirm the template renders.
+Why: this proves the dev experience works before testing production build.
+Done when: the app renders without a blank page or console-breaking module errors.
+
+9. [ ] Verify Vite production build.
+Scope: run `cd frontend && npm run build`.
+Scope: inspect output directory and confirm assets are generated.
+Why: deployment work depends on a repeatable production build, not just the dev server.
+Done when: Vite build completes successfully.
+
+10. [ ] Update docs after migration.
+Scope: update `README.md`, `PROJECT_MAP.md`, and this TODO section.
+Scope: mention that `frontend/` is now Velzon React-TS on Vite, still parked for Phase 3 auth wiring.
+Why: docs must say how to run the actual frontend toolchain.
+Done when: frontend commands in docs use Vite, not CRA.
+
+11. [ ] Commit the tooling migration separately.
+Scope: do not combine with Sanctum auth, route namespace, or UI cleanup.
+Why: a clean checkpoint makes later frontend auth bugs easier to isolate.
+Done when: Git history has a dedicated CRA-to-Vite migration commit.
+
 ## Phase 3 - Session/Cookie First-Party SPA Integration
 1. [ ] Implement first-party SPA auth flow using Sanctum cookies.
 Scope: CSRF bootstrap endpoint usage.

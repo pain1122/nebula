@@ -1,8 +1,8 @@
 # TODO - Architecture Sync Roadmap (Assessment Synced)
 
 Date locked: 2026-05-03
-Last assessed: 2026-06-03
-Assessment basis: repo inspection, `php artisan route:list --except-vendor` in local and production envs, `php artisan test`, and database role/schema checks.
+Last assessed: 2026-06-07
+Assessment basis: repo inspection, `php artisan route:list --except-vendor` in local and production envs, `php artisan test`, database role/schema checks, and production Compose config validation.
 
 ## Locked Decisions
 - [x] Admin panel UI stack: React + Bootstrap
@@ -25,6 +25,7 @@ Assessment basis: repo inspection, `php artisan route:list --except-vendor` in l
 - [x] Architecture docs exist under `docs/adr/` and `docs/architecture/`.
 - [x] `checkup_doctor` pivot migration and model relationships exist.
 - [x] Old frontend Vite workspace was replaced by the Velzon React-TS CRA template and is parked until the frontend rebuild phase.
+- [x] Production Docker skeleton exists via `docker-compose.prod.yml`, `docker/prod/Dockerfile`, and `docs/deployment/docker-production.md`.
 
 ## Working Principles
 - One business rule path per domain behavior. No duplicated controller logic.
@@ -32,6 +33,19 @@ Assessment basis: repo inspection, `php artisan route:list --except-vendor` in l
 - One canonical API response contract across all API controllers.
 - No debug or privileged endpoints exposed publicly.
 - CI green is mandatory before merge.
+
+## Deployment Contract - Ongoing
+- [x] Keep local Docker and future production Docker separate.
+- [x] Add immutable production image skeleton with no project bind-mount.
+- [x] Document required production runtime env file through `.env.production.example`.
+- [x] Add container health route: `/healthz`.
+- [x] Define named volumes for DB, Redis, and Laravel storage.
+- [x] Add optional queue/scheduler worker profile.
+- [ ] Build the production images in CI.
+- [ ] Add smoke test for `docker compose -f docker-compose.prod.yml up`.
+- [ ] Decide release-time migration policy: manual step vs `RUN_MIGRATIONS=true`.
+- [ ] Define backup/restore process for DB and uploaded files.
+- [ ] Finalize TLS/reverse-proxy strategy.
 
 ## Phase 1 - Foundation and Security Baseline (Complete)
 1. [x] Remove or strictly local-guard `/debug/res-last`.

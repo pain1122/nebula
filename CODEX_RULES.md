@@ -12,6 +12,7 @@
 - Local environment: Docker with Nginx, PHP-FPM, MySQL, and Redis.
 - Local app URL: `http://localhost:8080`.
 - Local API base: `http://localhost:8080/api`.
+- Production Docker skeleton: `docker-compose.prod.yml` plus `docker/prod/`, with no whole-project bind mount.
 
 ## What To Do
 - Identify bugs, security issues, missing env/config, broken imports, stale docs, and Windows-to-Linux case-sensitivity risks.
@@ -28,6 +29,7 @@
 - Do not generate large refactors without a plan and approval.
 - Do not invent credentials, API keys, or production settings.
 - Do not treat `frontend/` as production-ready until the frontend rebuild phase wires routing, auth, and API clients intentionally.
+- Do not use local bind-mount Docker patterns as production deployment patterns.
 
 ## Preferred Report Format For Reviews
 1. Problem summary.

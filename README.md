@@ -200,6 +200,40 @@ Current frontend workspace facts:
 - Laravel API target for future local integration should be `http://localhost:8080/api`.
 - Do not treat `frontend/` as the canonical admin surface until the `/panel/*` route, API client, and Sanctum session/cookie auth contract are implemented.
 
+## Production Docker Skeleton
+
+The repository includes an early production packaging path:
+
+- `docker-compose.prod.yml`
+- `docker/prod/Dockerfile`
+- `docker/prod/app/entrypoint.sh`
+- `docker/prod/nginx/default.conf`
+- `.env.production.example`
+- `docs/deployment/docker-production.md`
+
+Goal:
+
+```bash
+cp .env.production.example .env.production
+# edit secrets, APP_KEY, URLs, and passwords
+docker compose --env-file .env.production -f docker-compose.prod.yml up -d --build
+```
+
+This is a skeleton, not the final production release process.
+
+Important differences from local Docker:
+- No whole-project bind mount.
+- Laravel code, Composer dependencies, and root Vite assets are baked into images.
+- MySQL, Redis, and Laravel storage use named volumes.
+- The parked `frontend/` CRA template is excluded from the production image for now.
+- Queue and scheduler containers are available through the optional `workers` profile.
+
+Health endpoint:
+- `/healthz` returns a simple JSON status and is used by the Nginx health check.
+
+Read the full contract before using it for staging:
+- `docs/deployment/docker-production.md`
+
 ## Useful Commands
 
 ```bash
@@ -214,6 +248,13 @@ docker compose exec app php artisan route:list --except-vendor --env=production
 
 # tests
 docker compose exec app php artisan test
+
+# production image skeleton
+docker compose --env-file .env.production -f docker-compose.prod.yml build
+docker compose --env-file .env.production -f docker-compose.prod.yml up -d
+
+# production skeleton with queue/scheduler profile
+docker compose --env-file .env.production -f docker-compose.prod.yml --profile workers up -d
 
 # role/schema check
 docker compose exec db mysql -ucheckupino -pcheckupino_pass checkupino -e "SELECT id, name, guard_name FROM roles ORDER BY name; SHOW COLUMNS FROM users LIKE 'role';"

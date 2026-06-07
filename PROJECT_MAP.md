@@ -34,6 +34,7 @@ Core implemented domains:
 - `PROJECT_MAP.md`
 - `docs/adr/ADR-0001-ui-auth-role-architecture.md`
 - `docs/architecture/boundaries.md`
+- `docs/deployment/docker-production.md`
 - `routes/web.php`
 - `routes/api.php`
 - `routes/admin.php`
@@ -47,6 +48,8 @@ Core implemented domains:
 - `database/seeders/`
 - `tests/TestCase.php`
 - `docker-compose.yml`
+- `docker-compose.prod.yml`
+- `docker/prod/Dockerfile`
 
 ## 3) Low-Signal / Heavy Paths (Skip by Default)
 
@@ -147,7 +150,28 @@ Root frontend:
 - Local Laravel API target should eventually be `http://localhost:8080/api`.
 - Do not use this folder as the source of architectural truth until Phase 3/4 work reconnects it intentionally.
 
-## 8) Current Verification Snapshot
+## 8) Production Docker Skeleton
+
+Production packaging exists as an early skeleton, not a final deployment guarantee.
+
+Key files:
+- `docker-compose.prod.yml`
+- `docker/prod/Dockerfile`
+- `docker/prod/app/entrypoint.sh`
+- `docker/prod/nginx/default.conf`
+- `.env.production.example`
+- `docs/deployment/docker-production.md`
+
+Target shape:
+- immutable app image with Laravel code, Composer dependencies, and built root Vite assets
+- separate Nginx image serving copied `public/` assets
+- named storage, MySQL, and Redis volumes
+- no whole-project bind mount
+- optional queue/scheduler services under the `workers` profile
+
+The parked `frontend/` CRA template is excluded from the production build context until it becomes a canonical built frontend surface.
+
+## 9) Current Verification Snapshot
 
 As of 2026-06-03:
 - `php artisan test` passes with 25 tests and 61 assertions.
@@ -155,8 +179,9 @@ As of 2026-06-03:
 - Production route list excludes `/debug/res-last`.
 - Roles table contains `admin`, `doctor`, and `patient`.
 - Migrated `users` schema has no `role` column.
+- `/healthz` exists for container health checks.
 
-## 9) Current Open Risks
+## 10) Current Open Risks
 
 1. Booking eligibility source:
 - `checkup_doctor` exists, but runtime booking still needs to enforce it consistently.
@@ -176,7 +201,7 @@ As of 2026-06-03:
 6. Frontend boundary:
 - React admin/client boundaries, route ownership, CSS separation, and cookie/session auth are planned but not complete.
 
-## 10) Recommended Scan Order (Future Sessions)
+## 11) Recommended Scan Order (Future Sessions)
 
 1. Read `CODEX_RULES.md`, `TODO.md`, `README.md`, and this `PROJECT_MAP.md`.
 2. Read ADR/boundary docs under `docs/`.

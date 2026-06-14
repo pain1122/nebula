@@ -13,13 +13,21 @@ import * as Yup from "yup";
 import { useFormik } from "formik";
 
 // action
-import { userForgetPassword } from "../../slices/thunks";
-
+// ForgetPassword.tsx
+import { userForgetPassword } from "../../slices/auth/forgetpwd/thunk";
 // import images
 // import profile from "../../assets/images/bg.png";
 import logoLight from "../../assets/images/logo-light.png";
 import ParticlesAuth from "../AuthenticationInner/ParticlesAuth";
 import { createSelector } from "reselect";
+import { userForgetPasswordError } from "./reducer";
+import type { AppDispatch } from "../../store";
+
+type ForgetPasswordValues = {
+  email: string;
+};
+
+type Navigate = (path: string) => void;
 
 const ForgetPasswordPage = (props:any) => {
   const dispatch :any = useDispatch();

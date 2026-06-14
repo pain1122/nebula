@@ -2,7 +2,7 @@
 
 Date locked: 2026-05-03
 Last assessed: 2026-06-14
-Assessment basis: repo inspection, `php artisan route:list --except-vendor` in local and production envs, `php artisan test`, database role/schema checks, production Compose config validation, Sanctum session smoke testing, frontend Vite build/dev verification, and frontend env migration audit.
+Assessment basis: repo inspection, `php artisan route:list --except-vendor` in local and production envs, `php artisan test`, database role/schema checks, production Compose config validation, Sanctum session smoke testing, frontend Vite build/dev verification, frontend env migration audit, CORS/preflight audit, and admin shell i18n/theme inspection.
 
 ## Locked Decisions
 - [x] Admin panel UI stack: React + Bootstrap
@@ -29,6 +29,25 @@ Assessment basis: repo inspection, `php artisan route:list --except-vendor` in l
 - [x] Backend session-cookie auth contract works for first-party SPA calls: `/sanctum/csrf-cookie` -> JSON `POST /login` -> `/api/auth/me`.
 - [x] `frontend/` Vite dev server and production build are green.
 - [x] Active frontend env usage now uses Vite env access; the CRA `process.env.REACT_APP_*` compatibility bridge has been removed.
+- [x] Frontend session auth helper exists and uses Sanctum cookies with `withCredentials`.
+- [x] `/api/auth/me` frontend reads avoid unnecessary JSON/XSRF headers and dedupe duplicate in-flight requests.
+- [x] CORS now supports credentialed SPA requests and caches preflight responses with `CORS_MAX_AGE`.
+- [x] Persian locale is registered as `fa`, set as the default language, and uses a key shape compatible with the current Velzon template.
+- [x] Iran flag is wired into the language dropdown through `ir.svg`.
+- [x] Admin panel is RTL-first for now; the runtime LTR/RTL toggle is deferred because the template RTL partials are global, not safely scoped.
+- [x] Local Persian-friendly fonts are registered and selected when `html[lang="fa"]` is active.
+- [x] CDN/Google font imports were removed from the active SCSS stack.
+- [x] Theme customizer settings persist through `localStorage` under `nebula.layout.settings`.
+- [x] Active admin SPA auth now uses Sanctum session cookies instead of browser-stored bearer tokens.
+- [x] Header/profile display reads the Laravel session user from `/api/auth/me`.
+- [x] Firebase auth helpers, fake JWT auth backend, and JWT token-access helpers were removed from the frontend runtime.
+- [x] `api_helper.ts` no longer reads `sessionStorage authUser` or attaches global `Authorization: Bearer` headers.
+
+## Known Current Constraints
+- [ ] The Velzon demo/template pages are still statically imported by `frontend/src/Routes/allRoutes.tsx`, so hidden pages still inflate the initial JS bundle.
+- [ ] `frontend/src/helpers/fakebackend_helper.ts` still exists for Velzon demo data slices. It is no longer browser-admin auth authority, but it should be isolated under the future root-admin/developer toolbox.
+- [ ] `root_admin` is not currently present in `App\Enums\UserRole`; current role taxonomy is `admin`, `doctor`, and `patient`.
+- [ ] Normal admin UX should not pay for root-admin/demo utilities. Developer/root-admin can tolerate heavier lazy-loaded pages.
 
 ## Working Principles
 - One business rule path per domain behavior. No duplicated controller logic.
@@ -154,7 +173,7 @@ Status: `src/vite-env.d.ts` added and CRA `react-app-env.d.ts` removed.
 Scope: leave `fakeBackend()` behavior in place until Vite boot/build is green.
 Why: removing fake data and changing auth at the same time would mix two migrations and make failures ambiguous.
 Done when: demo pages behave at least as well as they did before migration.
-Status: `fakeBackend()` remains active.
+Status: Completed during tooling migration. Later Phase 3 auth cleanup removed the global `fakeBackend()` activation and deleted the fake JWT auth backend.
 
 
 8. [x] Verify Vite dev server.
@@ -180,22 +199,23 @@ Why: docs must say how to run the actual frontend toolchain.
 Done when: frontend commands in docs use Vite, not CRA.
 Status: Root README, project map, frontend README, and this TODO now describe `frontend/` as Vite-powered.
 
-11. [ ] Commit the env cleanup separately before Phase 3.
+11. [x] Commit the env cleanup separately before Phase 3.
 Scope: do not combine with Sanctum auth, route namespace, or UI cleanup.
 Why: a clean checkpoint makes later frontend auth bugs easier to isolate.
 Done when: Git history has a dedicated Vite env cleanup commit after the CRA-to-Vite base migration.
-Status: CRA-to-Vite base migration was pushed as `6267c1b chore: migrate frontend template to vite`; the current Vite env cleanup is verified but still in the working tree.
+Status: CRA-to-Vite base migration was pushed as `6267c1b chore: migrate frontend template to vite`; Vite env cleanup was pushed separately as `4d8d742 chore: finish vite env migration`.
 
 ## Phase 3 - Session/Cookie First-Party SPA Integration
-1. [ ] Implement first-party SPA auth flow using Sanctum cookies.
+1. [x] Implement first-party SPA auth flow using Sanctum cookies.
 Scope: CSRF bootstrap endpoint usage.
 Scope: session-based login/logout/me flow for browser SPA.
 Done when: admin SPA operates without bearer token storage in localStorage.
-Status: Backend contract is ready and smoke-tested. Frontend still needs wiring to call `/sanctum/csrf-cookie`, JSON `POST /login`, `/api/auth/me`, and `POST /logout` with credentials.
+Status: Backend contract is ready and browser-tested. Frontend `session_api.ts` calls `/sanctum/csrf-cookie`, JSON `POST /login`, `/api/auth/me`, and `POST /logout` with credentials.
 
-2. [ ] Remove browser-admin dependence on bearer tokens stored in browser storage.
-Evidence: The parked Velzon Vite template still carries template auth/sessionStorage/token patterns and is not yet wired to the Laravel session-first contract.
+2. [x] Remove browser-admin dependence on bearer tokens stored in browser storage.
+Evidence: Active login, route guard, profile dropdown, and profile page use the Sanctum session user instead of `sessionStorage authUser` or bearer tokens.
 Done when: `/panel/*` authenticated calls use cookie/session auth.
+Status: Active admin runtime is session-first. `api_helper.ts` no longer attaches global bearer headers. Firebase auth helpers, fake JWT auth backend, and JWT token-access helpers were removed. Remaining `fakebackend_helper.ts` is demo-data plumbing only and belongs to Phase 3.5/4 isolation.
 
 3. [ ] Keep bearer token flow for mobile/external clients only.
 Scope: token abilities/scopes.
@@ -207,6 +227,74 @@ Scope: re-auth/step-up for sensitive admin actions.
 Scope: audit logging for privileged mutations.
 Done when: privileged write paths have policy plus traceability.
 
+5. [x] Optimize `/api/auth/me` for first-party SPA reads.
+Scope: avoid unnecessary preflight for read-only current-user requests.
+Scope: dedupe duplicate in-flight `/me` calls on SPA boot/navigation.
+Done when: `GET /api/auth/me` does not send JSON/XSRF headers and repeated components reuse the same request.
+Status: `session_api.ts` uses a read-only Axios client for `/auth/me`; CORS preflight cache is configured through `CORS_MAX_AGE`.
+
+6. [x] Replace template profile/session display code with real session user data.
+Evidence: `ProfileDropdown` and `user-profile` display data from `/api/auth/me` through `useProfile`.
+Done when: header/profile display comes from the session-auth user state, not Velzon fake-auth storage.
+Status: Browser-tested: login, dashboard refresh, profile dropdown, `/profile`, logout, and logged-out dashboard redirect all behave as expected.
+
+## Phase 3.5 - Admin Shell, Localization, and Root-Admin Developer Toolbox
+Reason: Phase 4 becomes much cleaner if the admin shell is already clear about language, RTL, persisted theme settings, and which Velzon template pages are real product pages versus root-admin utilities.
+
+1. [x] Register Persian as a first-class admin locale.
+Scope: add `fa.json` to `i18n.ts`.
+Scope: add Persian to the language dropdown with the Iran flag.
+Scope: normalize `fa.json` keys to match the current `en.json`/template key format.
+Done when: selecting/defaulting to `fa` translates the current menu labels instead of falling back to English.
+
+2. [x] Make the admin panel RTL-first for the current product direction.
+Scope: keep RTL partials active.
+Scope: avoid investing in runtime LTR/RTL switching until styles can be properly scoped.
+Done when: Persian admin UX is the default supported direction.
+Status: Runtime direction radio remains a future cleanup risk because Velzon RTL styles are global.
+
+3. [x] Move admin typography to local fonts.
+Scope: register local Persian-friendly fonts.
+Scope: remove Google/CDN font imports from active SCSS.
+Scope: use Persian stack when `html[lang="fa"]` is active.
+Done when: active SCSS has no `fonts.googleapis`, `Poppins`, or `Outfit` dependency.
+
+4. [x] Persist theme customizer settings.
+Scope: store validated layout settings in localStorage.
+Scope: reload Redux layout state from storage on app boot.
+Done when: customizer settings survive browser refresh.
+Status: Stored under `nebula.layout.settings`; reset by removing that localStorage key.
+
+5. [ ] Add `root_admin` to the role taxonomy.
+Scope: add `RootAdmin = 'root_admin'` to `App\Enums\UserRole`.
+Scope: seed the role through `RolesSeeder`.
+Scope: decide whether root-admin also receives `admin` or whether policy checks should treat root-admin as admin-equivalent.
+Done when: root-admin exists in DB and can be assigned deterministically.
+
+6. [ ] Return frontend-friendly authority data from `/api/auth/me`.
+Scope: include roles and, if useful, derived flags such as `is_root_admin`.
+Scope: eventually include permissions if we choose permission-based UI gates.
+Done when: frontend route/menu filters do not guess authority from hard-coded local state.
+
+7. [ ] Split product admin routes from Velzon utility/demo routes.
+Scope: keep real product routes in a panel/admin route group.
+Scope: move Velzon UI/forms/charts/tables/icons/maps/template pages into a root-admin developer toolbox route group.
+Done when: normal admin routes and root-admin utility routes are visibly separate in source.
+
+8. [ ] Lazy-load root-admin utility/demo routes.
+Scope: convert demo/toolbox page imports from static imports to `React.lazy`.
+Scope: wrap route rendering in `Suspense` with a small loader.
+Done when: normal admin initial bundle does not include charts/maps/icons/forms/template-demo pages.
+
+9. [ ] Hide root-admin toolbox from normal users.
+Scope: role-specific menu filtering.
+Scope: route guard for `/panel/dev/*` or chosen toolbox namespace.
+Done when: non-root-admin cannot see or manually navigate to developer utility pages.
+
+10. [ ] Organize source files so the toybox does not pollute product browsing.
+Proposal: `frontend/src/panel/` for product/admin code and `frontend/src/devtools/` for root-admin utilities.
+Done when: filemanager/source browsing clearly separates product pages from Velzon reference/demo inventory.
+
 ## Phase 4 - Admin and Client UI Boundary Execution
 1. [ ] Declare React admin route namespace and ownership.
 Proposal: `/panel/*` is canonical admin UI surface.
@@ -214,16 +302,21 @@ Evidence: Blade `/admin/*` remains active while the React admin surface is parke
 Done when: non-canonical admin UI paths are deprecated, redirected, or explicitly legacy.
 
 2. [ ] Fix React route/auth path drift.
-Evidence: The current `frontend/` is a Velzon React-TS Vite template and still contains template routing/auth assumptions.
+Evidence: The current `frontend/` is a Velzon React-TS Vite template and still contains template routing/auth assumptions, including public auth demo pages and root-level template paths.
 Done when: all redirects and links resolve inside the canonical route map.
 
 3. [ ] Consolidate shared frontend API client utilities.
-Evidence: The current frontend template still needs project-specific API client work.
+Evidence: `session_api.ts` exists for session auth, while legacy `api_helper`/fake/JWT helpers still remain from the template.
 Done when: one typed API client is used by admin and client React apps.
 
 4. [ ] Enforce CSS boundary contract.
-Evidence: Locked direction is admin React + Bootstrap, public/client React + Tailwind; implementation is not complete while the frontend rebuild is parked.
+Evidence: Locked direction is admin React + Bootstrap, public/client React + Tailwind; admin now has local fonts/RTL foundation, but public/client React is not rebuilt yet.
 Done when: admin React uses Bootstrap conventions and public/client React uses Tailwind conventions without leakage.
+
+5. [ ] Make normal admin experience lean.
+Scope: keep product admin routes smooth and low-bundle.
+Scope: ensure root-admin utilities are lazy-loaded and not part of the normal admin startup path.
+Done when: non-root-admin initial load excludes the Velzon developer toolbox.
 
 ## Phase 5 - Booking and Reservation Domain Consistency
 1. [ ] Enforce `checkup_doctor` pivot as doctor/checkup eligibility source.

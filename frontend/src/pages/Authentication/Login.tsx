@@ -12,7 +12,7 @@ import * as Yup from "yup";
 import { useFormik } from "formik";
 
 // actions
-import { loginUser, socialLogin, resetLoginFlag } from "../../slices/thunks";
+import { loginUser, resetLoginFlag } from "../../slices/auth/login/thunk";
 
 import logoLight from "../../assets/images/logo-light.png";
 import { createSelector } from 'reselect';
@@ -34,28 +34,17 @@ const Login = (props: any) => {
     const {
         user, error, errorMsg
     } = useSelector(loginpageData);
-    const [userLogin, setUserLogin] = useState<any>([]);
     const [passwordShow, setPasswordShow] = useState<boolean>(false);
     const [loader, setLoader] = useState<boolean>(false);
-
-    useEffect(() => {
-        if (user && user) {
-            const updatedUserData = import.meta.env.VITE_DEFAULT_AUTH === "firebase" ? user.multiFactor.user.email : user.user.email;
-            const updatedUserPassword = import.meta.env.VITE_DEFAULT_AUTH === "firebase" ? "" : user.user.confirm_password;
-            setUserLogin({
-                email: updatedUserData,
-                password: updatedUserPassword
-            });
-        }
-    }, [user]);
 
     const validation: any = useFormik({
         // enableReinitialize : use this flag when initial values needs to be changed
         enableReinitialize: true,
 
         initialValues: {
-            email: userLogin.email || "admin@themesbrand.com" || '',
-            password: userLogin.password || "123456" || '',
+            email: "admin@checkupino.test",
+            password: "Password123!",
+            remember: false,
         },
         validationSchema: Yup.object({
             email: Yup.string().required("Please Enter Your Email"),
@@ -66,16 +55,6 @@ const Login = (props: any) => {
             setLoader(true)
         }
     });
-
-    const signIn = (type: any) => {
-        dispatch(socialLogin(type, props.router.navigate));
-    };
-
-
-    //for facebook and google authentication
-    const socialResponse = (type: any) => {
-        signIn(type);
-    };
 
 
     useEffect(() => {
@@ -170,7 +149,7 @@ const Login = (props: any) => {
                                                 </div>
 
                                                 <div className="form-check">
-                                                    <Input className="form-check-input" type="checkbox" value="" id="auth-remember-check" />
+                                                    <Input className="form-check-input" type="checkbox" id="auth-remember-check" name="remember" checked={validation.values.remember} onChange={validation.handleChange} />
                                                     <Label className="form-check-label" htmlFor="auth-remember-check">Remember me</Label>
                                                 </div>
 
@@ -181,36 +160,6 @@ const Login = (props: any) => {
                                                         {loader && <Spinner size="sm" className='me-2'> Loading... </Spinner>}
                                                         Sign In
                                                     </Button>
-                                                </div>
-
-                                                <div className="mt-4 text-center">
-                                                    <div className="signin-other-title">
-                                                        <h5 className="fs-13 mb-4 title">Sign In with</h5>
-                                                    </div>
-                                                    <div>
-                                                        <Link
-                                                            to="#"
-                                                            className="btn btn-primary btn-icon me-1"
-                                                            onClick={e => {
-                                                                e.preventDefault();
-                                                                socialResponse("facebook");
-                                                            }}
-                                                        >
-                                                            <i className="ri-facebook-fill fs-16" />
-                                                        </Link>
-                                                        <Link
-                                                            to="#"
-                                                            className="btn btn-danger btn-icon me-1"
-                                                            onClick={e => {
-                                                                e.preventDefault();
-                                                                socialResponse("google");
-                                                            }}
-                                                        >
-                                                            <i className="ri-google-fill fs-16" />
-                                                        </Link>
-                                                        <Button color="dark" className="btn-icon"><i className="ri-github-fill fs-16"></i></Button>{" "}
-                                                        <Button color="info" className="btn-icon"><i className="ri-twitter-fill fs-16"></i></Button>
-                                                    </div>
                                                 </div>
                                             </Form>
                                         </div>

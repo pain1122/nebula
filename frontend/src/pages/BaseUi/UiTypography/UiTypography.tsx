@@ -36,7 +36,7 @@ const UiTypography = () => {
                                                     </div>
                                                     <div>
                                                         <p className="mb-2">Font Family</p>
-                                                        <h5 className="mb-0">"Outfit", sans-serif</h5>
+                                                        <h5 className="mb-0">"hkgrotesk", "Roboto", sans-serif</h5>
                                                     </div>
                                                 </div>
                                             </Col>
@@ -49,7 +49,7 @@ const UiTypography = () => {
                                                     </div>
                                                     <div>
                                                         <p className="mb-2">Font Family</p>
-                                                        <h5 className="mb-0">"Outfit", sans-serif</h5>
+                                                        <h5 className="mb-0">"hkgrotesk", "Roboto", sans-serif</h5>
                                                     </div>
                                                 </div>
                                             </Col>

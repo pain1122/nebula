@@ -3,23 +3,25 @@ import { Dropdown, DropdownItem, DropdownMenu, DropdownToggle } from 'reactstrap
 import { get } from "lodash";
 
 //i18n
-import i18n from "../../i18n";
+import i18n, { syncDocumentLanguage } from "../../i18n";
 import languages from "../../common/languages";
 
 
 const LanguageDropdown = () => {
     // Declare a new state variable, which we'll call "menu"
-    const [selectedLang, setSelectedLang] = useState<any>("");
+    const [selectedLang, setSelectedLang] = useState<string>("");
 
     useEffect(() => {
-        const currentLanguage : any = localStorage.getItem("I18N_LANGUAGE");
+        const currentLanguage = localStorage.getItem("I18N_LANGUAGE") || "fa";
+        syncDocumentLanguage(currentLanguage);
         setSelectedLang(currentLanguage);
     }, []);
 
-    const changeLanguageAction = (lang : any) => {
+    const changeLanguageAction = (lang: string) => {
         //set language as i18n
         i18n.changeLanguage(lang);
         localStorage.setItem("I18N_LANGUAGE", lang);
+        syncDocumentLanguage(lang);
         setSelectedLang(lang);
     };
 

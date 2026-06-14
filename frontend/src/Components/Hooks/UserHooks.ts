@@ -1,27 +1,41 @@
 import { useEffect, useState } from "react";
-import { getLoggedinUser } from "../../helpers/api_helper";
+import { getCurrentUser } from "../../helpers/session_api";
+import type { AuthUser } from "../../types/auth";
 
 const useProfile = () => {
-  const userProfileSession = getLoggedinUser();
-  var token =
-  userProfileSession &&
-  userProfileSession["token"];
-  const [loading, setLoading] = useState(userProfileSession ? false : true);
-  const [userProfile, setUserProfile] = useState(
-    userProfileSession ? userProfileSession : null
-  );
+    const [loading, setLoading] = useState(true);
+    const [userProfile, setUserProfile] = useState<AuthUser | null>(null);
 
-  useEffect(() => {
-    const userProfileSession = getLoggedinUser();
-    var token =
-      userProfileSession &&
-      userProfileSession["token"];
-    setUserProfile(userProfileSession ? userProfileSession : null);
-    setLoading(token ? false : true);
-  }, []);
+    useEffect(() => {
+        let isMounted = true;
 
+        getCurrentUser()
+            .then((user) => {
+                if (isMounted) {
+                    setUserProfile(user);
+                }
+            })
+            .catch(() => {
+                if (isMounted) {
+                    setUserProfile(null);
+                }
+            })
+            .finally(() => {
+                if (isMounted) {
+                    setLoading(false);
+                }
+            });
 
-  return { userProfile, loading,token };
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    return {
+        userProfile,
+        loading,
+        isAuthenticated: Boolean(userProfile),
+    };
 };
 
 export { useProfile };

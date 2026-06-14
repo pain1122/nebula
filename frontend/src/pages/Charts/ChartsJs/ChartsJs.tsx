@@ -60,14 +60,14 @@ const LineChart = ({dataColors}:any) => {
         x: {
             ticks: {
                 font: {
-                    family: 'Poppins',
+                    family: 'hkgrotesk',
                 },
             },
         },
         y: {
             ticks: {
                 font: {
-                    family: 'Poppins',
+                    family: 'hkgrotesk',
                 },
             },
         },
@@ -76,7 +76,7 @@ const LineChart = ({dataColors}:any) => {
                 labels: {
                     // This more specific font property overrides the global property
                     font: {
-                        family: 'Poppins',
+                        family: 'hkgrotesk',
                     }
                 }
             },
@@ -109,14 +109,14 @@ const BarChart = ({dataColors}:any) => {
         x: {
             ticks: {
                 font: {
-                    family: 'Poppins',
+                    family: 'hkgrotesk',
                 },
             },
         },
         y: {
             ticks: {
                 font: {
-                    family: 'Poppins',
+                    family: 'hkgrotesk',
                 },
             },
         },
@@ -124,7 +124,7 @@ const BarChart = ({dataColors}:any) => {
             legend: {
                 labels: {
                     font: {
-                        family: 'Poppins',
+                        family: 'hkgrotesk',
                     }
                 }
             },
@@ -157,7 +157,7 @@ const PieChart = ({dataColors}:any) => {
             legend: {
                 labels: {
                     font: {
-                        family: 'Poppins',
+                        family: 'hkgrotesk',
                     }
                 }
             },
@@ -190,7 +190,7 @@ const DonutChart = ({dataColors}:any) => {
             legend: {
                 labels: {
                     font: {
-                        family: 'Poppins',
+                        family: 'hkgrotesk',
                     }
                 }
             },
@@ -229,7 +229,7 @@ const PolarChart = ({dataColors}:any) => {
             legend: {
                 labels: {
                     font: {
-                        family: 'Poppins',
+                        family: 'hkgrotesk',
                     }
                 }
             },
@@ -274,7 +274,7 @@ const RadarChart = ({dataColors}:any) => {
             legend: {
                 labels: {
                     font: {
-                        family: 'Poppins',
+                        family: 'hkgrotesk',
                     }
                 }
             },

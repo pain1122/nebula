@@ -14,10 +14,11 @@ Current primary runtime:
 Target UI direction:
 - Admin web app: React + Bootstrap under `/panel/*`.
 - Client/public web app: React + Tailwind.
-- Current `frontend/` folder is a parked Vite-powered Velzon React-TS template, not the canonical production UI yet.
+- Current `frontend/` folder is a Vite-powered Velzon React-TS admin shell with working Sanctum session auth, but route ownership and demo-toolbox isolation are not complete yet.
 
 Core implemented domains:
 - Auth + roles: Breeze + Sanctum + Spatie Permission.
+- First-party browser SPA auth: Sanctum session/cookie flow is wired in `frontend/`.
 - Role authority: Spatie only. `users.role` has been removed from the active schema.
 - Patient/lead model: unknown public submitters become `leads`; registered patients are users with the `patient` Spatie role.
 - Booking: checkups, doctors, reservations, payments, and the `checkup_doctor` pivot foundation.
@@ -147,7 +148,15 @@ Root frontend:
 - Current source is Velzon React-TS migrated from Create React App to Vite.
 - Scripts are Vite-backed: `npm start`/`npm run dev` for dev, `npm run build` for production build.
 - Dev server runs at `http://localhost:3000`.
-- It is Bootstrap/template-heavy and still contains default template API/auth assumptions.
+- It is Bootstrap/template-heavy.
+- Active browser auth uses Sanctum session cookies through `frontend/src/helpers/session_api.ts`.
+- Login calls `/sanctum/csrf-cookie`, JSON `POST /login`, then `/api/auth/me`.
+- Logout calls JSON `POST /logout`.
+- Header/profile display uses the current session user from `/api/auth/me`.
+- Browser admin auth no longer stores bearer tokens in browser storage.
+- Firebase auth helpers, fake JWT auth backend, and JWT token-access helpers have been removed.
+- `frontend/src/helpers/api_helper.ts` no longer attaches global bearer headers.
+- `frontend/src/helpers/fakebackend_helper.ts` remains for Velzon demo data slices only and should be isolated behind the root-admin/developer toolbox split.
 - Local Laravel backend is `http://localhost:8080`; API routes live under `http://localhost:8080/api`.
 - Frontend env declarations use Vite keys: `VITE_BACKEND_URL`, `VITE_API_BASE_URL`, and temporary `VITE_DEFAULT_AUTH`.
 - Active frontend env reads use `import.meta.env`; the old CRA `process.env.REACT_APP_*` compatibility bridge has been removed.
@@ -188,26 +197,27 @@ As of 2026-06-14:
 - Frontend Vite migration is pushed as `6267c1b chore: migrate frontend template to vite`.
 - `cd frontend && npm run build` succeeds.
 - `cd frontend && npm start` runs Vite on `localhost:3000`; template renders and redirects to `/login`.
-- Active frontend env migration is verified in the working tree and should be committed before Phase 3 auth wiring.
+- Active frontend env migration is verified and committed.
+- Frontend session-auth flow is browser-tested: login, dashboard refresh, profile dropdown, `/profile`, logout, and logged-out dashboard redirect.
+- Auth-specific Firebase/JWT/fake backend files have been removed from the frontend runtime.
 - Known frontend warnings: large chunks from full Velzon demo inventory; stale Browserslist/baseline data; Tailwind content warning is not an admin blocker yet.
 
 ## 10) Immediate Next Work
 
-1. Commit the verified frontend env cleanup:
-- Include `frontend/.env.example`.
-- Keep the commit separate from Sanctum auth and route namespace work.
+1. Finish Phase 3 documentation/commit:
+- Commit the session-auth cleanup, auth helper removals, CORS config, i18n/theme updates, and docs together if the working tree scope is accepted.
 - Do not include generated `frontend/dist` output unless deliberately changing deployment strategy.
 
-2. Wire Phase 3 frontend auth:
-- Create/use an Axios client with `withCredentials: true` and `Accept: application/json`.
-- Browser login flow should call `/sanctum/csrf-cookie`, JSON `POST /login`, then `/api/auth/me`.
-- Logout should call JSON `POST /logout`.
-- Protected routes should trust `/api/auth/me`, not `sessionStorage` or bearer tokens.
-- Keep `/api/auth/login` bearer-token flow for mobile/external clients only.
+2. Start Phase 3.5 root-admin/developer toolbox:
+- Add `root_admin` to role taxonomy and seeders.
+- Decide whether root-admin receives admin role too or is treated as admin-equivalent in policies.
+- Split product admin routes from Velzon utility/demo routes.
+- Lazy-load root-admin demo/toolbox pages so normal admin does not pay the bundle cost.
 
-3. Keep fake/demo cleanup separate:
-- `fakeBackend()` still exists and many template pages depend on demo data.
-- Do not remove fake backend, demo routes, or menus in the same commit as session auth unless the scope is explicit.
+3. Keep fake/demo data boundary explicit:
+- `fakebackend_helper.ts` still supports Velzon demo data slices.
+- Do not treat demo helpers as product API infrastructure.
+- Move them behind root-admin/devtool boundaries before trimming the full Velzon inventory.
 
 ## 11) Current Open Risks
 
@@ -227,7 +237,8 @@ As of 2026-06-14:
 - API envelope consistency still needs tests and cleanup, especially questionnaire public responses.
 
 6. Frontend boundary:
-- React admin/client boundaries, route ownership, CSS separation, and cookie/session auth are planned but not complete.
+- React admin/client boundaries, route ownership, root-admin utilities, and CSS separation are planned but not complete.
+- The active browser auth path is session-cookie based, but mobile/external bearer-token policy still needs hardening.
 
 ## 12) Recommended Scan Order (Future Sessions)
 

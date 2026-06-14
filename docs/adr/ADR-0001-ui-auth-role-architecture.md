@@ -2,7 +2,7 @@
 
 Status: Accepted
 Date: 2026-05-03
-Implementation status updated: 2026-06-03
+Implementation status updated: 2026-06-14
 
 ## Context
 The project drifted into a mixed architecture:
@@ -27,15 +27,18 @@ This drift caused duplicated logic, inconsistent enforcement, and fragile behavi
 - Role names are centralized in `App\Enums\UserRole`.
 
 2. UI boundary migration:
-- Not complete.
+- Partially complete.
 - Blade remains active for current admin/doctor/web surfaces.
-- `frontend/` is currently a parked Velzon React-TS CRA template.
-- `/panel/*` still needs canonical React admin implementation.
+- `frontend/` is currently a Velzon React-TS template migrated to Vite.
+- The active React admin shell has session-cookie auth, Persian/RTL defaults, local font loading, and persistent theme settings.
+- `/panel/*`, role-specific menus, root-admin utilities, and normal-admin bundle trimming still need canonical implementation.
 
 3. Auth-mode migration:
-- Not complete.
+- Partially complete.
 - Bearer token auth exists for API/mobile-style clients.
-- First-party browser SPA still needs Sanctum session/cookie implementation.
+- First-party browser SPA auth is wired through Sanctum session/cookies in `frontend/src/helpers/session_api.ts`.
+- Browser-tested flow: CSRF cookie, JSON login, `/api/auth/me`, dashboard refresh, profile display, logout, and logged-out redirect.
+- Mobile/external bearer token policy still needs TTL, rotation, revocation, and documentation.
 
 ## Consequences
 ### Positive

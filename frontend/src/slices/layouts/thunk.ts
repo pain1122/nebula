@@ -1,5 +1,6 @@
 import { changeHTMLAttribute } from './utils';
 import {
+    changeLayoutDirectionAction,
     changeLayoutAction,
     changeLayoutModeAction,
     changeSidebarThemeAction,
@@ -17,6 +18,15 @@ import {
  * Changes the layout type
  * @param {*} param0
  */
+
+export const changeLayoutDirection = (direction: any) => async (dispatch: any) => {
+    try {
+        changeHTMLAttribute("dir", direction);
+        dispatch(changeLayoutDirectionAction(direction));
+    } catch (error) { }
+};
+
+
 export const changeLayout = (layout:any) => async (dispatch:any) => {
     try {
         if (layout === "twocolumn") {

@@ -35,7 +35,7 @@ const cssHighlightCode =
 `body {
     color: #212529; 
     background-color: #f3f3f9;
-    font-family: "Poppins",sans-serif;
+    font-family: "hkgrotesk", "Roboto", sans-serif;
 }
 
 .example {

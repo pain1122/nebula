@@ -1,8 +1,8 @@
 # Architecture Boundaries
 
-Date: 2026-06-03
+Date: 2026-06-14
 Source of truth: ADR-0001
-Implementation status: Phase 1 and Phase 2 foundation items are complete; SPA/auth and booking-domain migration work remains.
+Implementation status: Phase 1 and Phase 2 foundation items are complete; active frontend SPA session auth is wired; route ownership, root-admin toolbox isolation, external bearer-token policy, and booking-domain migration work remain.
 
 ## Surface Ownership
 1. Admin UI surface:
@@ -21,14 +21,17 @@ Implementation status: Phase 1 and Phase 2 foundation items are complete; SPA/au
 - Should not receive new long-term-only admin/client architecture unless explicitly accepted.
 
 4. Parked React workspace:
-- `frontend/` currently contains a Velzon React-TS CRA template.
-- It is not canonical until `/panel/*`, API client, auth mode, and style boundaries are deliberately wired.
+- `frontend/` currently contains a Velzon React-TS template migrated to Vite.
+- Active browser auth uses Sanctum session cookies through `session_api.ts`.
+- It is not canonical until `/panel/*`, product menus, root-admin/demo-toolbox boundaries, and style boundaries are deliberately wired.
 
 ## Auth Boundaries
 1. First-party web SPA/PWA:
 - Target auth mode: Sanctum Session/Cookie.
 - Browser flow: CSRF bootstrap plus session-authenticated requests.
-- Status: planned for Phase 3.
+- Status: active admin shell flow is wired and browser-tested.
+- Current frontend flow: `/sanctum/csrf-cookie` -> JSON `POST /login` -> `/api/auth/me`; logout uses JSON `POST /logout`.
+- Browser admin auth must not store bearer tokens in `localStorage` or `sessionStorage`.
 
 2. Mobile/external consumers:
 - Auth mode: Bearer tokens.
@@ -65,6 +68,7 @@ Implementation status: Phase 1 and Phase 2 foundation items are complete; SPA/au
 2. Client/public React components use Tailwind utility strategy.
 3. Cross-surface style leakage is disallowed by convention.
 4. Current Blade surfaces can keep their existing root Vite/Tailwind conventions during migration.
+5. Admin shell currently defaults to Persian/RTL with local fonts. Runtime LTR/RTL switching is deferred until RTL styles can be safely scoped.
 
 ## API Contract Boundaries
 1. API response shape should be standardized across controllers.

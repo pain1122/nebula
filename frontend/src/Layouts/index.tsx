@@ -10,6 +10,7 @@ import RightSidebar from '../Components/Common/RightSidebar';
 
 //import actions
 import {
+    changeLayoutDirection,
     changeLayout,
     changeSidebarTheme,
     changeLayoutMode,
@@ -34,6 +35,7 @@ const Layout = (props : any) => {
     const selectLayoutProperties = createSelector(
         selectLayoutState,
         (layout) => ({
+            layoutDirectionType: layout.layoutDirectionType,
             layoutType: layout.layoutType,
             leftSidebarType: layout.leftSidebarType,
             layoutModeType: layout.layoutModeType,
@@ -49,6 +51,7 @@ const Layout = (props : any) => {
     );
     // Inside your component
     const {
+        layoutDirectionType,
         layoutType,
         leftSidebarType,
         layoutModeType,
@@ -66,6 +69,7 @@ const Layout = (props : any) => {
     */
     useEffect(() => {
         if (
+            layoutDirectionType ||
             layoutType ||
             leftSidebarType ||
             layoutModeType ||
@@ -78,6 +82,7 @@ const Layout = (props : any) => {
             sidebarVisibilitytype
         ) {
             window.dispatchEvent(new Event('resize'));
+            dispatch(changeLayoutDirection(layoutDirectionType));
             dispatch(changeLeftsidebarViewType(leftSidebarViewType));
             dispatch(changeLeftsidebarSizeType(leftsidbarSizeType));
             dispatch(changeSidebarTheme(leftSidebarType));
@@ -89,7 +94,8 @@ const Layout = (props : any) => {
             dispatch(changeSidebarImageType(leftSidebarImageType));
             dispatch(changeSidebarVisibility(sidebarVisibilitytype));
         }
-    }, [layoutType,
+    }, [layoutDirectionType,
+        layoutType,
         leftSidebarType,
         layoutModeType,
         layoutWidthType,
@@ -109,7 +115,7 @@ const Layout = (props : any) => {
         }
     };
 
-    // class add remove in header 
+    // class add remove in header
     useEffect(() => {
         window.addEventListener("scroll", scrollNavigation, true);
     });

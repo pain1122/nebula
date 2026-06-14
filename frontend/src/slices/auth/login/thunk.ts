@@ -1,104 +1,55 @@
 //Include Both Helper File with needed methods
-import { getFirebaseBackend } from "../../../helpers/firebase_helper";
+import { loginWithSession, logoutSession } from "../../../helpers/session_api";
+import type { LoginCredentials } from "../../../types/auth";
+import type { AppDispatch } from "../../../store";
+
 import {
-  postFakeLogin,
-  postJwtLogin,
-} from "../../../helpers/fakebackend_helper";
+    loginSuccess,
+    logoutUserSuccess,
+    apiError,
+    reset_login_flag,
+} from "./reducer";
 
-import { loginSuccess, logoutUserSuccess, apiError, reset_login_flag } from './reducer';
+type Navigate = (path: string) => void;
 
-export const loginUser = (user:any, history:any) => async (dispatch:any) => {
-
-  try {
-    let response;
-    if (import.meta.env.VITE_DEFAULT_AUTH === "firebase") {
-      let fireBaseBackend :any= getFirebaseBackend();
-      response = fireBaseBackend.loginUser(
-        user.email,
-        user.password
-      );
-    } else if (import.meta.env.VITE_DEFAULT_AUTH === "jwt") {
-      response = postJwtLogin({
-        email: user.email,
-        password: user.password
-      });
-
-    } else if (import.meta.env.VITE_API_BASE_URL) {
-      response = postFakeLogin({
-        email: user.email,
-        password: user.password,
-      });
+const getErrorMessage = (error: unknown) => {
+    if (error instanceof Error) {
+        return error.message;
     }
 
-    var data :any= await response;
+    return "Request failed.";
+};
 
-    if (data) {
-      sessionStorage.setItem("authUser", JSON.stringify(data));
-      if (import.meta.env.VITE_DEFAULT_AUTH === "fake") {
-        var finallogin :any= JSON.stringify(data);
-        finallogin = JSON.parse(finallogin)
-        data = finallogin.data;
-        if (finallogin.status === "success") {
-          dispatch(loginSuccess(data));
-          history('/dashboard')
-        } else {
-          dispatch(apiError(finallogin));
+export const loginUser =
+    (user: LoginCredentials, history: Navigate) =>
+    async (dispatch: AppDispatch) => {
+        try {
+            const authUser = await loginWithSession({
+                email: user.email,
+                password: user.password,
+                remember: user.remember,
+            });
+
+            dispatch(loginSuccess(authUser));
+            history("/dashboard");
+        } catch (error: unknown) {
+            dispatch(apiError(getErrorMessage(error)));
         }
-      } else {
-        dispatch(loginSuccess(data));
-        history('/dashboard')
-      }
+    };
+
+export const logoutUser = () => async (dispatch: AppDispatch) => {
+    try {
+        await logoutSession();
+        dispatch(logoutUserSuccess(true));
+    } catch (error: unknown) {
+        dispatch(apiError(getErrorMessage(error)));
     }
-  } catch (error) {
-    dispatch(apiError(error));
-  }
 };
-
-export const logoutUser = () => async (dispatch:any) => {
-  try {
-    sessionStorage.removeItem("authUser");
-    let fireBaseBackend :any= getFirebaseBackend();
-    if (import.meta.env.VITE_DEFAULT_AUTH === "firebase") {
-      const response = fireBaseBackend.logout;
-      dispatch(logoutUserSuccess(response));
-    } else {
-      dispatch(logoutUserSuccess(true));
+export const resetLoginFlag = () => async (dispatch: any) => {
+    try {
+        const response = dispatch(reset_login_flag());
+        return response;
+    } catch (error) {
+        dispatch(apiError(error));
     }
-
-  } catch (error) {
-    dispatch(apiError(error));
-  }
-};
-
-export const socialLogin = (type:any, history:any) => async (dispatch:any) => {
-  try {
-    let response;
-
-    if (import.meta.env.VITE_DEFAULT_AUTH === "firebase") {
-      const fireBaseBackend :any= getFirebaseBackend();
-      response = fireBaseBackend.socialLoginUser(type);
-    }
-    //  else {
-      //   response = postSocialLogin(data);
-      // }
-      
-      const socialdata = await response;
-    if (socialdata) {
-      sessionStorage.setItem("authUser", JSON.stringify(response));
-      dispatch(loginSuccess(response));
-      history('/dashboard')
-    }
-
-  } catch (error) {
-    dispatch(apiError(error));
-  }
-};
-
-export const resetLoginFlag = () => async (dispatch:any) => {
-  try {
-    const response = dispatch(reset_login_flag());
-    return response;
-  } catch (error) {
-    dispatch(apiError(error));
-  }
 };

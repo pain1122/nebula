@@ -1,14 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { isEmpty } from "lodash";
-
+import React from "react";
+import { useProfile } from "../../Components/Hooks/UserHooks";
 import {
   Container,
   Row,
   Col,
   Card,
-  Alert,
   CardBody,
-  Button,
   Label,
   Input,
   FormFeedback,
@@ -19,62 +16,18 @@ import {
 import * as Yup from "yup";
 import { useFormik } from "formik";
 
-//redux
-import { useSelector, useDispatch } from "react-redux";
-
 import avatar from "../../assets/images/users/avatar-1.jpg";
-// actions
-import { editProfile, resetProfileFlag } from "../../slices/thunks";
-import { createSelector } from "reselect";
 
 const UserProfile = () => {
-  const dispatch :any = useDispatch();
 
-  const [email, setemail] = useState("admin@gmail.com");
-  const [idx, setidx] = useState("1");
+  const { userProfile, loading } = useProfile();
 
-  const [userName, setUserName] = useState("Admin");
-
-  const selectLayoutState = (state:any) => state.Profile;
-  const userprofileData = createSelector(
-    selectLayoutState,
-    (state) => ({
-      user: state.user,
-      success: state.success,
-      error: state.error
-    })
-  );
-  // Inside your component
-  const {
-    user, success, error 
-  } = useSelector(userprofileData);
-
-  useEffect(() => {
-    if (sessionStorage.getItem("authUser")) {
-      const storedUser = sessionStorage.getItem("authUser");
-      if (storedUser) {
-        const obj = JSON.parse(storedUser);
-
-        if (!isEmpty(user)) {
-          obj.data.first_name = user.first_name;
-          sessionStorage.removeItem("authUser");
-          sessionStorage.setItem("authUser", JSON.stringify(obj));
-        }
-
-        setUserName(obj.data.first_name);
-        setemail(obj.data.email);
-        setidx(obj.data._id || "1");
-
-        setTimeout(() => {
-          dispatch(resetProfileFlag());
-        }, 3000);
-      }
-    }
-  }, [dispatch, user]);
+  const userName = userProfile?.name || "Admin";
+  const email = userProfile?.email || "";
+  const idx = userProfile?.id ? String(userProfile.id) : "1";
 
 
-
-  const validation :any= useFormik({
+  const validation: any = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed
     enableReinitialize: true,
 
@@ -85,10 +38,14 @@ const UserProfile = () => {
     validationSchema: Yup.object({
       first_name: Yup.string().required("Please Enter Your UserName"),
     }),
-    onSubmit: (values) => {
-      dispatch(editProfile(values));
+    onSubmit: () => {
+      // Profile editing will be connected to Laravel profile API later.
     }
   });
+
+  if (loading) {
+    return null;
+  }
 
   document.title = "Profile | Velzon - React Admin & Dashboard Template";
   return (
@@ -97,8 +54,9 @@ const UserProfile = () => {
         <Container fluid>
           <Row>
             <Col lg="12">
-              {error && error ? <Alert color="danger">{error}</Alert> : null}
-              {success ? <Alert color="success">Username Updated To {userName}</Alert> : null}
+              <p className="text-muted mb-0">
+                Profile editing will be connected to the Laravel profile API later.
+              </p>
 
               <Card>
                 <CardBody>
@@ -129,7 +87,7 @@ const UserProfile = () => {
             <CardBody>
               <Form
                 className="form-horizontal"
-                onSubmit={(e:any) => {
+                onSubmit={(e: any) => {
                   e.preventDefault();
                   validation.handleSubmit();
                   return false;
@@ -154,11 +112,6 @@ const UserProfile = () => {
                     <FormFeedback type="invalid">{validation.errors.first_name}</FormFeedback>
                   ) : null}
                   <Input name="idx" value={idx} type="hidden" />
-                </div>
-                <div className="text-center mt-4">
-                  <Button type="submit" color="danger">
-                    Update User Name
-                  </Button>
                 </div>
               </Form>
             </CardBody>

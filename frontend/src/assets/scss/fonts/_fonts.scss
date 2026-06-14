@@ -1,10 +1,4 @@
 //
-// Google font - Poppins
-//
-
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-
-//
 // Premium Font : HKGrotesk
 //
 
@@ -40,3 +34,165 @@
 //     src: local('hkgrotesk bold'), url("../../fonts/hkgrotesk-bold.woff") format("woff");
 //     font-weight: 700;
 // }
+
+//
+// Persian-friendly local fonts
+//
+
+@font-face {
+    font-family: "DanaFaNum";
+    src: url("../../fonts/dana/DanaFaNum-Light.woff2") format("woff2"),
+        url("../../fonts/dana/DanaFaNum-Light.woff") format("woff"),
+        url("../../fonts/dana/DanaFaNum-Light.ttf") format("truetype");
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "DanaFaNum";
+    src: url("../../fonts/dana/DanaFaNum-Regular.woff2") format("woff2"),
+        url("../../fonts/dana/DanaFaNum-Regular.woff") format("woff"),
+        url("../../fonts/dana/DanaFaNum-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "DanaFaNum";
+    src: url("../../fonts/dana/DanaFaNum-Medium.woff2") format("woff2"),
+        url("../../fonts/dana/DanaFaNum-Medium.woff") format("woff"),
+        url("../../fonts/dana/DanaFaNum-Medium.ttf") format("truetype");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "DanaFaNum";
+    src: url("../../fonts/dana/DanaFaNum-DemiBold.woff2") format("woff2"),
+        url("../../fonts/dana/DanaFaNum-DemiBold.woff") format("woff"),
+        url("../../fonts/dana/DanaFaNum-DemiBold.ttf") format("truetype");
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "DanaFaNum";
+    src: url("../../fonts/dana/DanaFaNum-Bold.woff2") format("woff2"),
+        url("../../fonts/dana/DanaFaNum-Bold.woff") format("woff"),
+        url("../../fonts/dana/DanaFaNum-Bold.ttf") format("truetype");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "DanaFaNum";
+    src: url("../../fonts/dana/DanaFaNum-ExtraBold.woff2") format("woff2"),
+        url("../../fonts/dana/DanaFaNum-ExtraBold.woff") format("woff"),
+        url("../../fonts/dana/DanaFaNum-ExtraBold.ttf") format("truetype");
+    font-weight: 800;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "DanaFaNum";
+    src: url("../../fonts/dana/DanaFaNum-ExtraBlack.woff2") format("woff2"),
+        url("../../fonts/dana/DanaFaNum-ExtraBlack.woff") format("woff");
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "IRANSansFaNum";
+    src: url("../../fonts/iransans-light/IRANSansWeb_FaNum_Light.eot");
+    src: url("../../fonts/iransans-light/IRANSansWeb_FaNum_Light.eot?#iefix") format("embedded-opentype"),
+        url("../../fonts/iransans-light/IRANSansWeb_FaNum_Light.woff2") format("woff2"),
+        url("../../fonts/iransans-light/IRANSansWeb_FaNum_Light.woff") format("woff"),
+        url("../../fonts/iransans-light/IRANSansWeb_FaNum_Light.ttf") format("truetype");
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "IRANSans";
+    src: url("../../fonts/iransans-light/IRANSansWeb_Light.eot");
+    src: url("../../fonts/iransans-light/IRANSansWeb_Light.eot?#iefix") format("embedded-opentype"),
+        url("../../fonts/iransans-light/IRANSansWeb_Light.woff2") format("woff2"),
+        url("../../fonts/iransans-light/IRANSansWeb_Light.woff") format("woff"),
+        url("../../fonts/iransans-light/IRANSansWeb_Light.ttf") format("truetype");
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Vazirmatn";
+    src: url("../../fonts/vazir-matn/Vazirmatn-Regular.woff2") format("woff2"),
+        url("../../fonts/vazir-matn/Vazirmatn-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Vazirmatn";
+    src: url("../../fonts/vazir-matn/Vazirmatn-Bold.woff2") format("woff2"),
+        url("../../fonts/vazir-matn/Vazirmatn-Bold.ttf") format("truetype");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Vazirmatn";
+    src: url("../../fonts/vazir-matn/Vazirmatn-ExtraBold.woff2") format("woff2"),
+        url("../../fonts/vazir-matn/Vazirmatn-ExtraBold.ttf") format("truetype");
+    font-weight: 800;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "VazirFaNum";
+    src: url("../../fonts/vazir-matn/Vazir-FD-WOL.eot");
+    src: url("../../fonts/vazir-matn/Vazir-FD-WOL.eot?#iefix") format("embedded-opentype"),
+        url("../../fonts/vazir-matn/Vazir-FD-WOL.woff2") format("woff2"),
+        url("../../fonts/vazir-matn/Vazir-FD-WOL.woff") format("woff"),
+        url("../../fonts/vazir-matn/Vazir-FD-WOL.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Roboto";
+    src: url("../../fonts/roboto/Roboto-Light.ttf") format("truetype");
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+:root {
+    --nebula-font-persian: "DanaFaNum", "VazirFaNum", "Vazirmatn", "IRANSansFaNum", "IRANSans", sans-serif;
+}
+
+html[lang="fa"] {
+    --vz-font-sans-serif: var(--nebula-font-persian);
+    --vz-body-font-family: var(--nebula-font-persian);
+}
+
+html[lang="fa"],
+html[lang="fa"] body,
+html[lang="fa"] button,
+html[lang="fa"] input,
+html[lang="fa"] textarea,
+html[lang="fa"] select {
+    font-family: var(--nebula-font-persian);
+}

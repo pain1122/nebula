@@ -43,7 +43,7 @@ Named volumes:
 
 The app image stage uses Alpine-based PHP to keep the runtime small and reduce OS package mirror lockups during local builds.
 
-The parked `frontend/` CRA template is excluded from this production build context for now. It is not part of the current production runtime.
+The separate `frontend/` Velzon React-TS Vite workspace is excluded from this production build context for now. It is not part of the current production runtime until the React admin surface becomes canonical.
 
 ## Runtime Entrypoint
 

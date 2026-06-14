@@ -9,6 +9,7 @@ import withRouter from './withRouter';
 
 //redux
 import {
+    changeLayoutDirection,
     changeLayout,
     changeSidebarTheme,
     changeLayoutMode,
@@ -27,6 +28,7 @@ import { useSelector, useDispatch } from "react-redux";
 
 //import Constant
 import {
+    LAYOUT_DIRECTION_TYPES,
     LAYOUT_TYPES,
     LAYOUT_SIDEBAR_TYPES,
     LAYOUT_MODE_TYPES,
@@ -52,7 +54,7 @@ import img04 from "../../assets/images/sidebar/img-4.jpg";
 import { createSelector } from 'reselect';
 
 const RightSidebar = (props: any) => {
-    const dispatch :any = useDispatch();
+    const dispatch: any = useDispatch();
 
     const [show, setShow] = useState<boolean>(false);
 
@@ -75,6 +77,7 @@ const RightSidebar = (props: any) => {
     const selectLayoutProperties = createSelector(
         selectLayoutState,
         (layout) => ({
+            layoutDirectionType: layout.layoutDirectionType,
             layoutType: layout.layoutType,
             leftSidebarType: layout.leftSidebarType,
             layoutModeType: layout.layoutModeType,
@@ -90,6 +93,7 @@ const RightSidebar = (props: any) => {
     );
     // Inside your component
     const {
+        layoutDirectionType,
         layoutType,
         leftSidebarType,
         layoutModeType,
@@ -175,6 +179,42 @@ const RightSidebar = (props: any) => {
                     <OffcanvasBody className="p-0">
                         <SimpleBar className="h-100">
                             <div className="p-4">
+                                <div id="layout-direction">
+                                    <h6 className="mt-4 mb-0 fw-semibold text-uppercase">Layout Direction</h6>
+                                    <p className="text-muted">Choose RTL or LTR Layout Direction.</p>
+
+                                    <div className="btn-group radio" role="group">
+                                        <input
+                                            type="radio"
+                                            className="btn-check"
+                                            name="data-layout-direction"
+                                            id="layout-direction-rtl"
+                                            value={LAYOUT_DIRECTION_TYPES.RTL}
+                                            checked={layoutDirectionType === LAYOUT_DIRECTION_TYPES.RTL}
+                                            onChange={e => {
+                                                if (e.target.checked) {
+                                                    dispatch(changeLayoutDirection(e.target.value));
+                                                }
+                                            }}
+                                        />
+                                        <label className="btn btn-light w-sm" htmlFor="layout-direction-rtl">RTL</label>
+
+                                        <input
+                                            type="radio"
+                                            className="btn-check"
+                                            name="data-layout-direction"
+                                            id="layout-direction-ltr"
+                                            value={LAYOUT_DIRECTION_TYPES.LTR}
+                                            checked={layoutDirectionType === LAYOUT_DIRECTION_TYPES.LTR}
+                                            onChange={e => {
+                                                if (e.target.checked) {
+                                                    dispatch(changeLayoutDirection(e.target.value));
+                                                }
+                                            }}
+                                        />
+                                        <label className="btn btn-light w-sm ms-0" htmlFor="layout-direction-ltr">LTR</label>
+                                    </div>
+                                </div>
                                 <h6 className="mb-0 fw-semibold text-uppercase">Layout</h6>
                                 <p className="text-muted">Choose your layout</p>
 

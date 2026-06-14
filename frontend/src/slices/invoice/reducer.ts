@@ -12,7 +12,7 @@ const InvoiceSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder.addCase(getInvoices.fulfilled, (state:any, action:any) => {
-      state.invoices = action.payload.data;
+      state.invoices = action.payload;
       state.isInvoiceCreated = false;
       state.isInvoiceSuccess = true;
     });

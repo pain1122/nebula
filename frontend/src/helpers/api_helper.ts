@@ -9,10 +9,8 @@ axios.defaults.baseURL = api.API_URL;
 axios.defaults.headers.post["Content-Type"] = "application/json";
 
 // content type
-const authUser: any = sessionStorage.getItem("authUser")
-const token = JSON.parse(authUser) ? JSON.parse(authUser).token : null;
-if (token)
-  axios.defaults.headers.common["Authorization"] = "Bearer " + token;
+// Browser admin auth uses Sanctum session cookies through session_api.ts.
+// Do not attach bearer tokens globally here.
 
 // intercepting to capture errors
 axios.interceptors.response.use(
@@ -38,13 +36,6 @@ axios.interceptors.response.use(
     return Promise.reject(message);
   }
 );
-/**
- * Sets the default authorization
- * @param {*} token
- */
-const setAuthorization = (token : string) => {
-  axios.defaults.headers.common["Authorization"] = "Bearer " + token;
-};
 
 class APIClient {
   /**
@@ -96,13 +87,4 @@ class APIClient {
   };
 }
 
-const getLoggedinUser = () => {
-  const user = sessionStorage.getItem("authUser");
-  if (!user) {
-    return null;
-  } else {
-    return JSON.parse(user);
-  }
-};
-
-export { APIClient, setAuthorization, getLoggedinUser };
+export { APIClient };

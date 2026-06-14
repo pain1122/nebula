@@ -10,7 +10,7 @@ Current primary runtime:
 Parked frontend workspace:
 - `frontend/` currently contains a Velzon React-TS template migrated from Create React App to Vite.
 - It is not the canonical production admin/client surface yet.
-- Treat it as a future rebuild workspace until the `/panel/*` SPA boundary and auth flow are wired intentionally.
+- It now has a working Sanctum session-cookie admin auth shell, but route ownership and demo-page isolation are still in progress.
 
 ## Current Scope
 
@@ -197,13 +197,16 @@ npm run build
 
 Current frontend workspace facts:
 - It is Vite-powered; the CRA/react-scripts toolchain has been removed.
-- It uses Bootstrap-oriented Velzon assets and template auth assumptions.
-- It may still reference demo/default API configuration until adapted.
+- It uses Bootstrap-oriented Velzon assets.
+- Active login/logout/current-user flow uses Laravel Sanctum session cookies through `frontend/src/helpers/session_api.ts`.
+- Browser admin auth does not store bearer tokens in `localStorage` or `sessionStorage`.
+- Firebase auth helpers, fake JWT auth backend, and JWT token-access helpers have been removed.
+- `frontend/src/helpers/fakebackend_helper.ts` remains only for Velzon demo data slices until the root-admin/developer toolbox split.
 - Vite dev server runs at `http://localhost:3000`.
 - Laravel backend target for future local integration is `http://localhost:8080`; Laravel API routes are under `http://localhost:8080/api`.
 - Frontend env declarations use Vite keys: `VITE_BACKEND_URL`, `VITE_API_BASE_URL`, and temporary `VITE_DEFAULT_AUTH`.
 - Active frontend env reads use `import.meta.env`; the old CRA `process.env.REACT_APP_*` compatibility bridge has been removed.
-- Do not treat `frontend/` as the canonical admin surface until the `/panel/*` route, API client, and Sanctum session/cookie auth contract are implemented.
+- Do not treat `frontend/` as the canonical admin surface until the `/panel/*` route namespace, role-specific menus, and root-admin/developer toolbox boundaries are implemented.
 
 ## Production Docker Skeleton
 
@@ -305,12 +308,16 @@ As of 2026-06-14:
 - `frontend/` has been migrated from CRA/react-scripts to Vite and builds successfully.
 - `frontend` dev server runs at `http://localhost:3000`.
 - Active frontend env usage has been converted to Vite env access; only commented Firebase template notes still mention old CRA env names.
+- Frontend browser auth has been tested with session-cookie login, dashboard refresh, profile dropdown, `/profile`, logout, and logged-out dashboard redirect.
+- `frontend/src/helpers/api_helper.ts` no longer reads `sessionStorage authUser` or attaches global `Authorization: Bearer` headers.
 
 ## Known Gaps
 
 Next technical gaps are architectural/product work, not boot blockers:
-- First-party browser SPA auth still needs Sanctum session/cookie implementation.
-- Parked React admin/client workspace still needs route ownership, API client consolidation, and auth cleanup.
+- Mobile/external bearer token policy still needs TTL, rotation, revocation, and documentation.
+- High-authority admin actions still need step-up controls and audit logging.
+- React admin workspace still needs route ownership, `/panel/*` namespace decisions, API client consolidation, and root-admin/demo-toolbox isolation.
+- Velzon demo pages are still statically imported and make the initial frontend bundle large.
 - Booking runtime still needs full `checkup_doctor` pivot enforcement.
 - Reservation creation still needs generated-slot enforcement.
 - Web/API booking rules should be consolidated into a shared domain service.

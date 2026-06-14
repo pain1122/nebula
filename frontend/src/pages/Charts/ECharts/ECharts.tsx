@@ -42,7 +42,7 @@ const LineChart = ({ dataColors }:any) => {
             type: 'line'
         }],
         textStyle: {
-            fontFamily: 'Poppins, sans-serif'
+            fontFamily: 'hkgrotesk, Roboto, sans-serif'
         },
         color: chartLineColors
     };
@@ -133,7 +133,7 @@ const StackedLineChart = ({ dataColors }:any) => {
         }
         ],
         textStyle: {
-            fontFamily: 'Poppins, sans-serif'
+            fontFamily: 'hkgrotesk, Roboto, sans-serif'
         },
         color: chartLineStackedColors
     };
@@ -186,7 +186,7 @@ const AreaChart = ({ dataColors }:any) => {
             areaStyle: {}
         }],
         textStyle: {
-            fontFamily: 'Poppins, sans-serif'
+            fontFamily: 'hkgrotesk, Roboto, sans-serif'
         },
         color: chartAreaColors[0],
         backgroundColor: chartAreaColors[1],
@@ -253,7 +253,7 @@ const StackedAreaChart = ({ dataColors }:any) => {
             }
         },
         textStyle: {
-            fontFamily: 'Poppins, sans-serif'
+            fontFamily: 'hkgrotesk, Roboto, sans-serif'
         },
         color: chartAreaStackedColors,
         series: [{
@@ -368,7 +368,7 @@ const StepLineChart = ({ dataColors }:any) => {
             }
         },
         textStyle: {
-            fontFamily: 'Poppins, sans-serif'
+            fontFamily: 'hkgrotesk, Roboto, sans-serif'
         },
         color: chartStepLineColors,
         series: [{
@@ -456,7 +456,7 @@ const LineYChart = ({ dataColors }:any) => {
             }
         },
         textStyle: {
-            fontFamily: 'Poppins, sans-serif'
+            fontFamily: 'hkgrotesk, Roboto, sans-serif'
         },
         color: chartLineYColors,
         series: [{
@@ -516,7 +516,7 @@ const BasicBarChart = ({ dataColors }:any) => {
             }
         },
         textStyle: {
-            fontFamily: 'Poppins, sans-serif'
+            fontFamily: 'hkgrotesk, Roboto, sans-serif'
         },
         color: chartBarColors,
         series: [{
@@ -703,7 +703,7 @@ const BarLabelChart = ({ dataColors }:any) => {
             }
         },
         textStyle: {
-            fontFamily: 'Poppins, sans-serif'
+            fontFamily: 'hkgrotesk, Roboto, sans-serif'
         },
         series: [{
             name: 'Forest',
@@ -802,7 +802,7 @@ const HorizontalBarChart = ({ dataColors }:any) => {
             }
         },
         textStyle: {
-            fontFamily: 'Poppins, sans-serif'
+            fontFamily: 'hkgrotesk, Roboto, sans-serif'
         },
         color: chartBarLabelRotationColors,
         series: [{
@@ -876,7 +876,7 @@ const StackedHorizontalBarChart = ({ dataColors }:any) => {
             }
         },
         textStyle: {
-            fontFamily: 'Poppins, sans-serif'
+            fontFamily: 'hkgrotesk, Roboto, sans-serif'
         },
         series: [{
             name: 'Direct',
@@ -997,7 +997,7 @@ const PieChart = ({ dataColors }:any) => {
             }
         }],
         textStyle: {
-            fontFamily: 'Poppins, sans-serif'
+            fontFamily: 'hkgrotesk, Roboto, sans-serif'
         },
     };
 
@@ -1065,7 +1065,7 @@ const DoughnutChart = ({ dataColors }:any) => {
             ]
         }],
         textStyle: {
-            fontFamily: 'Poppins, sans-serif'
+            fontFamily: 'hkgrotesk, Roboto, sans-serif'
         },
     };
 
@@ -1112,7 +1112,7 @@ const BasicScatterChart = ({ dataColors }:any) => {
             }
         },
         textStyle: {
-            fontFamily: 'Poppins, sans-serif'
+            fontFamily: 'hkgrotesk, Roboto, sans-serif'
         },
         series: [{
             symbolSize: 12,
@@ -1189,7 +1189,7 @@ const CandleStickChart = ({ dataColors }:any) => {
             }
         },
         textStyle: {
-            fontFamily: 'Poppins, sans-serif'
+            fontFamily: 'hkgrotesk, Roboto, sans-serif'
         },
         series: [{
             type: 'candlestick',
@@ -1305,7 +1305,7 @@ const GraphChart = ({ dataColors }:any) => {
             }
         }],
         textStyle: {
-            fontFamily: 'Poppins, sans-serif'
+            fontFamily: 'hkgrotesk, Roboto, sans-serif'
         },
     };
     return (
@@ -1350,7 +1350,7 @@ const TreemapChart = ({ dataColors }:any) => {
             ]
         }],
         textStyle: {
-            fontFamily: 'Poppins, sans-serif'
+            fontFamily: 'hkgrotesk, Roboto, sans-serif'
         },
     };
     return (
@@ -1431,7 +1431,7 @@ const SunburstChart = ({ dataColors }:any) => {
             }
         },
         textStyle: {
-            fontFamily: 'Poppins, sans-serif'
+            fontFamily: 'hkgrotesk, Roboto, sans-serif'
         },
     };
     return (
@@ -1484,7 +1484,7 @@ const ParallelChart = ({ dataColors }:any) => {
             ]
         },
         textStyle: {
-            fontFamily: 'Poppins, sans-serif'
+            fontFamily: 'hkgrotesk, Roboto, sans-serif'
         },
     };
     return (
@@ -1557,7 +1557,7 @@ const SankeyChart = ({ dataColors }:any) => {
             ]
         },
         textStyle: {
-            fontFamily: 'Poppins, sans-serif'
+            fontFamily: 'hkgrotesk, Roboto, sans-serif'
         },
     };
     return (
@@ -1647,7 +1647,7 @@ const FunnelChart = ({dataColors}:any) => {
             ]
         }],
         textStyle: {
-            fontFamily: 'Poppins, sans-serif'
+            fontFamily: 'hkgrotesk, Roboto, sans-serif'
         },
     };
     return (
@@ -1666,7 +1666,7 @@ const GaugeChart = ({ dataColors }:any) => {
         },
         color: chartGaugeColors,
         textStyle: {
-            fontFamily: 'Poppins, sans-serif',
+            fontFamily: 'hkgrotesk, Roboto, sans-serif',
         },
         series: [{
             name: 'Pressure',
@@ -1726,7 +1726,7 @@ const HeatmapChart = ({ dataColors }:any) => {
         },
         color: chartHeatmapColors,
         textStyle: {
-            fontFamily: 'Poppins, sans-serif',
+            fontFamily: 'hkgrotesk, Roboto, sans-serif',
         },
         series: {
             type: 'heatmap',

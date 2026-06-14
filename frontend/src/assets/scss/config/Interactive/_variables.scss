@@ -1,8 +1,5 @@
 // Variables
 
-// Google Fonts
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
-
 //
 // custom-variables
 //
@@ -13,8 +10,8 @@ $variable-prefix:             vz-; // Deprecated in v5.2.0 for the shorter `$pre
 $prefix:                      $variable-prefix;
 
 // Font Family
-$font-family-primary:                             'Outfit', sans-serif;
-$font-family-secondary:                           'Outfit', sans-serif;
+$font-family-primary:                             'hkgrotesk', 'Roboto', sans-serif;
+$font-family-secondary:                           'hkgrotesk', 'Roboto', sans-serif;
 
 //custom variables managed by
 //light mode

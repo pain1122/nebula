@@ -29,7 +29,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        if ($request->expectsJson()) {
+        if ($request->expectsJson() || $request->isJson()) {
             return response()->json([
                 'success' => true,
                 'message' => 'Logged in successfully.',
@@ -50,7 +50,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        if($request->expectsJson()) {
+        if ($request->expectsJson() || $request->isJson()) {
             return response()->json([
                 'success' => true,
                 'message' => 'Logged out successfully.',

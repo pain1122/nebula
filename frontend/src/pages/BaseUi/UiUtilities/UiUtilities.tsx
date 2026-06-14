@@ -627,11 +627,11 @@ const UiUtilities = () => {
                                                     </thead>
                                                     <tbody>
                                                         <tr>
-                                                            <td>font-family: 'Outfit', sans-serif;</td>
+                                                            <td>font-family: 'hkgrotesk', 'Roboto', sans-serif;</td>
                                                             <td><code>.ff-base</code></td>
                                                         </tr>
                                                         <tr>
-                                                            <td>font-family: 'Outfit', sans-serif;</td>
+                                                            <td>font-family: 'hkgrotesk', 'Roboto', sans-serif;</td>
                                                             <td><code>.ff-secondary</code></td>
                                                         </tr>
                                                         <tr>

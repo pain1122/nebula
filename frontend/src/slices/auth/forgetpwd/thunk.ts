@@ -13,13 +13,13 @@ const fireBaseBackend :any= getFirebaseBackend();
 export const userForgetPassword = (user:any, history:any) => async (dispatch:any) => {
   try {
       let response;
-      if (process.env.REACT_APP_DEFAULTAUTH === "firebase") {
+      if (import.meta.env.VITE_DEFAULT_AUTH === "firebase") {
 
           response = fireBaseBackend.forgetPassword(
               user.email
           )
 
-      } else if (process.env.REACT_APP_DEFAULTAUTH === "jwt") {
+      } else if (import.meta.env.VITE_DEFAULT_AUTH === "jwt") {
           response = postJwtForgetPwd(
               user.email
           )

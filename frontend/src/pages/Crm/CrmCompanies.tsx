@@ -323,7 +323,7 @@ const CrmCompanies = () => {
               <div className="flex-shrink-0">
                 {cell.row.original.picture ? <img
                   src={cell.row.original.picture}
-                  // process.env.REACT_APP_API_URL + "/images/" +
+                  // import.meta.env.VITE_BACKEND_URL + "/images/" +
                   alt=""
                   className="avatar-xxs rounded-circle"
                 /> :

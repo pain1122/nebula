@@ -11,13 +11,13 @@ export const editProfile = (user:any) => async (dispatch:any) => {
     try {
         let response;
 
-        if (process.env.REACT_APP_DEFAULTAUTH === "firebase") {
+        if (import.meta.env.VITE_DEFAULT_AUTH === "firebase") {
             response = fireBaseBackend.editProfileAPI(
                 user.username,
                 user.idx
             );
 
-        } else if (process.env.REACT_APP_DEFAULTAUTH === "jwt") {
+        } else if (import.meta.env.VITE_DEFAULT_AUTH === "jwt") {
 
             response = postJwtProfile(
                 {
@@ -26,7 +26,7 @@ export const editProfile = (user:any) => async (dispatch:any) => {
                 }
             );
 
-        } else if (process.env.REACT_APP_DEFAULTAUTH === "fake") {
+        } else if (import.meta.env.VITE_DEFAULT_AUTH === "fake") {
             response = postFakeProfile(user);
         }
 

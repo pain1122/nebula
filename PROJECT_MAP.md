@@ -1,6 +1,6 @@
 # Project Map - Checkupino (Nebula)
 
-Snapshot date: 2026-06-07
+Snapshot date: 2026-06-14
 
 ## 1) Project Reality
 
@@ -149,8 +149,9 @@ Root frontend:
 - Dev server runs at `http://localhost:3000`.
 - It is Bootstrap/template-heavy and still contains default template API/auth assumptions.
 - Local Laravel backend is `http://localhost:8080`; API routes live under `http://localhost:8080/api`.
-- Vite config currently has a temporary compatibility bridge for CRA-style `process.env.REACT_APP_*` and `process.env.PUBLIC_URL`.
-- Phase 2.5 Step 4 remains open: convert active frontend env usage to `import.meta.env.VITE_*`.
+- Frontend env declarations use Vite keys: `VITE_BACKEND_URL`, `VITE_API_BASE_URL`, and temporary `VITE_DEFAULT_AUTH`.
+- Active frontend env reads use `import.meta.env`; the old CRA `process.env.REACT_APP_*` compatibility bridge has been removed.
+- Remaining old CRA env mentions are commented Firebase template notes only.
 - Do not use this folder as the source of architectural truth until Phase 3/4 work reconnects it intentionally.
 
 ## 8) Production Docker Skeleton
@@ -176,7 +177,7 @@ The parked `frontend/` Vite-powered Velzon React-TS template is excluded from th
 
 ## 9) Current Verification Snapshot
 
-As of 2026-06-07:
+As of 2026-06-14:
 - `php artisan test` passes with 25 tests and 61 assertions.
 - `tests/TestCase.php` disables Vite and seeds core roles during feature tests.
 - Production route list excludes `/debug/res-last`.
@@ -187,14 +188,15 @@ As of 2026-06-07:
 - Frontend Vite migration is pushed as `6267c1b chore: migrate frontend template to vite`.
 - `cd frontend && npm run build` succeeds.
 - `cd frontend && npm start` runs Vite on `localhost:3000`; template renders and redirects to `/login`.
+- Active frontend env migration is verified in the working tree and should be committed before Phase 3 auth wiring.
 - Known frontend warnings: large chunks from full Velzon demo inventory; stale Browserslist/baseline data; Tailwind content warning is not an admin blocker yet.
 
 ## 10) Immediate Next Work
 
-1. Finish frontend env cleanup or consciously carry the bridge:
-- Replace active `process.env.REACT_APP_*` with `import.meta.env.VITE_*`.
-- Replace active `process.env.PUBLIC_URL` with `import.meta.env.BASE_URL` or a small helper.
-- Remove the temporary `define` bridge from `frontend/vite.config.ts` only after the search is clean.
+1. Commit the verified frontend env cleanup:
+- Include `frontend/.env.example`.
+- Keep the commit separate from Sanctum auth and route namespace work.
+- Do not include generated `frontend/dist` output unless deliberately changing deployment strategy.
 
 2. Wire Phase 3 frontend auth:
 - Create/use an Axios client with `withCredentials: true` and `Accept: application/json`.

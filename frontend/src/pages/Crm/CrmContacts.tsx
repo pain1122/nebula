@@ -826,7 +826,7 @@ const CrmContacts = () => {
                   <div className="position-relative d-inline-block">
                     <img
                       src={info.img || avatar10}
-                      // process.env.REACT_APP_API_URL + "/images/users/" + 
+                      // import.meta.env.VITE_BACKEND_URL + "/images/users/" + 
                       alt=""
                       className="avatar-lg rounded-circle img-thumbnail"
                     />

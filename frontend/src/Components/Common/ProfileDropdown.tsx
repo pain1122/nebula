@@ -24,11 +24,11 @@ const ProfileDropdown = () => {
         if (authUser) {
             const obj = JSON.parse(authUser);
             setUserName(
-                process.env.REACT_APP_DEFAULTAUTH === "fake"
+                import.meta.env.VITE_DEFAULT_AUTH === "fake"
                     ? obj.username === undefined
                         ? user.first_name || obj.data.first_name
                         : "Admin"
-                    : process.env.REACT_APP_DEFAULTAUTH === "firebase"
+                    : import.meta.env.VITE_DEFAULT_AUTH === "firebase"
                         ? obj.email || "Admin"
                         : "Admin"
             );

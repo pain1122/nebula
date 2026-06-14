@@ -9,7 +9,7 @@
 - Backend: Laravel 12 running in Docker.
 - Root frontend assets: Blade + Laravel Vite.
 - Separate frontend workspace: `frontend/` currently holds a parked Velzon React-TS Vite template.
-- `frontend/` is not production-ready yet; it still has Velzon demo routes, fake backend data, token-style auth assumptions, and a temporary CRA env compatibility bridge in `vite.config.ts`.
+- `frontend/` is not production-ready yet; it still has Velzon demo routes, fake backend data, and token-style auth assumptions. Active env usage has been migrated to Vite-style `import.meta.env`; the old CRA compatibility bridge has been removed from `vite.config.ts`.
 - Local environment: Docker with Nginx, PHP-FPM, MySQL, and Redis.
 - Local app URL: `http://localhost:8080`.
 - Local API base: `http://localhost:8080/api`.

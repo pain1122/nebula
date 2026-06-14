@@ -28,24 +28,33 @@ http://localhost:3000
 
 ## Current Verification
 
-As of 2026-06-07:
+As of 2026-06-14:
 - `npm run build` succeeds.
 - `npm start` renders the template and redirects to `/login`.
 - Build warnings about large chunks are expected while the full Velzon demo inventory is still imported.
 - Browserslist/baseline data warnings are maintenance noise, not current blockers.
 - Tailwind content warning is not an admin blocker because this workspace is Bootstrap-oriented.
+- Active frontend env usage has been converted from CRA-style `process.env.REACT_APP_*`/`PUBLIC_URL` to Vite-style `import.meta.env.VITE_*`/`BASE_URL`.
+- The temporary CRA env compatibility bridge has been removed from `vite.config.ts`; `global: "globalThis"` remains for legacy template dependencies.
 
 ## Important Migration Notes
 
 The Vite migration is intentionally not the frontend auth migration.
 
 Still deferred:
-- Convert active `process.env.REACT_APP_*` usage to `import.meta.env.VITE_*`.
-- Convert active `process.env.PUBLIC_URL` usage to `import.meta.env.BASE_URL` or a small helper.
-- Remove the temporary env compatibility bridge in `vite.config.ts` after those replacements.
 - Replace sessionStorage/bearer-token auth with Sanctum session-cookie auth.
 - Decide canonical admin route namespace, currently planned as `/panel/*`.
 - Trim or quarantine Velzon demo routes after the real admin surface is defined.
+
+Frontend env declarations:
+
+```text
+VITE_BACKEND_URL=http://localhost:8080
+VITE_API_BASE_URL=http://localhost:8080/api
+VITE_DEFAULT_AUTH=fake
+```
+
+`VITE_DEFAULT_AUTH=fake` is temporary template compatibility. It should disappear when the admin auth flow is replaced with Sanctum session-cookie auth.
 
 Backend target for local integration:
 

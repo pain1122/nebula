@@ -171,7 +171,7 @@ const InvoiceList = () => {
           <>
             <div className="d-flex align-items-center">
               {cell.row.original.img ? <img
-                src={process.env.REACT_APP_API_URL + "/images/users/" + cell.row.original.img}
+                src={import.meta.env.VITE_BACKEND_URL + "/images/users/" + cell.row.original.img}
                 alt=""
                 className="avatar-xs rounded-circle me-2"
               /> :

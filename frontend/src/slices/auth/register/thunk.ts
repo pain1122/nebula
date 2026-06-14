@@ -20,13 +20,13 @@ export const registerUser = (user:any) => async (dispatch:any) => {
   try {
     let response;
 
-    if (process.env.REACT_APP_DEFAULTAUTH === "firebase") {
+    if (import.meta.env.VITE_DEFAULT_AUTH === "firebase") {
       response = fireBaseBackend.registerUser(user.email, user.password);
       // yield put(registerUserSuccessful(response));
-    } else if (process.env.REACT_APP_DEFAULTAUTH === "jwt") {
+    } else if (import.meta.env.VITE_DEFAULT_AUTH === "jwt") {
       response = postJwtRegister('/post-jwt-register', user);
       // yield put(registerUserSuccessful(response));
-    } else if (process.env.REACT_APP_API_URL) {
+    } else if (import.meta.env.VITE_API_BASE_URL) {
       response = postFakeRegister(user);
       const data :any= await response;
 

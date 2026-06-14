@@ -1,8 +1,8 @@
 # TODO - Architecture Sync Roadmap (Assessment Synced)
 
 Date locked: 2026-05-03
-Last assessed: 2026-06-07
-Assessment basis: repo inspection, `php artisan route:list --except-vendor` in local and production envs, `php artisan test`, database role/schema checks, production Compose config validation, Sanctum session smoke testing, and frontend Vite build/dev verification.
+Last assessed: 2026-06-14
+Assessment basis: repo inspection, `php artisan route:list --except-vendor` in local and production envs, `php artisan test`, database role/schema checks, production Compose config validation, Sanctum session smoke testing, frontend Vite build/dev verification, and frontend env migration audit.
 
 ## Locked Decisions
 - [x] Admin panel UI stack: React + Bootstrap
@@ -28,6 +28,7 @@ Assessment basis: repo inspection, `php artisan route:list --except-vendor` in l
 - [x] Production Docker skeleton exists via `docker-compose.prod.yml`, `docker/prod/Dockerfile`, and `docs/deployment/docker-production.md`.
 - [x] Backend session-cookie auth contract works for first-party SPA calls: `/sanctum/csrf-cookie` -> JSON `POST /login` -> `/api/auth/me`.
 - [x] `frontend/` Vite dev server and production build are green.
+- [x] Active frontend env usage now uses Vite env access; the CRA `process.env.REACT_APP_*` compatibility bridge has been removed.
 
 ## Working Principles
 - One business rule path per domain behavior. No duplicated controller logic.
@@ -61,7 +62,7 @@ Done when: `/api/auth/profile` works after `migrate --seed` on a clean DB.
 Status: Migration and API routes are present.
 
 3. [x] Resolve local environment contract drift for frontend API target.
-Evidence: The active Docker backend is exposed through Nginx at `http://localhost:8080`; the parked CRA frontend should target `http://localhost:8080/api` when it is reconnected.
+Evidence: The active Docker backend is exposed through Nginx at `http://localhost:8080`; the Vite frontend workspace declares `VITE_BACKEND_URL=http://localhost:8080` and `VITE_API_BASE_URL=http://localhost:8080/api`.
 Done when: one documented local API base strategy works for frontend and backend.
 Status: Documented in `README.md` and `PROJECT_MAP.md`. Host-side PHP must not use Docker-only `DB_HOST=db`; run Artisan inside Docker or use host DB port `3307`.
 
@@ -124,13 +125,13 @@ Done when: Vite can find `src/index.tsx` from `frontend/index.html`.
 Status: `frontend/index.html` is the Vite entry and loads `/src/index.tsx`.
 
 
-4. [ ] Convert CRA environment variable usage to Vite.
+4. [x] Convert CRA environment variable usage to Vite.
 Scope: replace active `process.env.REACT_APP_*` usage with `import.meta.env.VITE_*`.
 Scope: replace active `process.env.PUBLIC_URL` usage with `import.meta.env.BASE_URL` or a small compatibility helper.
 Scope: rename frontend env keys from `REACT_APP_*` to `VITE_*`.
 Why: CRA and Vite expose env variables differently; leaving this mixed causes runtime `process is not defined` errors.
 Done when: `rg "process\\.env|REACT_APP_|PUBLIC_URL" frontend/src` has only comments or intentionally deferred template code.
-Status: Deferred. Current `vite.config.ts` uses a compatibility `define` bridge for `process.env.REACT_APP_*` and `process.env.PUBLIC_URL`.
+Status: Declaration: `frontend/.env.example` documents `VITE_BACKEND_URL`, `VITE_API_BASE_URL`, and `VITE_DEFAULT_AUTH`. Implementation: active CRA env reads were replaced with `import.meta.env`; public image paths use `VITE_BACKEND_URL`, API checks use `VITE_API_BASE_URL`, and routing base path uses `import.meta.env.BASE_URL`. Validation: build and dev server pass after removing the CRA compatibility bridge from `frontend/vite.config.ts`. Remaining `process.env.REACT_APP_*` hits are commented Firebase template notes only.
 
 
 5. [x] Preserve TypeScript path resolution.
@@ -179,11 +180,11 @@ Why: docs must say how to run the actual frontend toolchain.
 Done when: frontend commands in docs use Vite, not CRA.
 Status: Root README, project map, frontend README, and this TODO now describe `frontend/` as Vite-powered.
 
-11. [x] Commit the tooling migration separately.
+11. [ ] Commit the env cleanup separately before Phase 3.
 Scope: do not combine with Sanctum auth, route namespace, or UI cleanup.
 Why: a clean checkpoint makes later frontend auth bugs easier to isolate.
-Done when: Git history has a dedicated CRA-to-Vite migration commit.
-Status: Pushed as `6267c1b chore: migrate frontend template to vite`.
+Done when: Git history has a dedicated Vite env cleanup commit after the CRA-to-Vite base migration.
+Status: CRA-to-Vite base migration was pushed as `6267c1b chore: migrate frontend template to vite`; the current Vite env cleanup is verified but still in the working tree.
 
 ## Phase 3 - Session/Cookie First-Party SPA Integration
 1. [ ] Implement first-party SPA auth flow using Sanctum cookies.

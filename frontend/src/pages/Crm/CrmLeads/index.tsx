@@ -325,7 +325,7 @@ const CrmLeads = () => {
                 {/* {leads.row.original.img ?  */}
                 <img
                   src={cell.row.original.img}
-                  // process.env.REACT_APP_API_URL + "/images/users/" + 
+                  // import.meta.env.VITE_BACKEND_URL + "/images/users/" + 
                   alt=""
                   className="avatar-xxs rounded-circle"
                 />

@@ -343,7 +343,7 @@ const AllTasks = () => {
               {assigned.map((item: any, index: any) => (
                 <Link key={index} to="#" className="avatar-group-item">
                   <img src={item} alt="" className="rounded-circle avatar-xxs" />
-                  {/* process.env.REACT_APP_API_URL + "/images/users/" + */}
+                  {/* import.meta.env.VITE_BACKEND_URL + "/images/users/" + */}
                 </Link>
               ))}
 

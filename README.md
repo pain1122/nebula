@@ -201,7 +201,8 @@ Current frontend workspace facts:
 - It may still reference demo/default API configuration until adapted.
 - Vite dev server runs at `http://localhost:3000`.
 - Laravel backend target for future local integration is `http://localhost:8080`; Laravel API routes are under `http://localhost:8080/api`.
-- `frontend/vite.config.ts` currently carries a temporary `process.env.REACT_APP_*` compatibility bridge. Convert active frontend env usage to `import.meta.env.VITE_*` during Phase 3/4 cleanup.
+- Frontend env declarations use Vite keys: `VITE_BACKEND_URL`, `VITE_API_BASE_URL`, and temporary `VITE_DEFAULT_AUTH`.
+- Active frontend env reads use `import.meta.env`; the old CRA `process.env.REACT_APP_*` compatibility bridge has been removed.
 - Do not treat `frontend/` as the canonical admin surface until the `/panel/*` route, API client, and Sanctum session/cookie auth contract are implemented.
 
 ## Production Docker Skeleton
@@ -295,7 +296,7 @@ docker compose down -v
 
 ## Current Verification Snapshot
 
-As of 2026-06-07:
+As of 2026-06-14:
 - Backend tests pass: 25 tests, 61 assertions.
 - Runtime roles are `admin`, `doctor`, and `patient`.
 - `users.role` is not present in the migrated schema.
@@ -303,12 +304,13 @@ As of 2026-06-07:
 - Backend Sanctum session-cookie smoke test passes for CSRF, JSON login, and `/api/auth/me`.
 - `frontend/` has been migrated from CRA/react-scripts to Vite and builds successfully.
 - `frontend` dev server runs at `http://localhost:3000`.
+- Active frontend env usage has been converted to Vite env access; only commented Firebase template notes still mention old CRA env names.
 
 ## Known Gaps
 
 Next technical gaps are architectural/product work, not boot blockers:
 - First-party browser SPA auth still needs Sanctum session/cookie implementation.
-- Parked React admin/client workspace still needs route ownership, Vite-native env cleanup, API client consolidation, and auth cleanup.
+- Parked React admin/client workspace still needs route ownership, API client consolidation, and auth cleanup.
 - Booking runtime still needs full `checkup_doctor` pivot enforcement.
 - Reservation creation still needs generated-slot enforcement.
 - Web/API booking rules should be consolidated into a shared domain service.

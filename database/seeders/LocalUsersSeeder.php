@@ -11,6 +11,18 @@ class LocalUsersSeeder extends Seeder
 {
     public function run(): void
     {
+        $rootAdmin = User::updateOrCreate(
+            ['email' => 'rootadmin@checkupino.test'],
+            [
+                'name'       => 'Local Root Admin',
+                'phone'      => '09987654321',
+                'birth_date' => '1999-01-01',
+                'NID'        => '0098765432',
+                'password'   => Hash::make('Password123!'),
+                'first_name' => 'Local',
+                'last_name'  => 'Root Admin',
+            ]
+        );
         $admin = User::updateOrCreate(
             ['email' => 'admin@checkupino.test'],
             [
@@ -52,6 +64,7 @@ class LocalUsersSeeder extends Seeder
 
         // اگر Spatie Roles دارید:
         if (method_exists($admin, 'assignRole')) {
+            $rootAdmin->assignRole(UserRole::RootAdmin->value);
             $admin->assignRole(UserRole::Admin->value);
             $doctor->assignRole(UserRole::Doctor->value);
             $patient->assignRole(UserRole::Patient->value);

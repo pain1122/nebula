@@ -9,7 +9,7 @@ use App\Http\Controllers\Admin\CheckupCategoryController;
 use App\Http\Controllers\Admin\CheckupController;
 
 
-Route::middleware(['auth','verified','role:' . UserRole::Admin->value])
+Route::middleware(['auth','verified','role:' . UserRole::Admin->value .'|' . UserRole::RootAdmin->value])
     ->prefix('admin')->name('admin.')
     ->group(function () {
         Route::get('/', [AdminDashboard::class,'__invoke'])->name('dashboard');

@@ -2,6 +2,19 @@
 
 Snapshot date: 2026-06-14
 
+## Fast Context For Agents
+
+Always remember:
+- Laravel 12 + Docker.
+- Blade is still active runtime.
+- React admin is target but not canonical yet.
+- `frontend/` is a parked Velzon Vite workspace with working Sanctum session auth.
+- Spatie roles are the only authority source.
+- `users.role` does not exist anymore.
+- Current runtime roles: admin, doctor, patient.
+- Booking domain still needs pivot eligibility, generated-slot enforcement, and shared service consolidation.
+- Do not load `frontend/public/assets`, `vendor`, or `node_modules`.
+
 ## 1) Project Reality
 
 Checkupino is currently a Laravel 12 medical platform with a stable backend foundation and a frontend transition in progress.
@@ -29,10 +42,14 @@ Core implemented domains:
 
 ## 2) High-Signal Paths (Load First)
 
+- `AI_BOOT.md`
 - `CODEX_RULES.md`
-- `TODO.md`
+- `CURRENT_SPRINT.md`
+- `CURRENT_TASK.md`
+- `docs/ai-context/modules/*.md` for the active domain only
+- `docs/TODO.md`
 - `README.md`
-- `PROJECT_MAP.md`
+- `docs/PROJECT_MAP.md`
 - `docs/adr/ADR-0001-ui-auth-role-architecture.md`
 - `docs/architecture/boundaries.md`
 - `docs/deployment/docker-production.md`
@@ -242,11 +259,31 @@ As of 2026-06-14:
 
 ## 12) Recommended Scan Order (Future Sessions)
 
-1. Read `CODEX_RULES.md`, `TODO.md`, `README.md`, and this `PROJECT_MAP.md`.
-2. Read ADR/boundary docs under `docs/`.
-3. Read route files in `routes/`.
-4. Read controllers directly referenced by the target routes.
-5. Read related models, policies, services, migrations, and seeders.
-6. Read tests relevant to the target behavior.
-7. Open `resources/views` or `frontend/src` only when the task is UI-specific.
-8. Avoid `frontend/public/assets`, `vendor`, and `node_modules` unless explicitly needed.
+### Normal task sessions
+
+1. Read `AI_BOOT.md`.
+2. Read `CODEX_RULES.md`.
+3. Read `CURRENT_SPRINT.md`.
+4. Read `CURRENT_TASK.md`.
+5. Read only the relevant `docs/ai-context/modules/*.md` file if the task maps to a domain.
+6. Read only the files directly named by the current task or module.
+7. Read routes/controllers/models/policies/services only when the task requires them.
+8. Read tests relevant to the behavior being changed.
+9. Do not read full `README.md`, `docs/TODO.md`, `docs/PROJECT_MAP.md`, ADRs, or architecture docs unless the session is explicitly planning/architecture review.
+
+### Planning or architecture review sessions
+
+1. Read `AI_BOOT.md`.
+2. Read `CODEX_RULES.md`.
+3. Read `docs/PROJECT_MAP.md`.
+4. Read `docs/TODO.md`.
+5. Read relevant ADR/boundary docs.
+6. Then create/update `CURRENT_SPRINT.md` and `CURRENT_TASK.md`.
+
+### Avoid by default
+
+- `frontend/public/assets/`
+- `vendor/`
+- `node_modules/`
+- generated caches/builds
+- broad `frontend/src/pages/` scans unless working on frontend route/toolbox isolation

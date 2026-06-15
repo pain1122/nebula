@@ -1,4 +1,4 @@
-export type RoleName = "admin" | "doctor" | "patient";
+export type RoleName = "root-admin" | "admin" | "doctor" | "patient";
 
 export interface AuthUser {
     id: number;

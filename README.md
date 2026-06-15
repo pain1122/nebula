@@ -53,6 +53,18 @@ Implemented backend/domain foundations:
 - `docs/` architecture notes and ADRs
 - `docker/` Dockerfiles and Nginx config
 
+## AI/Codex Context
+
+For AI-assisted work, start with the small routing packet instead of loading the full roadmap:
+
+- `AI_BOOT.md`
+- `CODEX_RULES.md`
+- `CURRENT_SPRINT.md`
+- `CURRENT_TASK.md`
+- `docs/ai-context/modules/*.md` only for the active domain
+
+Use `docs/PROJECT_MAP.md` for architecture orientation and `docs/TODO.md` for full roadmap/history.
+
 ## Local Installation
 
 This project is designed for Docker-based local development.

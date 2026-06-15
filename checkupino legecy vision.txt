@@ -1,3 +1,16 @@
+# Archived Product Vision
+
+This file is historical product vision, not current runtime truth.
+
+Do not use this file as implementation authority.
+For current project reality, use:
+- AI_BOOT.md
+- CURRENT_SPRINT.md
+- CURRENT_TASK.md
+- docs/PROJECT_MAP.md
+- docs/TODO.md
+- docs/ai-context/modules/*
+
 🩺 Checkupino — Laravel 11 Full-Stack Medical Platform
 🎯 Purpose
 

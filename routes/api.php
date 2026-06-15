@@ -53,7 +53,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 });
 
-Route::middleware(['auth:sanctum', 'role:' . UserRole::Admin->value . ',sanctum'])
+Route::middleware(['auth:sanctum', 'role:' . UserRole::Admin->value . '|' . UserRole::RootAdmin->value . ',sanctum'])
     ->prefix('admin')
 
     ->group(function () {

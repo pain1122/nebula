@@ -7,7 +7,7 @@ use Illuminate\Validation\Rule;
 
 class StoreSpecialtyRequest extends FormRequest
 {
-    public function authorize(): bool { return auth()->check() && auth()->user()->hasRole(UserRole::Admin->value); }
+    public function authorize(): bool { return auth()->check() && auth()->user()->canAccessAdminPanel(); }
 
     public function rules(): array {
         return [

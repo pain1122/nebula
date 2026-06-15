@@ -5,11 +5,18 @@
 - Modify files only when the user explicitly asks for edits or approves a proposed change.
 - When edits are approved, keep them limited to the requested scope and verify them.
 
+## Context Loading
+- Start with `AI_BOOT.md`, then `CODEX_RULES.md`, then `CURRENT_SPRINT.md`, then `CURRENT_TASK.md`.
+- Load a domain module from `docs/ai-context/modules/` only when the current task touches that domain.
+- Prefer the module scan lists over broad `app/`, `routes/`, `database/`, or `frontend/src/pages/` reads.
+- Use `docs/PROJECT_MAP.md` for architecture orientation and `docs/TODO.md` for roadmap/history; do not load them by default for normal implementation tasks.
+- If a module conflicts with current code, trust the code and update the module after verification.
+
 ## Project Reality
 - Backend: Laravel 12 running in Docker.
 - Root frontend assets: Blade + Laravel Vite.
 - Separate frontend workspace: `frontend/` currently holds a parked Velzon React-TS Vite template.
-- `frontend/` is not production-ready yet; it still has Velzon demo routes, fake backend data, and token-style auth assumptions. Active env usage has been migrated to Vite-style `import.meta.env`; the old CRA compatibility bridge has been removed from `vite.config.ts`.
+- `frontend/` is not production-ready yet. It still has Velzon demo routes and demo-data helpers. Active browser admin auth has been migrated to Sanctum session cookies, but some template-era assumptions may remain in non-product/demo areas.
 - Local environment: Docker with Nginx, PHP-FPM, MySQL, and Redis.
 - Local app URL: `http://localhost:8080`.
 - Local API base: `http://localhost:8080/api`.

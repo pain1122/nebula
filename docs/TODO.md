@@ -83,7 +83,7 @@ Status: Migration and API routes are present.
 3. [x] Resolve local environment contract drift for frontend API target.
 Evidence: The active Docker backend is exposed through Nginx at `http://localhost:8080`; the Vite frontend workspace declares `VITE_BACKEND_URL=http://localhost:8080` and `VITE_API_BASE_URL=http://localhost:8080/api`.
 Done when: one documented local API base strategy works for frontend and backend.
-Status: Documented in `README.md` and `PROJECT_MAP.md`. Host-side PHP must not use Docker-only `DB_HOST=db`; run Artisan inside Docker or use host DB port `3307`.
+Status: Documented in `README.md` and `docs/PROJECT_MAP.md`. Host-side PHP must not use Docker-only `DB_HOST=db`; run Artisan inside Docker or use host DB port `3307`.
 
 4. [x] Fix test bootstrap so feature tests do not require built Vite assets.
 Evidence: `tests/TestCase.php` calls `$this->withoutVite()` and seeds `RolesSeeder` when the roles table exists.
@@ -91,7 +91,7 @@ Done when: tests pass on a clean clone with `php artisan test` only.
 Status: Current suite passes: 25 tests, 61 assertions.
 
 5. [x] Sync high-signal docs to current runtime reality.
-Evidence: `README.md`, `PROJECT_MAP.md`, `TODO.md`, ADR, and architecture boundaries were refreshed on 2026-06-03.
+Evidence: `README.md`, `docs/PROJECT_MAP.md`, `docs/TODO.md`, ADR, and architecture boundaries were refreshed on 2026-06-03.
 Done when: known gaps in docs match the actual codebase.
 
 ## Phase 2 - Auth and Authorization Rebase (Complete)
@@ -193,7 +193,7 @@ Status: `npm run build` succeeds. Remaining warning: large chunks from template/
 
 
 10. [x] Update docs after migration.
-Scope: update `README.md`, `PROJECT_MAP.md`, and this TODO section.
+Scope: update `README.md`, `docs/PROJECT_MAP.md`, and this TODO section.
 Scope: mention that `frontend/` is now Velzon React-TS on Vite, still parked for Phase 3 auth wiring.
 Why: docs must say how to run the actual frontend toolchain.
 Done when: frontend commands in docs use Vite, not CRA.

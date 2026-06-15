@@ -11,7 +11,7 @@ class ReservationPolicy
 {
     public function view(User $user, Reservation $reservation): bool
     {
-        return $user->hasRole(UserRole::Admin->value)
+        return $user->canAccessAdminPanel()
             || $reservation->user_id === $user->id
             || $reservation->doctor?->user_id === $user->id;
     }
@@ -19,7 +19,7 @@ class ReservationPolicy
     public function update(User $user, Reservation $reservation): bool
     {
         // فعلاً: ادمین یا خود دکتر
-        return $user->hasRole(UserRole::Admin->value)
+        return $user->canAccessAdminPanel()
             || $reservation->doctor?->user_id === $user->id;
     }
 
@@ -30,6 +30,7 @@ class ReservationPolicy
         }
 
         return $user->hasRole(UserRole::Admin->value)
+            || $user->hasRole(UserRole::RootAdmin->value)
             || $reservation->doctor?->user_id === $user->id
             || $reservation->user_id === $user->id;
     }
@@ -41,6 +42,7 @@ class ReservationPolicy
         }
 
         return $user->hasRole(UserRole::Admin->value)
+            || $user->hasRole(UserRole::RootAdmin->value)
             || $reservation->doctor?->user_id === $user->id;
     }
 }

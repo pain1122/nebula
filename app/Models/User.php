@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Laravel\Sanctum\HasApiTokens;
+use App\Enums\UserRole;
 
 class User extends Authenticatable
 {
@@ -78,6 +79,21 @@ class User extends Authenticatable
     public function profile()
     {
         return $this->hasOne(\App\Models\UserProfile::class);
+    }
+
+    public function isRootAdmin(): bool
+    {
+        return $this->hasRole(UserRole::RootAdmin->value);
+    }
+
+    public function canAccessAdminPanel(): bool
+    {
+        return $this->hasAnyRole(UserRole::adminPanelValues());
+    }
+
+    public function canAccessDevtools(): bool
+    {
+        return $this->isRootAdmin();
     }
 
 }

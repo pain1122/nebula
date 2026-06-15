@@ -1,0 +1,82 @@
+## Verification Status
+
+Last verified against code: 2026-06-15
+Verification method:
+- repo inspection
+- route list
+- tests
+- database check where relevant
+
+If this file conflicts with source code, source code wins.
+Update this module after verification.
+
+
+# Doctor Reports Context
+
+Use this module for doctor profile workflows, doctor reservation views, reservation notes/files, medical reporting, and doctor-facing completion flows.
+
+Do not load this module for auth-only role taxonomy, payment-only lifecycle, or checkup CRUD unless doctor-facing report/reservation behavior is directly involved.
+
+## Current State
+
+- Doctor Blade panel exists under `/doctor/*`.
+- Doctor API routes exist under `/api/doctor/*`.
+- Doctor profile includes specialty, fee, bio, experience, availability, and verification state.
+- Doctor can list/show own reservations through API.
+- Doctor can mark a reservation as done through API after the appointment time.
+- `reservation_notes` and `reservation_files` tables/models exist, but full route/controller workflows are still listed as unfinished.
+- No dedicated medical report domain model/controller is present yet.
+
+## Open First
+
+- `routes/doctor.php`
+- `routes/api.php`
+- `app/Http/Controllers/Doctor/DashboardController.php`
+- `app/Http/Controllers/Doctor/ProfileController.php`
+- `app/Http/Controllers/Doctor/ServicesController.php`
+- `app/Http/Controllers/Api/DoctorProfileController.php`
+- `app/Http/Controllers/Api/BookingApiController.php`
+- `app/Models/DoctorProfile.php`
+- `app/Models/Reservation.php`
+- `app/Models/ReservationNote.php`
+- `app/Models/ReservationFile.php`
+- `app/Policies/ReservationPolicy.php`
+
+Schema files:
+
+- `database/migrations/2025_11_09_072921_create_doctor_profiles_table.php`
+- `database/migrations/2025_11_09_123757_create_reservation_notes_table.php`
+- `database/migrations/2025_11_09_123758_create_reservation_files_table.php`
+
+Views:
+
+- `resources/views/doctor/dashboard.blade.php`
+- `resources/views/doctor/profile/edit.blade.php`
+- `resources/views/doctor/services/edit.blade.php`
+
+## Guardrails
+
+- Do not invent a medical report schema without explicit approval.
+- Keep doctor reservation authorization scoped to the authenticated doctor's profile.
+- Keep admin override behavior separate from doctor ownership behavior.
+- Avoid changing booking/payment status behavior from report work unless explicitly in scope.
+- Uploaded files need storage/security review before adding workflows.
+
+## Verification
+
+```bash
+docker compose exec app php artisan test
+docker compose exec app php artisan route:list --except-vendor
+```
+
+Manual smoke path:
+
+- Login as `doctor@checkupino.test`.
+- Visit `/doctor`.
+- Visit `/doctor/profile/edit`.
+- Visit `/doctor/services`.
+
+## Update After Changes
+
+- This module for durable doctor/report facts.
+- `docs/TODO.md` Phase 6 for notes/files/reporting roadmap status.

@@ -19,6 +19,10 @@ class UserController extends ApiController
         $role = $request->query('role');
         $range = $request->query('range', 'all'); // all|week|month|year
 
+        if ($role === UserRole::RootAdmin->value) {
+            abort(403, 'Root admin users are not accessible from admin user management.');
+        }
+
         $from = match ($range) {
             'week' => Carbon::now()->subDays(7),
             'month' => Carbon::now()->subDays(30),
@@ -28,6 +32,7 @@ class UserController extends ApiController
 
         $users = User::query()
             ->with('roles')
+            ->whereDoesntHave('roles', fn($r) => $r->where('name', UserRole::RootAdmin->value))
             ->when($q, function ($query) use ($q) {
                 $query->where(function ($qq) use ($q) {
                     $qq->where('first_name', 'like', "%{$q}%")
@@ -68,6 +73,10 @@ class UserController extends ApiController
 
     public function show(User $user)
     {
+        if ($user->isRootAdmin()) {
+            abort(403, 'Root admin users are not accessible from admin user management.');
+        }
+
         return $this->successResponse(data: [
             'user' => [
                 'id' => $user->id,
@@ -90,7 +99,7 @@ class UserController extends ApiController
     public function store(Request $request)
     {
         $data = $request->validate([
-            'role' => ['required', Rule::in(UserRole::values())],
+            'role' => ['required', Rule::in(UserRole::adminAssignableValues())],
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
             'phone' => ['required', 'string', 'max:30', 'unique:users,phone'],
@@ -136,8 +145,12 @@ class UserController extends ApiController
 
     public function update(Request $request, User $user)
     {
+        if ($user->isRootAdmin()) {
+            abort(403, 'Root admin users are not accessible from admin user management.');
+        }
+
         $data = $request->validate([
-            'role' => ['required', Rule::in(UserRole::values())],
+            'role' => ['required', Rule::in(UserRole::adminAssignableValues())],
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
             'phone' => ['required', 'string', 'max:30', Rule::unique('users', 'phone')->ignore($user->id)],

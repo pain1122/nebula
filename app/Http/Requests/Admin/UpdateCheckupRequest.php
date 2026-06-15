@@ -8,7 +8,7 @@ use App\Enums\UserRole;
 
 class UpdateCheckupRequest extends FormRequest
 {
-    public function authorize(): bool { return auth()->check() && auth()->user()->hasRole(UserRole::Admin->value); }
+    public function authorize(): bool { return auth()->check() && auth()->user()->canAccessAdminPanel(); }
 
     public function rules(): array {
         $id = $this->route('checkup')->id ?? null;

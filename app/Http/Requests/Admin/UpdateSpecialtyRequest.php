@@ -7,7 +7,7 @@ use App\Enums\UserRole;
 
 class UpdateSpecialtyRequest extends FormRequest
 {
-    public function authorize(): bool { return auth()->check() && auth()->user()->hasRole(UserRole::Admin->value); }
+    public function authorize(): bool { return auth()->check() && auth()->user()->canAccessAdminPanel(); }
 
     public function rules(): array {
         $id = $this->route('specialty')->id ?? null;

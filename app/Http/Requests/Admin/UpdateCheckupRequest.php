@@ -4,7 +4,6 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use App\Enums\UserRole;
 
 class UpdateCheckupRequest extends FormRequest
 {
@@ -13,7 +12,10 @@ class UpdateCheckupRequest extends FormRequest
     public function rules(): array {
         $id = $this->route('checkup')->id ?? null;
         return [
-            'checkup_category_id' => ['required','exists:checkup_categories,id'],
+            'checkup_category_id' => [
+                'nullable',
+                Rule::exists('checkup_categories', 'id')->whereNull('deleted_at'),
+            ],
             'title' => ['required','string','max:190'],
             'slug' => ['required','string','max:190', Rule::unique('checkups','slug')->ignore($id)],
             'description' => ['nullable','string','max:5000'],

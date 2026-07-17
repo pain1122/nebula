@@ -1,11 +1,11 @@
 ## Verification Status
 
-Last verified against code: 2026-06-15
+Last verified against code: 2026-06-28
 Verification method:
 - repo inspection
-- route list
-- tests
-- database check where relevant
+- frontend route/menu source inspection
+- `cd frontend && npm run build`
+- user browser review of normal admin and root-admin views
 
 If this file conflicts with source code, source code wins.
 Update this module after verification.
@@ -23,8 +23,22 @@ Do not load this module for backend-only auth role taxonomy unless frontend menu
 - `frontend/` is a Vite-powered Velzon React-TS workspace, not fully canonical yet.
 - Active frontend session auth uses Sanctum cookies.
 - Persian locale, RTL-first admin direction, local fonts, and persisted theme settings are in place.
-- Velzon demo/template pages are still broadly present and inflate bundle size.
-- `frontend/src/helpers/fakebackend_helper.ts` remains only for demo data slices and should move behind root-admin/developer toolbox boundaries before removal.
+- React route/menu ownership is split for the first admin shell slice.
+- Product admin shell routes currently remain `/dashboard`, `/index`, `/profile`, and `/`.
+- Root-admin developer/toolbox/demo routes are under `/panel/dev/*`.
+- Former public Velzon demo/auth-inner/landing/maintenance routes are no longer public; they are root-admin protected under `/panel/dev/*`.
+- Normal admin menu output shows product admin/profile links only. Root-admin menu output also includes the Developer Toolbox.
+- Product-admin route definitions live in `frontend/src/panel/routes.tsx`; product-admin menu definitions live in `frontend/src/panel/menu.ts`.
+- Root-admin toolbox/demo route definitions live in `frontend/src/devtools/toolboxRoutes.tsx`; root-admin toolbox menu behavior lives in `frontend/src/devtools/toolboxMenu.tsx`.
+- `frontend/src/Routes/allRoutes.tsx` and `frontend/src/Layouts/LayoutMenuData.tsx` are now small composer files.
+- Velzon demo/template page components are lazy-loaded from the devtools toolbox route module instead of statically imported into the main route module.
+- Route rendering uses a lightweight `Suspense` fallback in `frontend/src/Routes/index.tsx`.
+- Main JS bundle changed from 13,716,961 bytes before Stage D to about 594 KB after Stage D/E in the 2026-06-28 Vite builds.
+- Remaining large build chunks are lazy toolbox/vendor chunks such as editors, maps, icon packs, and charts, plus a shared shell chunk just over Vite's warning threshold.
+- Shell assets for logos, profile avatar, and layout customizer previews are grouped in `frontend/src/Layouts/shellAssets.ts`.
+- Header profile/search dropdowns no longer expose old Velzon demo links.
+- User browser review confirmed normal admin and root-admin views behave correctly after the split.
+- `frontend/src/helpers/fakebackend_helper.ts` remains only for demo data slices behind the root-admin toolbox boundary.
 
 ## Open First
 
@@ -41,6 +55,12 @@ Frontend shell:
 - `frontend/src/App.tsx`
 - `frontend/src/Routes/AuthProtected.tsx`
 - `frontend/src/Routes/allRoutes.tsx`
+- `frontend/src/Routes/routeHelpers.tsx`
+- `frontend/src/Routes/routeTypes.ts`
+- `frontend/src/panel/routes.tsx`
+- `frontend/src/panel/menu.ts`
+- `frontend/src/devtools/toolboxRoutes.tsx`
+- `frontend/src/devtools/toolboxMenu.tsx`
 - `frontend/src/Layouts/index.tsx`
 - `frontend/src/Layouts/VerticalLayouts/index.tsx`
 - `frontend/src/Layouts/HorizontalLayout/index.tsx`
@@ -91,5 +111,5 @@ docker compose exec app php artisan test
 ## Update After Changes
 
 - This module for durable admin shell/toolbox facts.
-- `CURRENT_SPRINT.md` when sprint route/menu queue changes.
+- `CURRENT_TASK.md` when the active route/menu implementation queue changes.
 - `docs/architecture/boundaries.md` if UI ownership boundaries change.

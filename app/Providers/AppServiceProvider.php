@@ -2,11 +2,16 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Gate;
+use App\Models\Checkup;
+use App\Models\CheckupCategory;
 use App\Models\Reservation;
+use App\Policies\CheckupCategoryPolicy;
+use App\Policies\CheckupPolicy;
 use App\Policies\ReservationPolicy;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\ServiceProvider;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -22,6 +27,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::policy(Checkup::class, CheckupPolicy::class);
+        Gate::policy(CheckupCategory::class, CheckupCategoryPolicy::class);
         Gate::policy(Reservation::class, ReservationPolicy::class);
         Schema::defaultStringLength(191);
     }

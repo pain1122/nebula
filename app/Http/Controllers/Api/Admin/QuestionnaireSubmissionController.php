@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\QuestionnaireSubmission;
+use App\Support\QuerySorting;
 use Illuminate\Http\Request;
 
 class QuestionnaireSubmissionController extends Controller
@@ -19,12 +20,20 @@ class QuestionnaireSubmissionController extends Controller
             ->when($q, function ($x) use ($q) {
                 $x->where(function ($qq) use ($q) {
                     $qq->where('id', $q)
-                        ->orWhere('guest_phone', 'like', "%{$q}%")
-                        ->orWhere('guest_token', 'like', "%{$q}%");
+                        ->orWhere('guest_phone', 'like', "%{$q}%");
                 });
-            })
-            ->latest('id')
-            ->paginate($perPage);
+            });
+
+        QuerySorting::apply($items, $request, [
+            'id' => 'questionnaire_submissions.id',
+            'questionnaire_id' => 'questionnaire_submissions.questionnaire_id',
+            'submitter_name' => 'questionnaire_submissions.submitter_name',
+            'guest_phone' => 'questionnaire_submissions.guest_phone',
+            'total_score' => 'questionnaire_submissions.total_score',
+            'created_at' => 'questionnaire_submissions.created_at',
+        ], 'id', 'desc');
+
+        $items = $items->paginate($perPage);
 
         return response()->json([
             'data' => $items->items(),

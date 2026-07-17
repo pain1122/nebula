@@ -13,9 +13,7 @@
             <td class="p-2">{{ number_format($it->price) }}</td>
             <td class="p-2">
               <a class="text-blue-600" href="{{ route('admin.checkups.edit',$it) }}">ویرایش</a>
-              <form action="{{ route('admin.checkups.destroy',$it) }}" method="POST" class="inline" onsubmit="return confirm('حذف شود؟')">
-                @csrf @method('DELETE') <button class="text-red-600 ml-2">حذف</button>
-              </form>
+              <a class="text-amber-700 ml-2" href="{{ route('admin.checkups.archive-confirm',$it) }}">بایگانی</a>
             </td>
           </tr>
         @endforeach

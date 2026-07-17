@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\DoctorWorkplace;
 use App\Models\Reservation;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
@@ -9,66 +10,71 @@ use Carbon\CarbonPeriod;
 class SchedulingService
 {
     /**
-     * $availability نمونه:
-     * [
-     *   ['day'=>'sat','slots'=>[['09:00','12:00'],['14:00','17:00']]],
-     *   ['day'=>'mon','slots'=>[['10:00','13:00']]],
-     * ]
+     * @return list<array{0: Carbon, 1: Carbon}>
      */
-    public static function buildSlots(array $availability, Carbon $from, Carbon $to, int $slotMinutes = 30, int $bufferMinutes = 0): array
-    {
-        // Carbon: Sun=0 ... Sat=6
-        $map = ['sun'=>0,'mon'=>1,'tue'=>2,'wed'=>3,'thu'=>4,'fri'=>5,'sat'=>6];
+    public static function buildWorkplaceSlots(
+        DoctorWorkplace $workplace,
+        Carbon $from,
+        Carbon $to,
+        int $durationMinutes
+    ): array {
+        $windows = $workplace->workingWindows()
+            ->where('is_active', true)
+            ->orderBy('weekday')
+            ->orderBy('starts_at')
+            ->get();
 
-        // جمع‌آوری بازه‌های هر روز
-        $daySlots = [];
-        foreach ($availability as $item) {
-            $d = strtolower($item['day'] ?? '');
-            if (! isset($map[$d]) || empty($item['slots'])) continue;
-            $daySlots[$map[$d]] = $item['slots']; // [["09:00","12:00"], ...]
-        }
+        $slots = [];
 
-        $out = [];
         foreach (CarbonPeriod::create($from->copy()->startOfDay(), '1 day', $to->copy()->endOfDay()) as $date) {
-            $dow = $date->dayOfWeek; // 0..6
-            if (! isset($daySlots[$dow])) continue;
+            foreach ($windows->where('weekday', $date->dayOfWeek) as $window) {
+                if ($window->effective_from && $date->lt($window->effective_from->startOfDay())) {
+                    continue;
+                }
 
-            foreach ($daySlots[$dow] as [$startStr, $endStr]) {
-                $winStart = Carbon::parse($date->format('Y-m-d') . ' ' . $startStr);
-                $winEnd   = Carbon::parse($date->format('Y-m-d') . ' ' . $endStr);
+                if ($window->effective_until && $date->gt($window->effective_until->endOfDay())) {
+                    continue;
+                }
 
-                for ($cursor = $winStart->copy(); $cursor->lt($winEnd); $cursor->addMinutes($slotMinutes + $bufferMinutes)) {
+                $windowStart = Carbon::parse($date->format('Y-m-d').' '.$window->starts_at);
+                $windowEnd = Carbon::parse($date->format('Y-m-d').' '.$window->ends_at);
+                $step = $durationMinutes + $window->buffer_minutes;
+
+                for ($cursor = $windowStart->copy(); $cursor->lt($windowEnd); $cursor->addMinutes($step)) {
                     $slotStart = $cursor->copy();
-                    $slotEnd   = $slotStart->copy()->addMinutes($slotMinutes);
-                    if ($slotEnd->gt($winEnd)) break;
-                    $out[] = [$slotStart->copy(), $slotEnd->copy()];
+                    $slotEnd = $slotStart->copy()->addMinutes($durationMinutes);
+
+                    if ($slotEnd->gt($windowEnd)) {
+                        break;
+                    }
+
+                    $slots[] = [$slotStart, $slotEnd];
                 }
             }
         }
 
-        return $out; // آرایه‌ای از [Carbon $start, Carbon $end]
+        return $slots;
     }
 
-    /** بررسی هم‌پوشانی بازه با رزروهای موجود پزشک */
     public static function hasConflict(int $doctorProfileId, Carbon $start, Carbon $end): bool
     {
-        return Reservation::where('doctor_profile_id', $doctorProfileId)
-            ->where(function($q) use ($start,$end){
-                $q->whereBetween('starts_at', [$start, $end->copy()->subSecond()])
-                  ->orWhereBetween('ends_at',   [$start->copy()->addSecond(), $end])
-                  ->orWhere(function($q) use ($start,$end){
-                      $q->where('starts_at','<=',$start)->where('ends_at','>=',$end);
-                  });
-            })->exists();
+        return Reservation::query()
+            ->blocking()
+            ->where('doctor_profile_id', $doctorProfileId)
+            ->where('starts_at', '<', $end)
+            ->where('ends_at', '>', $start)
+            ->exists();
     }
 
-    /** فیلترکردن اسلات‌ها بر اساس تداخل */
+    /**
+     * @param list<array{0: Carbon, 1: Carbon}> $slots
+     * @return list<array{0: Carbon, 1: Carbon}>
+     */
     public static function availableSlots(int $doctorProfileId, array $slots): array
     {
-        $ok = [];
-        foreach ($slots as [$s,$e]) {
-            if (! self::hasConflict($doctorProfileId, $s, $e)) $ok[] = [$s,$e];
-        }
-        return $ok;
+        return array_values(array_filter(
+            $slots,
+            fn (array $slot): bool => ! self::hasConflict($doctorProfileId, $slot[0], $slot[1])
+        ));
     }
 }

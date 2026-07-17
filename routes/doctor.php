@@ -6,7 +6,7 @@ use App\Http\Controllers\Doctor\DashboardController as DoctorDashboard;
 use App\Http\Controllers\Doctor\ProfileController;
 use App\Http\Controllers\Doctor\ServicesController;
 
-Route::middleware(['auth', 'verified', 'role:' . UserRole::Doctor->value])
+Route::middleware(['auth', 'account.active', 'verified', 'role:' . UserRole::Doctor->value])
     ->prefix('doctor')->name('doctor.')
     ->group(function () {
         Route::get('/', [DoctorDashboard::class, '__invoke'])->name('dashboard');

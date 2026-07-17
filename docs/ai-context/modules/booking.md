@@ -1,11 +1,11 @@
 ## Verification Status
 
-Last verified against code: 2026-06-15
+Last verified against code: 2026-07-10
 Verification method:
 - repo inspection
 - route list
 - tests
-- database check where relevant
+- scoped Pint
 
 If this file conflicts with source code, source code wins.
 Update this module after verification.
@@ -20,12 +20,17 @@ Do not load this module for role taxonomy, admin shell routing, payment-only lif
 
 - Web booking routes live under `/book*` and `/my/reservations`.
 - API booking routes include `/api/checkups`, `/api/checkups/{checkup}/doctors`, `/api/doctors/{doctor}/availability`, `/api/reservations`, and `/api/my/reservations`.
-- Reservation creation exists in both web and API controllers.
+- Reservation creation is centralized in `App\Services\BookingService` and is called by both web and API booking controllers.
 - Conflict checks use `App\Services\SchedulingService`.
-- Runtime doctor/checkup eligibility still uses `doctor_profiles.specialty_id == checkups.checkup_category_id`.
-- `checkup_doctor` exists and is seeded for local data, but runtime booking still needs consistent enforcement through that pivot.
-- Slot conflict is checked, but reservation creation still needs proof that the requested slot came from generated availability.
+- Runtime service eligibility uses `doctor_workplace_checkup`; it is scoped to one doctor/hospital workplace, not specialty/category matching.
+- `BookingService` re-fetches and locks an active checkup before creation, then enforces verified doctor, checkup/doctor pivot membership, future slot, generated-slot match, and conflict recheck inside the booking transaction. A stale archived checkup model cannot create a reservation.
+- Booking creates a one-hour `pending` hold and one `unpaid` reservation payment summary together. Multiple later provider attempts belong to that summary.
+- Canonical reservation states are `pending`, `confirmed`, `completed`, `cancelled`, and `expired`.
+- Availability uses normalized `doctor_working_windows`. Confirmed reservations and unexpired pending holds block conflicts; stale pending/cancelled/completed/expired rows do not.
+- Reservations snapshot hospital, doctor, service/category, price/currency, duration, and timezone and reserve append-only schedule-change history.
 - Reservation status is cast to `App\Models\ReservationStatus`.
+- Booking, admin reservation, doctor reservation, checkup, doctor, user, questionnaire, and rating-option list endpoints touched in this slice use whitelisted `sort_by`/`sort_dir` handling through `App\Support\QuerySorting`.
+- Reservation rating pros/cons are admin-managed DB records exposed through active client reads; the actual post-completion rating submission flow is not implemented yet.
 
 ## Open First
 
@@ -34,7 +39,9 @@ Do not load this module for role taxonomy, admin shell routing, payment-only lif
 - `app/Http/Controllers/Front/BookingController.php`
 - `app/Http/Controllers/Api/BookingApiController.php`
 - `app/Http/Controllers/Api/AdminReservationController.php`
+- `app/Services/BookingService.php`
 - `app/Services/SchedulingService.php`
+- `app/Support/QuerySorting.php`
 - `app/Models/Reservation.php`
 - `app/Models/ReservationStatus.php`
 - `app/Models/DoctorProfile.php`
@@ -46,7 +53,7 @@ Schema/data files:
 - `database/migrations/2025_11_09_123756_create_reservations_table.php`
 - `database/migrations/2025_11_09_123757_create_reservation_notes_table.php`
 - `database/migrations/2025_11_09_123758_create_reservation_files_table.php`
-- `database/migrations/2026_02_22_000000_create_checkup_doctor_table.php`
+- `database/migrations/2025_11_09_110000_create_doctor_workplace_services_and_windows.php`
 - `database/seeders/DoctorServicesSeeder.php`
 
 Views:
@@ -59,15 +66,21 @@ Views:
 ## Guardrails
 
 - Do not duplicate booking rules between web and API. Move shared rules into a service when changing behavior.
-- Do not treat specialty/category matching as the final eligibility model; the pivot is the planned source.
+- Do not bypass `BookingService` for reservation/payment creation.
+- Keep the active-checkup row lock before reservation/payment creation so archive and booking cannot race.
+- Do not treat specialty/category matching as a booking eligibility rule; use the workplace-service pivot.
 - Do not change payment lifecycle from booking code unless the payment task is in scope.
 - Do not compare enum-cast reservation statuses as raw strings without checking casts.
+- Current validation accepts a requested duration only when that exact duration produces a generated availability slot. A stricter allowed-duration product policy is still a TODO.
 
 ## Verification
 
 ```bash
-docker compose exec app php artisan test
-docker compose exec app php artisan route:list --except-vendor
+php artisan test --filter=BookingPaymentRiskTest
+php artisan test --filter=ListingFilterSortTest
+vendor\bin\pint --test app/Services/BookingService.php app/Http/Controllers/Api/BookingApiController.php app/Http/Controllers/Front/BookingController.php app/Http/Controllers/Api/AdminReservationController.php
+php artisan test
+php artisan route:list --path=api --except-vendor
 ```
 
 Manual smoke path:

@@ -9,6 +9,7 @@ return new class extends Migration {
     {
         Schema::create('questionnaire_recommendations', function (Blueprint $table) {
             $table->id();
+            $table->ulid('public_id')->unique();
             $table->foreignId('questionnaire_id')->constrained('questionnaires')->cascadeOnDelete();
 
             $table->integer('min_score');

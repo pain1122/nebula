@@ -3,17 +3,26 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\AccountState;
+use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Spatie\Permission\Traits\HasRoles;
 use Laravel\Sanctum\HasApiTokens;
-use App\Enums\UserRole;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles, HasApiTokens;
+    use HasApiTokens, HasFactory, HasRoles, HasUlids, Notifiable;
+
+    /**
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'account_state' => AccountState::Active->value,
+    ];
 
     /**
      * The attributes that are mass assignable.
@@ -37,7 +46,6 @@ class User extends Authenticatable
         'zip_code',
         'bio',
         'patient_status',
-        'tenant_id',
     ];
 
     /**
@@ -61,7 +69,23 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'birth_date' => 'date',
+            'account_state' => AccountState::class,
+            'account_state_changed_at' => 'datetime',
+            'closed_at' => 'datetime',
         ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function uniqueIds(): array
+    {
+        return ['public_id'];
+    }
+
+    public function permitsAuthentication(): bool
+    {
+        return $this->account_state->permitsAuthentication();
     }
 
 

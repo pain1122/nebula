@@ -5,10 +5,6 @@ import { Input } from 'reactstrap';
 //SimpleBar
 import SimpleBar from "simplebar-react";
 
-//import images
-import image2 from "../../assets/images/users/avatar-2.jpg";
-import image3 from "../../assets/images/users/avatar-3.jpg";
-import image5 from "../../assets/images/users/avatar-5.jpg";
 import Navdata from 'Layouts/LayoutMenuData';
 
 const SearchOption = () => {
@@ -52,7 +48,6 @@ const SearchOption = () => {
     
     const onKeyDownPress = (e : any) => {
         const  { key} = e;
-        console.log("value",e.target.value)
         if(key === "Enter"){
             e.preventDefault();
             setSearchTerm(e.target.value);
@@ -118,13 +113,6 @@ const SearchOption = () => {
                             <h6 className="text-overflow text-muted mb-0 text-uppercase">Recent Searches</h6>
                         </div> */}
 
-                        <div className="dropdown-item bg-transparent text-wrap">
-                            <Link to="/" className="btn btn-soft-secondary btn-sm rounded-pill">how to setup <i
-                                className="mdi mdi-magnify ms-1"></i></Link>
-                            <Link to="/" className="btn btn-soft-secondary btn-sm rounded-pill">buttons <i
-                                className="mdi mdi-magnify ms-1"></i></Link>
-                        </div>
-
                         <div className="dropdown-header mt-2">
                             <h6 className="text-overflow text-muted mb-1 text-uppercase">Pages</h6>
                         </div>
@@ -154,53 +142,7 @@ const SearchOption = () => {
                             )}
                         </React.Fragment>
                         ))}
-
-
-                        <div className="dropdown-header mt-2">
-                            <h6 className="text-overflow text-muted mb-2 text-uppercase">Members</h6>
-                        </div>
-
-                        <div className="notification-list">
-
-                            <Link to="#" className="dropdown-item notify-item py-2">
-                                <div className="d-flex">
-                                    <img src={image2} className="me-3 rounded-circle avatar-xs"
-                                        alt="user-pic" />
-                                    <div className="flex-grow-1">
-                                        <h6 className="m-0">Angela Bernier</h6>
-                                        <span className="fs-11 mb-0 text-muted">Manager</span>
-                                    </div>
-                                </div>
-                            </Link>
-
-                            <Link to="#" className="dropdown-item notify-item py-2">
-                                <div className="d-flex">
-                                    <img src={image3} className="me-3 rounded-circle avatar-xs"
-                                        alt="user-pic" />
-                                    <div className="flex-grow-1">
-                                        <h6 className="m-0">David Grasso</h6>
-                                        <span className="fs-11 mb-0 text-muted">Web Designer</span>
-                                    </div>
-                                </div>
-                            </Link>
-
-                            <Link to="#" className="dropdown-item notify-item py-2">
-                                <div className="d-flex">
-                                    <img src={image5} className="me-3 rounded-circle avatar-xs"
-                                        alt="user-pic" />
-                                    <div className="flex-grow-1">
-                                        <h6 className="m-0">Mike Bunch</h6>
-                                        <span className="fs-11 mb-0 text-muted">React Developer</span>
-                                    </div>
-                                </div>
-                            </Link>
-                        </div>
                     </SimpleBar>
-
-                    <div className="text-center pt-3 pb-1">
-                        <Link to="/pages-search-results" className="btn btn-primary btn-sm">View All Results <i
-                            className="ri-arrow-right-line ms-1"></i></Link>
-                    </div>
                 </div>
             </form>
         </React.Fragment>

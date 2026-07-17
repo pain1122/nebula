@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import PropTypes from "prop-types";
 import { Collapse, Container } from 'reactstrap';
 import withRouter from '../../Components/Common/withRouter';
+import { shellAssets } from '../shellAssets';
 
-import logoSm from "../../assets/images/logo-sm.png";
 //i18n
 import { withTranslation } from "react-i18next";
 
@@ -143,7 +143,7 @@ const TwoColumnLayout = (props: any) => {
                         <div id="two-column-menu">
                             <SimpleBar className="twocolumn-iconview">
                                 <Link to="#" className="logo">
-                                    <img src={logoSm} alt="" height="22" />
+                                    <img src={shellAssets.logoSm} alt="" height="22" />
                                 </Link>
                                 {(navData || []).map((item: any, key: number) => (
                                     <React.Fragment key={key}>

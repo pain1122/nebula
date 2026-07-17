@@ -4,16 +4,25 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\Checkup;
 use App\Models\DoctorProfile;
+use App\Models\DoctorWorkplace;
 use App\Models\Payment;
 use App\Models\Reservation;
 use App\Models\ReservationStatus;
+use App\Models\Specialty;
+use App\Models\User;
+use App\Services\BookingService;
 use App\Services\SchedulingService;
+use App\Support\QuerySorting;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class BookingApiController extends ApiController
 {
+    public function __construct(private BookingService $bookingService)
+    {
+    }
+
     /**
      * GET /api/checkups
      * ?category_id=&q=&page=
@@ -21,7 +30,7 @@ class BookingApiController extends ApiController
     public function checkups(Request $request)
     {
         $q = Checkup::with('category:id,name')
-            ->orderBy('title');
+            ->select('checkups.*');
 
         if ($request->filled('category_id')) {
             $q->where('checkup_category_id', $request->integer('category_id'));
@@ -30,6 +39,21 @@ class BookingApiController extends ApiController
         if ($request->filled('q')) {
             $q->where('title', 'like', '%' . $request->q . '%');
         }
+
+        if ($request->filled('min_price')) {
+            $q->where('price', '>=', $request->integer('min_price'));
+        }
+
+        if ($request->filled('max_price')) {
+            $q->where('price', '<=', $request->integer('max_price'));
+        }
+
+        QuerySorting::apply($q, $request, [
+            'title' => 'checkups.title',
+            'price' => 'checkups.price',
+            'category_id' => 'checkups.checkup_category_id',
+            'created_at' => 'checkups.created_at',
+        ], 'title');
 
         $paginated = $q->paginate(20);
 
@@ -43,15 +67,59 @@ class BookingApiController extends ApiController
      * GET /api/checkups/{checkup}/doctors
      * فقط دکترهای verified
      */
-    public function doctorsForCheckup(Checkup $checkup)
+    public function doctorsForCheckup(Request $request, Checkup $checkup)
     {
-        // فرض: checkup جدولش ستون checkup_category_id داره
-        $categoryId = $checkup->checkup_category_id;
-
-        $doctors = DoctorProfile::query()
-            ->where('specialty_id', $categoryId)   // 👈 همون شرطی که گفتی
-            ->where('verified', true)              // فقط دکترهای تأیید‌شده
+        $query = $checkup->doctors()
+            ->where('doctor_profiles.verified', true)
             ->with(['user:id,name', 'specialty:id,name'])
+            ->distinct();
+
+        if ($request->filled('q')) {
+            $term = trim((string) $request->query('q'));
+            $query->where(function ($q) use ($term): void {
+                $q->where('doctor_profiles.bio', 'like', "%{$term}%")
+                    ->orWhereHas('user', fn ($uq) => $uq->where('name', 'like', "%{$term}%"))
+                    ->orWhereHas('specialty', fn ($sq) => $sq->where('name', 'like', "%{$term}%"));
+            });
+        }
+
+        if ($request->filled('specialty_id')) {
+            $query->where('doctor_profiles.specialty_id', $request->integer('specialty_id'));
+        }
+
+        if ($request->filled('min_fee')) {
+            $query->where('doctor_profiles.fee', '>=', $request->integer('min_fee'));
+        }
+
+        if ($request->filled('max_fee')) {
+            $query->where('doctor_profiles.fee', '<=', $request->integer('max_fee'));
+        }
+
+        if ($request->filled('min_experience')) {
+            $query->where('doctor_profiles.experience_years', '>=', $request->integer('min_experience'));
+        }
+
+        QuerySorting::apply($query, $request, [
+            'name' => fn ($q, string $direction) => $q->orderBy(
+                User::query()
+                    ->select('name')
+                    ->whereColumn('users.id', 'doctor_profiles.user_id')
+                    ->limit(1),
+                $direction
+            ),
+            'specialty' => fn ($q, string $direction) => $q->orderBy(
+                Specialty::query()
+                    ->select('name')
+                    ->whereColumn('specialties.id', 'doctor_profiles.specialty_id')
+                    ->limit(1),
+                $direction
+            ),
+            'fee' => 'doctor_profiles.fee',
+            'experience_years' => 'doctor_profiles.experience_years',
+            'created_at' => 'doctor_profiles.created_at',
+        ], 'name');
+
+        $doctors = $query
             ->get()
             ->map(function (DoctorProfile $d) {
                 return [
@@ -65,7 +133,7 @@ class BookingApiController extends ApiController
 
         return $this->successResponse(
             data: $doctors,
-            message: 'Doctors for this checkup (by category/specialty, verified only).'
+            message: 'Doctors for this checkup.'
         );
     }
 
@@ -92,16 +160,30 @@ class BookingApiController extends ApiController
             : Carbon::now()->addDays(7);
 
         $slotMinutes = (int) $request->input('slot', 30);
+        $workplaceQuery = $doctor->workplaces()
+            ->where('is_active', true)
+            ->whereHas('hospital', fn ($hospital) => $hospital->where('is_active', true)->whereNull('archived_at'));
 
-        $availability = $doctor->availability ?? [];
+        if ($request->filled('workplace_id')) {
+            $workplaceQuery->whereKey($request->integer('workplace_id'));
+        }
 
-        $rawSlots = SchedulingService::buildSlots(
-            $availability,
-            $from,
-            $to,
-            $slotMinutes,
-            bufferMinutes: 0
-        );
+        $workplaces = $workplaceQuery->limit(2)->get();
+
+        if ($workplaces->isEmpty()) {
+            return $this->errorResponse('No active workplace was found for this doctor.', 404);
+        }
+
+        if (! $request->filled('workplace_id') && $workplaces->count() > 1) {
+            return $this->errorResponse(
+                message: 'A workplace must be selected for this doctor.',
+                status: 422,
+                errors: ['workplace_id' => ['workplace_required']]
+            );
+        }
+
+        $workplace = $workplaces->first();
+        $rawSlots = SchedulingService::buildWorkplaceSlots($workplace, $from, $to, $slotMinutes);
 
         $freeSlots = SchedulingService::availableSlots($doctor->id, $rawSlots);
 
@@ -129,9 +211,10 @@ class BookingApiController extends ApiController
             'doctor.user:id,name',
             'doctor.specialty:id,name',
             'checkup:id,title,price,checkup_category_id',
+            'payment',
         ])
             ->where('user_id', $user->id)
-            ->orderByDesc('starts_at');
+            ->select('reservations.*');
 
         // فیلتر status (pending | done | cancelled | paid)
         if ($request->filled('status')) {
@@ -164,6 +247,21 @@ class BookingApiController extends ApiController
         if ($request->filled('to')) {
             $query->whereDate('starts_at', '<=', $request->date('to'));
         }
+
+        if ($request->filled('payment_status')) {
+            $query->whereHas('payment', fn ($q) => $q->where('status', $request->query('payment_status')));
+        }
+
+        if ($request->filled('q')) {
+            $term = trim((string) $request->query('q'));
+            $query->where(function ($q) use ($term): void {
+                $q->whereHas('checkup', fn ($cq) => $cq->where('title', 'like', "%{$term}%"))
+                    ->orWhereHas('doctor.user', fn ($uq) => $uq->where('name', 'like', "%{$term}%"))
+                    ->orWhereHas('doctor.specialty', fn ($sq) => $sq->where('name', 'like', "%{$term}%"));
+            });
+        }
+
+        QuerySorting::apply($query, $request, $this->reservationSorts(), 'starts_at', 'desc');
 
         $reservations = $query->paginate(20)
             ->through(function (Reservation $r) {
@@ -198,6 +296,14 @@ class BookingApiController extends ApiController
                         'price' => $r->checkup->price,
                         'category_id' => $r->checkup->checkup_category_id,
                     ] : null,
+
+                    'payment' => $r->payment ? [
+                        'id' => $r->payment->id,
+                        'amount' => $r->payment->amount,
+                        'currency' => $r->payment->currency,
+                        'status' => $r->payment->status,
+                        'provider' => $r->payment->provider,
+                    ] : null,
                 ];
             });
 
@@ -220,86 +326,53 @@ class BookingApiController extends ApiController
      */
     public function storeReservation(Request $request)
     {
+        $idempotencyKey = $request->header('Idempotency-Key');
+
+        if ($idempotencyKey !== null && mb_strlen($idempotencyKey) > 100) {
+            return $this->errorResponse(
+                message: 'The idempotency key is too long.',
+                status: 422,
+                errors: ['idempotency_key' => ['max_100_characters']]
+            );
+        }
+
         $data = $request->validate([
-            'checkup_id' => ['required', 'exists:checkups,id'],
+            'checkup_id' => [
+                'required',
+                Rule::exists('checkups', 'id')->whereNull('deleted_at'),
+            ],
             'doctor_profile_id' => ['required', 'exists:doctor_profiles,id'],
+            'doctor_workplace_id' => ['nullable', 'exists:doctor_workplaces,id'],
             'starts_at' => ['required', 'date_format:Y-m-d\TH:i'],
             'duration' => ['required', 'integer', 'min:10', 'max:180'],
         ]);
 
         $user = $request->user();
         $start = Carbon::parse($data['starts_at']);
-        $end = (clone $start)->addMinutes($data['duration']);
+        $checkup = Checkup::query()->findOrFail($data['checkup_id']);
+        $doctor = DoctorProfile::query()->findOrFail($data['doctor_profile_id']);
+        $workplace = isset($data['doctor_workplace_id'])
+            ? DoctorWorkplace::query()->findOrFail($data['doctor_workplace_id'])
+            : null;
 
-        return DB::transaction(function () use ($data, $user, $start, $end) {
-            // 1) چکاپ را بیاور
-            $checkup = Checkup::findOrFail($data['checkup_id']);
+        [$reservation, $payment] = $this->bookingService->createReservation(
+            user: $user,
+            checkup: $checkup,
+            doctor: $doctor,
+            start: $start,
+            durationMinutes: (int) $data['duration'],
+            workplace: $workplace,
+            idempotencyKey: $idempotencyKey
+        );
 
-            // 2) دکتر را پیدا کن و مطمئن شو verified است
-            $doctor = DoctorProfile::where('id', $data['doctor_profile_id'])
-                ->where('verified', true)
-                ->first();
-
-            if (!$doctor) {
-                return $this->errorResponse(
-                    message: 'Selected doctor is not available for booking.',
-                    status: 422,
-                    errors: [
-                        'doctor_profile_id' => ['doctor_not_verified_or_not_found'],
-                    ]
-                );
-            }
-
-            // 3) چک کن تخصص دکتر با دسته‌بندی چکاپ یکیست
-            if ((int) $doctor->specialty_id !== (int) $checkup->checkup_category_id) {
-                return $this->errorResponse(
-                    message: 'Selected doctor does not match this checkup category.',
-                    status: 422,
-                    errors: [
-                        'doctor_profile_id' => ['doctor_specialty_mismatch'],
-                    ]
-                );
-            }
-
-            // 4) جلوگیری از تداخل زمانی
-            if (SchedulingService::hasConflict($doctor->id, $start, $end)) {
-                return $this->errorResponse(
-                    message: 'این بازه زمانی قبلاً رزرو شده است.',
-                    status: 422,
-                    errors: [
-                        'time' => ['time_conflict'],
-                    ]
-                );
-            }
-
-            // 5) ساخت رزرو
-            $reservation = Reservation::create([
-                'user_id' => $user->id,
-                'doctor_profile_id' => $doctor->id,
-                'checkup_id' => $checkup->id,
-                'starts_at' => $start,
-                'ends_at' => $end,
-                'status' => ReservationStatus::Pending,
-            ]);
-
-            // 6) ساخت پرداخت
-            $payment = Payment::create([
-                'reservation_id' => $reservation->id,
-                'amount' => $checkup->price ?? 0,
-                'currency' => 'IRR',
-                'status' => 'unpaid',
-                'provider' => 'stripe',
-            ]);
-
-            return $this->successResponse(
-                data: [
-                    'reservation' => $reservation,
-                    'payment' => $payment,
-                ],
-                message: 'رزرو با موفقیت ثبت شد.',
-                status: 201
-            );
-        });
+        return $this->successResponse(
+            data: [
+                'reservation' => $reservation,
+                'payment' => $payment,
+            ],
+            message: 'رزرو با موفقیت ثبت شد.',
+            status: 201
+        );
     }
 
     /**
@@ -339,7 +412,7 @@ class BookingApiController extends ApiController
         }
 
         // 4) اگر قبلاً کنسل/تمام شده باشد، اجازه نده
-        if (in_array($statusValue, ['cancelled', 'canceled', 'completed', 'done'], true)) {
+        if (in_array($statusValue, ['cancelled', 'completed', 'expired'], true)) {
             return $this->errorResponse(
                 message: 'این رزرو قابل لغو نیست.',
                 status: 422,
@@ -352,6 +425,8 @@ class BookingApiController extends ApiController
         // 5) تغییر status به Cancelled
         // اگر از enum ReservationStatus استفاده می‌کنی:
         $reservation->status = ReservationStatus::Cancelled;
+        $reservation->cancelled_at = now();
+        $reservation->cancelled_by = $user->id;
 
         $reservation->save();
 
@@ -405,6 +480,14 @@ class BookingApiController extends ApiController
                 'price' => $r->checkup->price,
                 'category_id' => $r->checkup->checkup_category_id,
             ] : null,
+
+            'payment' => $r->payment ? [
+                'id' => $r->payment->id,
+                'amount' => $r->payment->amount,
+                'currency' => $r->payment->currency,
+                'status' => $r->payment->status,
+                'provider' => $r->payment->provider,
+            ] : null,
         ];
     }
     public function doctorReservations(Request $request)
@@ -423,14 +506,54 @@ class BookingApiController extends ApiController
         $query = Reservation::with([
             'user:id,name,email', // بیمار
             'checkup:id,title,price,checkup_category_id',
+            'payment',
         ])
             ->forDoctor($doctorProfile->id) // از scope مدل Reservation استفاده می‌کنیم
-            ->orderByDesc('starts_at');
+            ->select('reservations.*');
 
         // اگر فقط آینده را خواستیم
         if ($request->boolean('upcoming')) {
             $query->upcoming();
         }
+
+        if ($request->filled('status')) {
+            $statusParam = $request->input('status');
+
+            try {
+                $statusEnum = ReservationStatus::from($statusParam);
+                $query->where('status', $statusEnum);
+            } catch (\ValueError $e) {
+                return $this->errorResponse(
+                    message: 'Invalid status value.',
+                    status: 422,
+                    errors: [
+                        'status' => ['invalid_status'],
+                    ]
+                );
+            }
+        }
+
+        if ($request->filled('from')) {
+            $query->whereDate('starts_at', '>=', $request->date('from'));
+        }
+
+        if ($request->filled('to')) {
+            $query->whereDate('starts_at', '<=', $request->date('to'));
+        }
+
+        if ($request->filled('payment_status')) {
+            $query->whereHas('payment', fn ($q) => $q->where('status', $request->query('payment_status')));
+        }
+
+        if ($request->filled('q')) {
+            $term = trim((string) $request->query('q'));
+            $query->where(function ($q) use ($term): void {
+                $q->whereHas('user', fn ($uq) => $uq->where('name', 'like', "%{$term}%")->orWhere('email', 'like', "%{$term}%"))
+                    ->orWhereHas('checkup', fn ($cq) => $cq->where('title', 'like', "%{$term}%"));
+            });
+        }
+
+        QuerySorting::apply($query, $request, $this->reservationSorts(), 'starts_at', 'desc');
 
         $reservations = $query->paginate(20)
             ->through(fn(Reservation $r) => $this->formatDoctorReservation($r));
@@ -486,12 +609,24 @@ class BookingApiController extends ApiController
             : (string) $status;
 
         // اگر قبلاً کنسل یا Done شده، اجازه نده
-        if (in_array($statusValue, ['cancelled', 'done'], true)) {
+        if (in_array($statusValue, ['cancelled', 'completed', 'expired'], true)) {
             return $this->errorResponse(
                 message: 'این رزرو قابل تغییر به وضعیت انجام‌شده نیست.',
                 status: 422,
                 errors: [
                     'status' => ['invalid_status_for_complete'],
+                ]
+            );
+        }
+
+        $reservation->loadMissing('payment');
+
+        if ($reservation->payment?->status !== 'paid') {
+            return $this->errorResponse(
+                message: 'پرداخت این رزرو هنوز تایید نشده است.',
+                status: 422,
+                errors: [
+                    'payment' => ['payment_not_verified'],
                 ]
             );
         }
@@ -508,7 +643,8 @@ class BookingApiController extends ApiController
         }
 
         // تغییر وضعیت به Done
-        $reservation->status = ReservationStatus::Done;
+        $reservation->status = ReservationStatus::Completed;
+        $reservation->completed_at = now();
         $reservation->save();
 
         $reservation->loadMissing([
@@ -520,6 +656,49 @@ class BookingApiController extends ApiController
             data: $this->formatDoctorReservation($reservation),
             message: 'رزرو به عنوان انجام‌شده ثبت شد.'
         );
+    }
+
+    /**
+     * @return array<string, string|callable>
+     */
+    private function reservationSorts(): array
+    {
+        return [
+            'id' => 'reservations.id',
+            'starts_at' => 'reservations.starts_at',
+            'ends_at' => 'reservations.ends_at',
+            'status' => 'reservations.status',
+            'created_at' => 'reservations.created_at',
+            'checkup_title' => fn ($q, string $direction) => $q->orderBy(
+                Checkup::withTrashed()
+                    ->select('title')
+                    ->whereColumn('checkups.id', 'reservations.checkup_id')
+                    ->limit(1),
+                $direction
+            ),
+            'patient_name' => fn ($q, string $direction) => $q->orderBy(
+                User::query()
+                    ->select('name')
+                    ->whereColumn('users.id', 'reservations.user_id')
+                    ->limit(1),
+                $direction
+            ),
+            'doctor_name' => fn ($q, string $direction) => $q->orderBy(
+                User::query()
+                    ->select('users.name')
+                    ->join('doctor_profiles', 'doctor_profiles.user_id', '=', 'users.id')
+                    ->whereColumn('doctor_profiles.id', 'reservations.doctor_profile_id')
+                    ->limit(1),
+                $direction
+            ),
+            'payment_status' => fn ($q, string $direction) => $q->orderBy(
+                Payment::query()
+                    ->select('status')
+                    ->whereColumn('reservation_payment_summaries.reservation_id', 'reservations.id')
+                    ->limit(1),
+                $direction
+            ),
+        ];
     }
 
 

@@ -3,8 +3,8 @@
 namespace App\Policies;
 
 use App\Models\Reservation;
+use App\Models\ReservationStatus;
 use App\Models\User;
-use App\Enums\UserRole;
 
 
 class ReservationPolicy
@@ -25,24 +25,30 @@ class ReservationPolicy
 
     public function cancel(User $user, Reservation $reservation): bool
     {
-        if ($reservation->status === 'done' || $reservation->status === 'canceled') {
+        if (in_array($reservation->status, [
+            ReservationStatus::Completed,
+            ReservationStatus::Cancelled,
+            ReservationStatus::Expired,
+        ], true)) {
             return false;
         }
 
-        return $user->hasRole(UserRole::Admin->value)
-            || $user->hasRole(UserRole::RootAdmin->value)
+        return $user->canAccessAdminPanel()
             || $reservation->doctor?->user_id === $user->id
             || $reservation->user_id === $user->id;
     }
 
     public function reschedule(User $user, Reservation $reservation): bool
     {
-        if ($reservation->status === 'done' || $reservation->status === 'canceled') {
+        if (in_array($reservation->status, [
+            ReservationStatus::Completed,
+            ReservationStatus::Cancelled,
+            ReservationStatus::Expired,
+        ], true)) {
             return false;
         }
 
-        return $user->hasRole(UserRole::Admin->value)
-            || $user->hasRole(UserRole::RootAdmin->value)
+        return $user->canAccessAdminPanel()
             || $reservation->doctor?->user_id === $user->id;
     }
 }

@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Api\ApiController;
 use App\Models\User;
 use App\Enums\UserRole;
+use App\Services\AuditLogger;
+use App\Support\QuerySorting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Carbon\Carbon;
@@ -30,7 +33,7 @@ class UserController extends ApiController
             default => null,
         };
 
-        $users = User::query()
+        $query = User::query()
             ->with('roles')
             ->whereDoesntHave('roles', fn($r) => $r->where('name', UserRole::RootAdmin->value))
             ->when($q, function ($query) use ($q) {
@@ -45,8 +48,20 @@ class UserController extends ApiController
             ->when($role, function ($query) use ($role) {
                 $query->whereHas('roles', fn($r) => $r->where('name', $role));
             })
-            ->when($from, fn($query) => $query->where('created_at', '>=', $from))
-            ->latest('id')
+            ->when($from, fn($query) => $query->where('created_at', '>=', $from));
+
+        QuerySorting::apply($query, $request, [
+            'id' => 'users.id',
+            'name' => 'users.name',
+            'first_name' => 'users.first_name',
+            'last_name' => 'users.last_name',
+            'email' => 'users.email',
+            'phone' => 'users.phone',
+            'patient_status' => 'users.patient_status',
+            'created_at' => 'users.created_at',
+        ], 'id', 'desc');
+
+        $users = $query
             ->get()
             ->map(function (User $u) {
                 return [
@@ -96,7 +111,7 @@ class UserController extends ApiController
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, AuditLogger $auditLogger)
     {
         $data = $request->validate([
             'role' => ['required', Rule::in(UserRole::adminAssignableValues())],
@@ -119,7 +134,6 @@ class UserController extends ApiController
         $password = $data['password'] ?? 'TempPass123!'; // موقت (بعداً ریست پسورد)
         unset($data['password']);
 
-        $user = new User();
         $role = $data['role'];
         unset($data['role']);
 
@@ -129,21 +143,37 @@ class UserController extends ApiController
             $data['patient_status'] = null;
         }
 
-        $user->fill($data);
+        $user = DB::transaction(function () use ($request, $auditLogger, $data, $password, $role) {
+            $user = new User();
+            $user->fill($data);
 
-        // برای سازگاری با formatUser قدیمی
-        $user->name = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''));
+            // برای سازگاری با formatUser قدیمی
+            $user->name = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''));
 
-        $user->password = Hash::make($password);
-        $user->save();
+            $user->password = Hash::make($password);
+            $user->save();
 
-        // spatie role assignment
-        $user->syncRoles([$role]);
+            // spatie role assignment
+            $user->syncRoles([$role]);
+            $user->load('roles');
+
+            $auditLogger->log(
+                request: $request,
+                actor: $request->user(),
+                action: 'admin.user.created',
+                subject: $user,
+                riskLevel: 'critical',
+                before: null,
+                after: $this->auditedUserSnapshot($user),
+            );
+
+            return $user->fresh();
+        });
 
         return $this->successResponse(data: ['user' => $user], message: 'User created.');
     }
 
-    public function update(Request $request, User $user)
+    public function update(Request $request, User $user, AuditLogger $auditLogger)
     {
         if ($user->isRootAdmin()) {
             abort(403, 'Root admin users are not accessible from admin user management.');
@@ -174,12 +204,54 @@ class UserController extends ApiController
             $data['patient_status'] = null;
         }
 
-        $user->fill($data);
-        $user->name = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''));
-        $user->save();
+        $user = DB::transaction(function () use ($request, $auditLogger, $user, $data, $role) {
+            $user->load('roles');
+            $before = $this->auditedUserSnapshot($user);
 
-        $user->syncRoles([$role]);
+            $user->fill($data);
+            $user->name = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''));
+            $user->save();
+            $user->syncRoles([$role]);
+            $user->load('roles');
+
+            $auditLogger->log(
+                request: $request,
+                actor: $request->user(),
+                action: 'admin.user.updated',
+                subject: $user,
+                riskLevel: 'critical',
+                before: $before,
+                after: $this->auditedUserSnapshot($user),
+            );
+
+            return $user->fresh();
+        });
 
         return $this->successResponse(data: ['user' => $user], message: 'User updated.');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function auditedUserSnapshot(User $user): array
+    {
+        $user->loadMissing('roles');
+
+        return [
+            'id' => $user->id,
+            'roles' => $user->roles->pluck('name')->values()->all(),
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'birth_date' => $user->birth_date?->format('Y-m-d'),
+            'NID' => $user->NID,
+            'city' => $user->city,
+            'country' => $user->country,
+            'zip_code' => $user->zip_code,
+            'bio' => $user->bio,
+            'patient_status' => $user->patient_status,
+        ];
     }
 }

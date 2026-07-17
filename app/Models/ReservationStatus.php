@@ -4,8 +4,9 @@ namespace App\Models;
 
 enum ReservationStatus: string
 {
-    case Pending  = 'pending';
-    case Paid     = 'paid';
-    case Done     = 'done';
+    case Pending = 'pending';
+    case Confirmed = 'confirmed';
+    case Completed = 'completed';
     case Cancelled = 'cancelled';
+    case Expired = 'expired';
 }

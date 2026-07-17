@@ -5,15 +5,18 @@ namespace App\Http\Controllers\Front;
 use App\Http\Controllers\Controller;
 use App\Models\Checkup;
 use App\Models\DoctorProfile;
-use App\Models\Payment;
-use App\Models\Reservation;
+use App\Services\BookingService;
 use App\Services\SchedulingService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class BookingController extends Controller
 {
+    public function __construct(private BookingService $bookingService)
+    {
+    }
+
     public function chooseCheckup()
     {
         $checkups = Checkup::with('category')->orderBy('title')->paginate(12);
@@ -22,9 +25,8 @@ class BookingController extends Controller
 
     public function chooseDoctor(Checkup $checkup)
     {
-        $doctors = DoctorProfile::query()
-            ->where('specialty_id', $checkup->checkup_category_id)
-            ->where('verified', true)
+        $doctors = $checkup->doctors()
+            ->where('doctor_profiles.verified', true)
             ->with(['user', 'specialty'])
             ->get();
 
@@ -34,16 +36,17 @@ class BookingController extends Controller
 
     public function pickTime(Checkup $checkup, DoctorProfile $doctor)
     {
-        // همون لاجیک API: دکتر باید verified باشه و تخصصش با دسته بندی چکاپ بخوره
-        if (!$doctor->verified || (int) $doctor->specialty_id !== (int) $checkup->checkup_category_id) {
-            abort(404); // یا می‌تونی redirect کنی با فلش مسیج
+        try {
+            $this->bookingService->assertDoctorCanPerformCheckup($checkup, $doctor);
+        } catch (ValidationException) {
+            abort(404);
         }
 
         $from = Carbon::now();
         $to = Carbon::now()->addDays(7);
 
-        $availability = $doctor->availability ?? [];
-        $rawSlots = SchedulingService::buildSlots($availability, $from, $to, slotMinutes: 30, bufferMinutes: 0);
+        $workplace = $this->bookingService->resolveBookableWorkplace($checkup, $doctor);
+        $rawSlots = SchedulingService::buildWorkplaceSlots($workplace, $from, $to, 30);
         $slots = SchedulingService::availableSlots($doctor->id, $rawSlots);
 
         return view('front.booking.pick-time', compact('checkup', 'doctor', 'slots'));
@@ -58,45 +61,16 @@ class BookingController extends Controller
         ]);
 
         $start = Carbon::parse($data['starts_at']);
-        $end = (clone $start)->addMinutes($data['duration']);
 
-        return DB::transaction(function () use ($request, $checkup, $doctor, $start, $end) {
+        $this->bookingService->createReservation(
+            user: $request->user(),
+            checkup: $checkup,
+            doctor: $doctor,
+            start: $start,
+            durationMinutes: (int) $data['duration']
+        );
 
-            // 1) دکتر باید قابل استفاده برای این چکاپ باشد
-            if (!$doctor->verified || (int) $doctor->specialty_id !== (int) $checkup->checkup_category_id) {
-                return back()
-                    ->withErrors(['doctor' => 'پزشک انتخاب شده برای این چکاپ مجاز نیست.'])
-                    ->withInput();
-            }
-
-            // 2) جلوگیری از تداخل زمانی (همون لاجیک API)
-            if (SchedulingService::hasConflict($doctor->id, $start, $end)) {
-                return back()
-                    ->withErrors(['starts_at' => 'این بازه زمانی قبلاً رزرو شده است.'])
-                    ->withInput();
-            }
-
-            // 3) ساخت رزرو
-            $res = Reservation::create([
-                'user_id' => $request->user()->id,
-                'doctor_profile_id' => $doctor->id,
-                'checkup_id' => $checkup->id,
-                'starts_at' => $start,
-                'ends_at' => $end,
-                'status' => 'pending', // همون چیزی که قبلاً داشتی
-            ]);
-
-            // 4) ساخت پرداخت
-            Payment::create([
-                'reservation_id' => $res->id,
-                'amount' => $checkup->price,
-                'currency' => 'IRR',
-                'status' => 'unpaid',
-                'provider' => 'stripe',
-            ]);
-
-            return redirect()->route('book.my')->with('status', 'رزرو ثبت شد.');
-        });
+        return redirect()->route('book.my')->with('status', 'رزرو ثبت شد.');
     }
 
 

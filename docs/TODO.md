@@ -1,389 +1,340 @@
-# TODO - Architecture Sync Roadmap (Assessment Synced)
+# TODO - Foundation-to-Product Roadmap
 
-Date locked: 2026-05-03
-Last assessed: 2026-06-14
-Assessment basis: repo inspection, `php artisan route:list --except-vendor` in local and production envs, `php artisan test`, database role/schema checks, production Compose config validation, Sanctum session smoke testing, frontend Vite build/dev verification, frontend env migration audit, CORS/preflight audit, and admin shell i18n/theme inspection.
+Snapshot date: 2026-07-12
+
+## How This Roadmap Works
+
+- Work from top to bottom. A later phase starts only when the preceding phase gate is satisfied or `CURRENT_TASK.md` records an approved exception.
+- `docs/TODO.md` is the authoritative roadmap and dependency order.
+- `CURRENT_TASK.md` contains the one active, executable slice. There is no separate sprint file.
+- Completed implementation history belongs in `docs/ai-context/TASK_LOG.md`; this file keeps only enough status to plan accurately.
+- A checkbox is complete only when implementation, regression coverage, and relevant documentation agree.
+
+## Product Order
+
+1. Establish a coherent backend, database, security, tenant, settings, file, audit, and API foundation.
+2. Turn `frontend/` into a reusable React/TypeScript/Vite admin platform.
+3. Deliver a functional Checkupino demo covering root-admin, admin, doctor, catalog, reservation, questionnaire, and payment workflows.
+4. Add blogs/content, products/commerce, and mobile application settings on the shared foundation.
+5. Expand public/patient, tenant-site, reporting, notification, and production capabilities without redesigning the core.
 
 ## Locked Decisions
-- [x] Admin panel UI stack: React + Bootstrap
-- [x] Client/public UI stack: React + Tailwind
-- [x] Role source of truth: Spatie roles/permissions (sole authority)
-- [x] First-party web SPA/PWA auth: Sanctum Session/Cookie
-- [x] Mobile/external auth: Bearer tokens (TTL/rotation/revocation)
-
-## Resolved Since Prior Snapshot
-- [x] `AuthController@registerPatient` and `AuthController@refresh` exist.
-- [x] Booking Blade views exist under `resources/views/front/booking/`.
-- [x] Doctor services Blade view exists under `resources/views/doctor/services/`.
-- [x] `user_profiles` migration exists and backs `UserProfileController`.
-- [x] Lead capture foundation exists via `leads`, `Lead`, and questionnaire submission linkage.
-- [x] `patient_status` exists as a nullable patient lifecycle/capability flag.
-- [x] `users.role` has been migrated out of the active schema.
-- [x] Role taxonomy is centralized in `App\Enums\UserRole` with `admin`, `doctor`, and `patient`.
-- [x] Test bootstrap disables Vite asset requirements and seeds core roles.
-- [x] `/debug/res-last` is local-only.
-- [x] Architecture docs exist under `docs/adr/` and `docs/architecture/`.
-- [x] `checkup_doctor` pivot migration and model relationships exist.
-- [x] Old frontend Vite workspace was replaced by the Velzon React-TS template, then migrated from CRA/react-scripts back to Vite.
-- [x] Production Docker skeleton exists via `docker-compose.prod.yml`, `docker/prod/Dockerfile`, and `docs/deployment/docker-production.md`.
-- [x] Backend session-cookie auth contract works for first-party SPA calls: `/sanctum/csrf-cookie` -> JSON `POST /login` -> `/api/auth/me`.
-- [x] `frontend/` Vite dev server and production build are green.
-- [x] Active frontend env usage now uses Vite env access; the CRA `process.env.REACT_APP_*` compatibility bridge has been removed.
-- [x] Frontend session auth helper exists and uses Sanctum cookies with `withCredentials`.
-- [x] `/api/auth/me` frontend reads avoid unnecessary JSON/XSRF headers and dedupe duplicate in-flight requests.
-- [x] CORS now supports credentialed SPA requests and caches preflight responses with `CORS_MAX_AGE`.
-- [x] Persian locale is registered as `fa`, set as the default language, and uses a key shape compatible with the current Velzon template.
-- [x] Iran flag is wired into the language dropdown through `ir.svg`.
-- [x] Admin panel is RTL-first for now; the runtime LTR/RTL toggle is deferred because the template RTL partials are global, not safely scoped.
-- [x] Local Persian-friendly fonts are registered and selected when `html[lang="fa"]` is active.
-- [x] CDN/Google font imports were removed from the active SCSS stack.
-- [x] Theme customizer settings persist through `localStorage` under `nebula.layout.settings`.
-- [x] Active admin SPA auth now uses Sanctum session cookies instead of browser-stored bearer tokens.
-- [x] Header/profile display reads the Laravel session user from `/api/auth/me`.
-- [x] Firebase auth helpers, fake JWT auth backend, and JWT token-access helpers were removed from the frontend runtime.
-- [x] `api_helper.ts` no longer reads `sessionStorage authUser` or attaches global `Authorization: Bearer` headers.
-
-## Known Current Constraints
-- [ ] The Velzon demo/template pages are still statically imported by `frontend/src/Routes/allRoutes.tsx`, so hidden pages still inflate the initial JS bundle.
-- [ ] `frontend/src/helpers/fakebackend_helper.ts` still exists for Velzon demo data slices. It is no longer browser-admin auth authority, but it should be isolated under the future root-admin/developer toolbox.
-- [ ] `root_admin` is not currently present in `App\Enums\UserRole`; current role taxonomy is `admin`, `doctor`, and `patient`.
-- [ ] Normal admin UX should not pay for root-admin/demo utilities. Developer/root-admin can tolerate heavier lazy-loaded pages.
-
-## Working Principles
-- One business rule path per domain behavior. No duplicated controller logic.
-- One authoritative data source per concept. No split-brain fields.
-- One canonical API response contract across all API controllers.
-- No debug or privileged endpoints exposed publicly.
-- CI green is mandatory before merge.
-
-## Deployment Contract - Ongoing
-- [x] Keep local Docker and future production Docker separate.
-- [x] Add immutable production image skeleton with no project bind-mount.
-- [x] Document required production runtime env file through `.env.production.example`.
-- [x] Add container health route: `/healthz`.
-- [x] Define named volumes for DB, Redis, and Laravel storage.
-- [x] Add optional queue/scheduler worker profile.
-- [ ] Build the production images in CI.
-- [ ] Add smoke test for `docker compose -f docker-compose.prod.yml up`.
-- [ ] Decide release-time migration policy: manual step vs `RUN_MIGRATIONS=true`.
-- [ ] Define backup/restore process for DB and uploaded files.
-- [ ] Finalize TLS/reverse-proxy strategy.
-
-## Phase 1 - Foundation and Security Baseline (Complete)
-1. [x] Remove or strictly local-guard `/debug/res-last`.
-Evidence: `routes/web.php` wraps `/debug/res-last` in `app()->environment('local')`.
-Done when: endpoint is unreachable in non-local environments.
-Status: Production route list excludes the endpoint.
-
-2. [x] Add the missing `user_profiles` migration before relying on profile API.
-Evidence: `database/migrations/2026_06_03_095153_create_user_profiles_table.php` exists.
-Done when: `/api/auth/profile` works after `migrate --seed` on a clean DB.
-Status: Migration and API routes are present.
-
-3. [x] Resolve local environment contract drift for frontend API target.
-Evidence: The active Docker backend is exposed through Nginx at `http://localhost:8080`; the Vite frontend workspace declares `VITE_BACKEND_URL=http://localhost:8080` and `VITE_API_BASE_URL=http://localhost:8080/api`.
-Done when: one documented local API base strategy works for frontend and backend.
-Status: Documented in `README.md` and `docs/PROJECT_MAP.md`. Host-side PHP must not use Docker-only `DB_HOST=db`; run Artisan inside Docker or use host DB port `3307`.
-
-4. [x] Fix test bootstrap so feature tests do not require built Vite assets.
-Evidence: `tests/TestCase.php` calls `$this->withoutVite()` and seeds `RolesSeeder` when the roles table exists.
-Done when: tests pass on a clean clone with `php artisan test` only.
-Status: Current suite passes: 25 tests, 61 assertions.
-
-5. [x] Sync high-signal docs to current runtime reality.
-Evidence: `README.md`, `docs/PROJECT_MAP.md`, `docs/TODO.md`, ADR, and architecture boundaries were refreshed on 2026-06-03.
-Done when: known gaps in docs match the actual codebase.
-
-## Phase 2 - Auth and Authorization Rebase (Complete)
-1. [x] Remove `users.role` from runtime authority flow.
-Scope: stop writing `role` in registration/admin user flows.
-Scope: stop returning `user.role` as authoritative profile data.
-Done when: authorization decisions and API role data rely on Spatie roles only.
-Status: `users.role` column is dropped. API payload keys named `role` are computed from `$user->roles`, not from a users table column.
-
-2. [x] Ensure web registration assigns deterministic Spatie role.
-Evidence: `RegisteredUserController` assigns the patient role through Spatie.
-Done when: new web users have expected rows in Spatie role tables.
-
-3. [x] Normalize Spatie role guard strategy across web and sanctum contexts.
-Evidence: route middleware uses `App\Enums\UserRole`; API routes specify the `sanctum` guard; `User` is configured with the Sanctum Spatie guard name.
-Done when: web admin, web doctor, API admin, and API doctor checks are consistent and documented.
-
-4. [x] Align role taxonomy across seeders, validation, and admin APIs.
-Evidence: `RolesSeeder`, API routes, admin user validation, registration flows, and policies use `UserRole` values.
-Done when: allowed roles are consistent everywhere.
-Status: Database roles contain `admin`, `doctor`, and `patient`; old `user` role is gone.
-
-## Phase 2.5 - Frontend Tooling Rebase: CRA to Vite
-Reason: `frontend/` was imported as the Velzon React-TS Create React App template. Create React App is deprecated for new React work, and Phase 3 auth will touch env variables, routing, and Axios. Migrating to Vite first avoids wiring Sanctum auth against a toolchain we already intended to replace.
-
-Guardrail: migrate tooling only. Do not redesign pages, trim menus, or rewrite auth logic in this phase except for mechanical env/build compatibility.
-
-1. [x] Capture current frontend baseline before touching files.
-Scope: run `cd frontend && npm install` if dependencies are missing.
-Scope: run the current CRA dev/build command enough to know the starting failure/success state.
-Why: a migration is easier to debug when the pre-migration template state is known.
-Done when: current `frontend/` start/build status is written in notes or commit message.
-Status: CRA baseline build succeeds. Warnings confirm stale CRA/Babel/TypeScript toolchain; main JS bundle is ~3.03 MB gzip. `npm install` normalized `frontend/package-lock.json` to the current package metadata.
-
-
-2. [x] Replace CRA package scripts with Vite scripts.
-Scope: remove `react-scripts`.
-Scope: add `vite`, `@vitejs/plugin-react`, and likely `vite-tsconfig-paths`.
-Scope: change scripts to `dev`, `start`, `build`, and `preview` using Vite.
-Why: Vite becomes the frontend build/dev server, while `start` remains convenient muscle memory.
-Done when: `frontend/package.json` no longer depends on `react-scripts`.
-Status: `react-scripts` removed; Vite and React plugin installed.
-
-
-3. [x] Move the HTML entry contract to Vite.
-Scope: create `frontend/index.html` with `<script type="module" src="/src/index.tsx"></script>`.
-Scope: preserve required template metadata/assets from CRA `public/index.html` only if still needed.
-Why: CRA serves `public/index.html`; Vite expects the app HTML entry at the project root.
-Done when: Vite can find `src/index.tsx` from `frontend/index.html`.
-Status: `frontend/index.html` is the Vite entry and loads `/src/index.tsx`.
-
-
-4. [x] Convert CRA environment variable usage to Vite.
-Scope: replace active `process.env.REACT_APP_*` usage with `import.meta.env.VITE_*`.
-Scope: replace active `process.env.PUBLIC_URL` usage with `import.meta.env.BASE_URL` or a small compatibility helper.
-Scope: rename frontend env keys from `REACT_APP_*` to `VITE_*`.
-Why: CRA and Vite expose env variables differently; leaving this mixed causes runtime `process is not defined` errors.
-Done when: `rg "process\\.env|REACT_APP_|PUBLIC_URL" frontend/src` has only comments or intentionally deferred template code.
-Status: Declaration: `frontend/.env.example` documents `VITE_BACKEND_URL`, `VITE_API_BASE_URL`, and `VITE_DEFAULT_AUTH`. Implementation: active CRA env reads were replaced with `import.meta.env`; public image paths use `VITE_BACKEND_URL`, API checks use `VITE_API_BASE_URL`, and routing base path uses `import.meta.env.BASE_URL`. Validation: build and dev server pass after removing the CRA compatibility bridge from `frontend/vite.config.ts`. Remaining `process.env.REACT_APP_*` hits are commented Firebase template notes only.
-
-
-5. [x] Preserve TypeScript path resolution.
-Scope: keep `baseUrl: "./src"` behavior or replace it with explicit Vite aliases.
-Scope: support template imports such as `pages/...`, `common/...`, and other absolute-from-src paths if present.
-Why: CRA tolerated the template's absolute imports through TypeScript config; Vite needs matching resolver behavior.
-Done when: Vite dev/build resolves existing imports without path alias errors.
-Status: Vite native `resolve.tsconfigPaths` handles existing absolute-from-src imports.
-
-
-6. [x] Add Vite type declarations.
-Scope: replace CRA-specific `react-app-env.d.ts` usage with `vite-env.d.ts` if needed.
-Scope: ensure TypeScript recognizes `import.meta.env`.
-Why: TypeScript needs Vite's client types for env access and asset imports.
-Done when: TypeScript no longer complains about `import.meta.env`.
-Status: `src/vite-env.d.ts` added and CRA `react-app-env.d.ts` removed.
-
-
-7. [x] Keep the fake backend untouched during tooling migration.
-Scope: leave `fakeBackend()` behavior in place until Vite boot/build is green.
-Why: removing fake data and changing auth at the same time would mix two migrations and make failures ambiguous.
-Done when: demo pages behave at least as well as they did before migration.
-Status: Completed during tooling migration. Later Phase 3 auth cleanup removed the global `fakeBackend()` activation and deleted the fake JWT auth backend.
-
-
-8. [x] Verify Vite dev server.
-Scope: run `cd frontend && npm run dev` or `npm start`.
-Scope: open the Vite local URL and confirm the template renders.
-Why: this proves the dev experience works before testing production build.
-Done when: the app renders without a blank page or console-breaking module errors.
-Status: `npm start` runs Vite on `localhost:3000`; app renders and redirects to `/login`.
-
-
-9. [x] Verify Vite production build.
-Scope: run `cd frontend && npm run build`.
-Scope: inspect output directory and confirm assets are generated.
-Why: deployment work depends on a repeatable production build, not just the dev server.
-Done when: Vite build completes successfully.
-Status: `npm run build` succeeds. Remaining warning: large chunks from template/demo inventory.
-
-
-10. [x] Update docs after migration.
-Scope: update `README.md`, `docs/PROJECT_MAP.md`, and this TODO section.
-Scope: mention that `frontend/` is now Velzon React-TS on Vite, still parked for Phase 3 auth wiring.
-Why: docs must say how to run the actual frontend toolchain.
-Done when: frontend commands in docs use Vite, not CRA.
-Status: Root README, project map, frontend README, and this TODO now describe `frontend/` as Vite-powered.
-
-11. [x] Commit the env cleanup separately before Phase 3.
-Scope: do not combine with Sanctum auth, route namespace, or UI cleanup.
-Why: a clean checkpoint makes later frontend auth bugs easier to isolate.
-Done when: Git history has a dedicated Vite env cleanup commit after the CRA-to-Vite base migration.
-Status: CRA-to-Vite base migration was pushed as `6267c1b chore: migrate frontend template to vite`; Vite env cleanup was pushed separately as `4d8d742 chore: finish vite env migration`.
-
-## Phase 3 - Session/Cookie First-Party SPA Integration
-1. [x] Implement first-party SPA auth flow using Sanctum cookies.
-Scope: CSRF bootstrap endpoint usage.
-Scope: session-based login/logout/me flow for browser SPA.
-Done when: admin SPA operates without bearer token storage in localStorage.
-Status: Backend contract is ready and browser-tested. Frontend `session_api.ts` calls `/sanctum/csrf-cookie`, JSON `POST /login`, `/api/auth/me`, and `POST /logout` with credentials.
-
-2. [x] Remove browser-admin dependence on bearer tokens stored in browser storage.
-Evidence: Active login, route guard, profile dropdown, and profile page use the Sanctum session user instead of `sessionStorage authUser` or bearer tokens.
-Done when: `/panel/*` authenticated calls use cookie/session auth.
-Status: Active admin runtime is session-first. `api_helper.ts` no longer attaches global bearer headers. Firebase auth helpers, fake JWT auth backend, and JWT token-access helpers were removed. Remaining `fakebackend_helper.ts` is demo-data plumbing only and belongs to Phase 3.5/4 isolation.
-
-3. [ ] Keep bearer token flow for mobile/external clients only.
-Scope: token abilities/scopes.
-Scope: explicit TTL, rotation, and revocation policy.
-Done when: docs and code separate first-party vs external auth paths.
-
-4. [ ] Add high-authority action controls.
-Scope: re-auth/step-up for sensitive admin actions.
-Scope: audit logging for privileged mutations.
-Done when: privileged write paths have policy plus traceability.
-
-5. [x] Optimize `/api/auth/me` for first-party SPA reads.
-Scope: avoid unnecessary preflight for read-only current-user requests.
-Scope: dedupe duplicate in-flight `/me` calls on SPA boot/navigation.
-Done when: `GET /api/auth/me` does not send JSON/XSRF headers and repeated components reuse the same request.
-Status: `session_api.ts` uses a read-only Axios client for `/auth/me`; CORS preflight cache is configured through `CORS_MAX_AGE`.
-
-6. [x] Replace template profile/session display code with real session user data.
-Evidence: `ProfileDropdown` and `user-profile` display data from `/api/auth/me` through `useProfile`.
-Done when: header/profile display comes from the session-auth user state, not Velzon fake-auth storage.
-Status: Browser-tested: login, dashboard refresh, profile dropdown, `/profile`, logout, and logged-out dashboard redirect all behave as expected.
-
-## Phase 3.5 - Admin Shell, Localization, and Root-Admin Developer Toolbox
-Reason: Phase 4 becomes much cleaner if the admin shell is already clear about language, RTL, persisted theme settings, and which Velzon template pages are real product pages versus root-admin utilities.
-
-1. [x] Register Persian as a first-class admin locale.
-Scope: add `fa.json` to `i18n.ts`.
-Scope: add Persian to the language dropdown with the Iran flag.
-Scope: normalize `fa.json` keys to match the current `en.json`/template key format.
-Done when: selecting/defaulting to `fa` translates the current menu labels instead of falling back to English.
-
-2. [x] Make the admin panel RTL-first for the current product direction.
-Scope: keep RTL partials active.
-Scope: avoid investing in runtime LTR/RTL switching until styles can be properly scoped.
-Done when: Persian admin UX is the default supported direction.
-Status: Runtime direction radio remains a future cleanup risk because Velzon RTL styles are global.
-
-3. [x] Move admin typography to local fonts.
-Scope: register local Persian-friendly fonts.
-Scope: remove Google/CDN font imports from active SCSS.
-Scope: use Persian stack when `html[lang="fa"]` is active.
-Done when: active SCSS has no `fonts.googleapis`, `Poppins`, or `Outfit` dependency.
-
-4. [x] Persist theme customizer settings.
-Scope: store validated layout settings in localStorage.
-Scope: reload Redux layout state from storage on app boot.
-Done when: customizer settings survive browser refresh.
-Status: Stored under `nebula.layout.settings`; reset by removing that localStorage key.
-
-5. [ ] Add `root_admin` to the role taxonomy.
-Scope: add `RootAdmin = 'root_admin'` to `App\Enums\UserRole`.
-Scope: seed the role through `RolesSeeder`.
-Scope: decide whether root-admin also receives `admin` or whether policy checks should treat root-admin as admin-equivalent.
-Done when: root-admin exists in DB and can be assigned deterministically.
-
-6. [ ] Return frontend-friendly authority data from `/api/auth/me`.
-Scope: include roles and, if useful, derived flags such as `is_root_admin`.
-Scope: eventually include permissions if we choose permission-based UI gates.
-Done when: frontend route/menu filters do not guess authority from hard-coded local state.
-
-7. [ ] Split product admin routes from Velzon utility/demo routes.
-Scope: keep real product routes in a panel/admin route group.
-Scope: move Velzon UI/forms/charts/tables/icons/maps/template pages into a root-admin developer toolbox route group.
-Done when: normal admin routes and root-admin utility routes are visibly separate in source.
-
-8. [ ] Lazy-load root-admin utility/demo routes.
-Scope: convert demo/toolbox page imports from static imports to `React.lazy`.
-Scope: wrap route rendering in `Suspense` with a small loader.
-Done when: normal admin initial bundle does not include charts/maps/icons/forms/template-demo pages.
-
-9. [ ] Hide root-admin toolbox from normal users.
-Scope: role-specific menu filtering.
-Scope: route guard for `/panel/dev/*` or chosen toolbox namespace.
-Done when: non-root-admin cannot see or manually navigate to developer utility pages.
-
-10. [ ] Organize source files so the toybox does not pollute product browsing.
-Proposal: `frontend/src/panel/` for product/admin code and `frontend/src/devtools/` for root-admin utilities.
-Done when: filemanager/source browsing clearly separates product pages from Velzon reference/demo inventory.
-
-## Phase 4 - Admin and Client UI Boundary Execution
-1. [ ] Declare React admin route namespace and ownership.
-Proposal: `/panel/*` is canonical admin UI surface.
-Evidence: Blade `/admin/*` remains active while the React admin surface is parked for rebuild.
-Done when: non-canonical admin UI paths are deprecated, redirected, or explicitly legacy.
-
-2. [ ] Fix React route/auth path drift.
-Evidence: The current `frontend/` is a Velzon React-TS Vite template and still contains template routing/auth assumptions, including public auth demo pages and root-level template paths.
-Done when: all redirects and links resolve inside the canonical route map.
-
-3. [ ] Consolidate shared frontend API client utilities.
-Evidence: `session_api.ts` exists for session auth, while legacy `api_helper`/fake/JWT helpers still remain from the template.
-Done when: one typed API client is used by admin and client React apps.
-
-4. [ ] Enforce CSS boundary contract.
-Evidence: Locked direction is admin React + Bootstrap, public/client React + Tailwind; admin now has local fonts/RTL foundation, but public/client React is not rebuilt yet.
-Done when: admin React uses Bootstrap conventions and public/client React uses Tailwind conventions without leakage.
-
-5. [ ] Make normal admin experience lean.
-Scope: keep product admin routes smooth and low-bundle.
-Scope: ensure root-admin utilities are lazy-loaded and not part of the normal admin startup path.
-Done when: non-root-admin initial load excludes the Velzon developer toolbox.
-
-## Phase 5 - Booking and Reservation Domain Consistency
-1. [ ] Enforce `checkup_doctor` pivot as doctor/checkup eligibility source.
-Evidence: runtime still relies on `specialty_id == checkup_category_id` in web and API booking paths.
-Done when: both web and API booking use pivot relation checks.
-
-2. [ ] Enforce slot validity during reservation creation.
-Evidence: conflict check exists, but submitted `starts_at + duration` is not proven to match generated available slots.
-Done when: reservation creation only accepts generated available slots.
-
-3. [ ] Consolidate booking decision logic into a domain service.
-Evidence: web and API booking controllers duplicate eligibility, conflict, reservation, and payment creation rules.
-Done when: web/API controllers call shared service methods for booking decisions.
-
-4. [ ] Fix enum/string mismatches in reservation policies.
-Evidence: `Reservation.status` is cast to `ReservationStatus`, while `ReservationPolicy` compares it to string values.
-Done when: policy checks use enum-safe comparisons and have regression coverage.
-
-5. [ ] Define payment status transitions and callback handling.
-Evidence: reservations create `stripe`/`unpaid` payment rows, but lifecycle/callback behavior is not defined.
-Done when: reservation/payment lifecycle is deterministic and test-covered.
-
-## Phase 6 - Data Model Completeness
-1. [ ] Implement reservation notes/files route/controller workflows.
-Done when: doctor/admin create/list/update flows exist and are authorized.
-
-2. [x] Decide whether `users.role` remains as inert legacy data or gets migrated out.
-Done when: schema, model fillable fields, API payloads, and docs agree.
-Status: Migrated out. Roles live in Spatie tables only.
-
-3. [x] Decide whether profile medical fields live in `user_profiles` or directly on `users`.
-Evidence: identity/contact/core account fields live on `users`; medical profile fields live in `user_profiles`; patient lifecycle state lives in nullable `users.patient_status`.
-Done when: profile boundaries are documented and schema-backed.
-
-## Phase 7 - Contract and Regression Test Expansion
-1. [ ] Add feature tests for booking-critical flows.
-Scope: pivot eligibility.
-Scope: slot enforcement.
-Scope: cancel/complete transitions.
-Done when: regressions are blocked by tests.
-
-2. [ ] Add auth-mode tests.
-Scope: first-party session/cookie SPA flow.
-Scope: external bearer token flow.
-Done when: both modes are validated and isolated.
-
-3. [ ] Add API contract tests for envelope consistency.
-Evidence: most API controllers use `successResponse`, while questionnaire endpoints return raw JSON/paginators.
-Done when: controller response shapes are uniform and verified.
-
-4. [ ] Add policy tests for reservation authorization.
-Scope: patient ownership.
-Scope: doctor ownership.
-Scope: admin override.
-Scope: enum status restrictions.
-Done when: `ReservationPolicy` behavior is covered.
-
-## Phase 8 - Cleanup and Enforcement
-1. [ ] Remove stale tracked paths and dead code after migration steps complete.
-Evidence: old `app/Http/Controllers/Doctor/services/edit.blade.php` is deleted while replacement views exist in `resources/views/doctor/services/`.
-Done when: obsolete paths are removed from the repository and docs.
-
-2. [ ] Keep docs synchronized after future implementation phases.
-Done when: README, project map, TODO, and runtime behavior match after each phase lands.
-
-3. [ ] Add PR checklist gates.
-Scope: no duplicated domain logic.
-Scope: no new split-brain fields.
-Scope: tests updated for behavior changes.
-Done when: governance is enforced at review time.
+
+- [x] Backend: Laravel 12 with Docker for local development.
+- [x] Admin panel: React + TypeScript + Vite + Bootstrap, RTL-first.
+- [x] Public/client UI: React + Tailwind when that phase begins.
+- [x] Browser SPA auth: Sanctum session cookies; no browser-stored bearer tokens.
+- [x] Mobile/external auth: scoped bearer tokens with expiry, rotation, and revocation.
+- [x] Authorization authority: Spatie roles and permissions only.
+- [x] Runtime roles: `root-admin`, `admin`, `doctor`, and `patient`.
+- [x] `root-admin` is distinct from `admin` and owns platform-wide authority.
+- [x] Catalog removal uses safe archive behavior and preserves historical records.
+- [x] Tenant and feature-entitlement boundaries must be enforced by the backend, not only hidden in UI.
+- [x] Marketplace/tenant boundary: the main reservation marketplace and each single-hospital tenant website are separate operational products/databases with no automatic identity or business-data synchronization.
+- [x] Marketplace hospitals are manually curated directory/category records without hospital admins; marketplace doctors attach hospitals as workplaces and configure independent services/schedules/reservation windows per workplace.
+- [x] Tenant hospital profile is implicit in its website/database; tenant admins/doctors/patients are local and doctors always default to the same hospital.
+- [x] Root-admin alone manages marketplace admin authority; marketplace admins manage marketplace product/directory data, while tenant admins exist only inside their tenant application.
+- [x] Reservation status `pending` is a one-hour unpaid slot hold; it permits repeated payment attempts after errors and at most one canonical successful payment.
+- [x] Appointment time/duration changes use an explicit conflict-checked, audited history-preserving workflow.
+- [x] Account states are `active`, `suspended`, and `closed`; suspension/closure revoke sessions and bearer tokens while preserving records. Reservation and hospital-listing-request pending states are separate domain states.
+- [x] The databases are currently disposable/empty, so historical migrations may be consolidated into a clean baseline after the target schema is inventoried and protected by fresh/rollback tests.
+- [x] Blogs, products, and mobile settings are later feature phases, but their shared ownership, media, settings, money, and API foundations are designed early.
+
+## Current Position
+
+The project already has a useful verified base:
+
+- Laravel/Docker runtime, a production Compose skeleton, health route, and core seeders.
+- Spatie-only roles, separate root-admin authority, Sanctum browser sessions, and external bearer-token lifecycle support.
+- A Vite-powered Velzon React/TypeScript workspace with Persian/RTL support and root-admin developer routes isolated under `/panel/dev/*`.
+- First fail-closed audit and recent-password step-up coverage for admin-user mutations.
+- Shared booking logic for API/Blade creation, doctor/checkup pivot enforcement, generated/future slot validation, and locked conflict rechecks.
+- Payment guards that block casual unpaid-to-paid and premature done transitions.
+- Checkup/category safe archives that preserve checkups, reservations, payments, notes, files, and doctor assignments.
+
+Last recorded verification on 2026-07-10: 67 backend tests and 320 assertions passed, with disposable SQLite and MySQL migration apply/rollback/re-apply checks. This is historical evidence, not a substitute for rerunning verification after the migration baseline is rebuilt.
+
+## Phase 1 - Foundation and Future-Safe Baselines (Active)
+
+Purpose: settle the contracts that every later feature would otherwise force us to redesign.
+
+### 1A. Architecture and ownership contract
+
+1. [ ] Record the canonical domain boundaries.
+   - Identity/authority, tenant/platform, catalog, scheduling, reservations, payments, questionnaires, medical records, content, commerce, mobile configuration, notifications, and files/media.
+   - Define which module owns each state transition and which modules may only read it.
+
+2. [ ] Implement the approved marketplace/tenant separation before recreating the schema.
+   - Marketplace: manually curated hospital directory, doctor workplaces, per-workplace services/schedules, and marketplace-owned reservations/payments.
+   - Tenant: one implicit hospital profile with entirely local admins/doctors/patients and operational data; no hospital selector or marketplace workplace relation.
+   - Marketplace monitoring stores tenant instance health/subscription/feature metadata only and grants no tenant operational access.
+   - Phase 1 tenant scope is a minimal separate-schema/profile/local-authority/entitlement/audit skeleton only. Full tenant doctors, patients, booking, payment, medical workflows, monitoring UI, and website features remain Phase 7 after the main marketplace features.
+   - Done when: `docs/architecture/foundation-target-domain-and-ownership-contract.md` is represented by the baseline schema and connection/policy design.
+
+3. [ ] Implement the approved authority and account-lifecycle matrix.
+   - Define root-admin-only, admin, doctor, patient, and public abilities.
+   - Decide whether normal admins may create or manage other admins.
+   - Define which mutations require recent-password step-up, audit events, reason fields, or dual confirmation.
+   - Enforce account states `active`, `suspended`, and `closed`; suspension/closure immediately revoke sessions and bearer tokens.
+   - Keep reservation `pending` and hospital-listing/review pending states separate from account state.
+   - Require policies for marketplace ownership and tenant-local ownership instead of relying on scattered controller ID checks; normal product flows never authorize cross-tenant operational access.
+
+4. [ ] Standardize cross-domain lifecycle rules.
+   - Archive versus delete, immutable history snapshots, status transition ownership, timestamps/timezones, money representation, public identifiers, idempotency keys, and actor attribution.
+   - Historical reservation/payment/questionnaire/medical records must survive catalog or account archival.
+   - Normalize enum/database/API vocabulary, including changing the existing mixed `canceled`/`cancelled` reservation-status usage to the chosen target spelling: `cancelled`.
+
+### 1B. Clean database baseline
+
+5. [ ] Inventory the schema expressed by current migrations, models, enums, factories, seeders, and tests.
+   - Produce an old-to-new table/constraint map before deleting migration history.
+   - Confirm every database targeted by the reset is disposable and contains no required data.
+   - Include fillable/guarded ownership fields, status comments/defaults, API resources, and sensitive fields that must not leak into responses or logs.
+
+6. [ ] Replace the historical migration chain with coherent baseline migrations.
+   - Group migrations by dependency and domain instead of preserving accidental development chronology.
+   - Require correct `up()` and `down()` behavior, deterministic ordering, and clean foreign-key creation.
+   - Remove old migration files only as part of the verified replacement change.
+
+7. [ ] Enforce intended integrity in the database.
+   - One doctor profile per user and the intended payment cardinality per reservation.
+   - Unique/indexed tenant domains, memberships, slugs, public IDs, provider references, and idempotency keys where applicable.
+   - Restrict or null foreign keys according to retention rules; do not use destructive cascades for historical business records.
+
+8. [ ] Rebuild deterministic seed and demo data.
+   - Roles/permissions, a local root-admin, normal admin, doctor, patient, base tenant/site, feature keys, settings, checkups, schedules, questionnaires, and payment-provider fixtures.
+   - Never embed production credentials or make local demo credentials valid outside local/testing environments.
+
+### 1C. Shared platform primitives
+
+9. [ ] Establish marketplace directory and tenant monitoring/subscription primitives.
+   - Marketplace hospitals, hospital-listing requests, doctor workplaces, monitored tenant instances, plans/subscriptions, feature keys, tenant overrides, and fail-closed tenant-local feature checks.
+   - Keep directory hospital identity separate from tenant-instance identity; any future link is optional display/monitoring metadata only.
+   - Implement only the minimum tenant registry/schema-version/feature-contract foundation now; defer monitoring dashboards and complete tenant operations to Phase 7.
+
+10. [ ] Establish a scoped settings system.
+    - Typed keys, validation, defaults, and platform/tenant/user scopes.
+    - Reserve groups for branding, booking, payment providers, email/SMS, mobile client configuration, maintenance mode, and integrations.
+    - Secrets must use environment/secret storage; settings rows may reference configuration but must not become a plaintext secret vault.
+
+11. [ ] Establish shared media and private-file contracts.
+    - Reusable media metadata/attachment ownership for public images and documents.
+    - Separate private medical/report storage with policy-protected or signed short-lived downloads, MIME/extension/size validation, audit events, and no public-storage exposure.
+    - Define malware-scanning/quarantine integration points plus file replacement, archive, deletion, and retention rules.
+
+12. [ ] Complete the audit and step-up framework.
+    - Shared audit schema/logger, batch IDs, before/after metadata policy, actor/tenant/subject context, and fail-closed behavior for privileged mutations.
+    - Cover admin authority, doctor verification, reservation/payment overrides, catalog price/update/archive, questionnaire mutations, tenant settings, and future bulk actions.
+    - Redact passwords, tokens, secrets, medical payloads, and unnecessary PII from audit metadata and application logs.
+
+13. [ ] Standardize API contracts.
+    - Versioning strategy, success/error envelope, validation errors, pagination/filter/sort query rules, enums, dates, money, idempotency, and typed OpenAPI-compatible shapes.
+    - Keep first-party session and mobile bearer-token authentication paths explicit and isolated.
+    - Use Form Requests/DTO-style input boundaries and guard ownership fields such as `tenant_id` from mass assignment.
+    - Use policies consistently for ownership/tenant authorization and API resources/transformers for explicit PII-safe response shapes.
+    - Validate CSRF/stateful-domain/CORS environment configuration and add session-auth regression tests.
+
+14. [ ] Establish integration and background-work primitives.
+    - Provider adapters, queues/jobs, retries, idempotent callbacks/webhooks, notification events, and an outbox or equivalent reliable dispatch decision.
+    - Payment, email/SMS, push notifications, and future external integrations must plug into these boundaries.
+
+15. [ ] Establish payment and money foundations.
+    - Integer minor units plus currency, deterministic reservation/payment state machines, provider transaction references, callback verification, idempotency, refund/void concepts, and audited manual override policy.
+    - Keep provider-specific payloads outside the canonical reservation lifecycle.
+    - Support repeated attempts within a one-hour reservation hold, release expired unpaid slots, and enforce at most one canonical successful payment.
+
+### 1D. Future-feature skeletons to reserve now
+
+These are contracts and extension points, not permission to build their complete UI during Phase 1.
+
+| Future feature | Baseline required now | Full implementation phase |
+| --- | --- | --- |
+| Blogs/content | tenant/platform ownership, locale, slug, publication state, SEO metadata, media attachments | Phase 4 |
+| Products/commerce | money/currency, catalog ownership, media, order/payment separation, tax/discount extension points | Phase 5 |
+| Mobile apps | API versioning, client settings, minimum version, maintenance flag, feature flags, device/push-token ownership | Phase 6 |
+| Hospital/clinic sites | isolated single-hospital profile/database, subscription, entitlement, branding, local identities/data, monitoring heartbeat | Phase 7 |
+| Reports/medical files | private file ownership, authorization, audit, retention, download contract | Phase 1 foundation and Phase 3 demo |
+| Notifications | domain events, templates, channels, queued delivery, preference/scoping rules | Phase 1 foundation and later feature phases |
+
+### 1E. Close current correctness and security gaps
+
+16. [ ] Finish booking correctness.
+    - Enforce default and actual duration rules, audited history-preserving rescheduling, enum-safe centralized policies, doctor availability, generated slots, past rejection, one-hour hold expiration, and concurrent overlap protection.
+
+17. [ ] Finish payment and reservation lifecycle integrity.
+    - Verified callbacks, explicit override policy, allowed status transitions, completion endpoint, rating-request trigger, audit, step-up, and regression tests.
+
+18. [ ] Finish questionnaire integrity.
+    - Exactly one valid answer per required question, duplicate/missing answer rejection, throttling plus a CAPTCHA/anti-automation decision, deterministic scoring, and stored-HTML sanitization/rendering policy.
+
+19. [ ] Finish medical record/file safety needed by the demo.
+    - Deliver the minimum medical vertical slice: doctor requests a test/result, patient uploads it, doctor reviews and writes a note/report, and patient views the outcome.
+    - Require private storage, MIME/extension/size validation, malware/quarantine policy, authorized downloads, retention/deletion rules, and audit events.
+
+20. [ ] Close remaining high-authority paths.
+    - Admin-to-admin authority, doctor verification, catalog pricing/update, questionnaire administration, tenant settings, reservation/payment override, and future bulk-operation policy.
+
+### Phase 1 gate
+
+- [ ] Fresh migration, seed, rollback, and re-apply pass on disposable SQLite and MySQL databases.
+- [ ] The minimal tenant-foundation migration path independently verifies its single-hospital profile, local authority, entitlement, audit/outbox, and marketplace-separation constraints without full tenant features.
+- [ ] Backend tests and formatting checks pass against the rebuilt baseline.
+- [ ] Schema constraints, policies, enums, services, seeders, and docs agree.
+- [ ] Ownership/IDOR, tenant mass-assignment, PII redaction, session invalidation, and CSRF/CORS regression tests pass.
+- [ ] No current behavior is silently lost during migration consolidation.
+- [ ] Review and intentionally update the `AI_BOOT.md` Working Mode after the foundation gate, as previously deferred.
+
+## Phase 2 - Reusable Vite Admin Platform
+
+Purpose: make the admin shell useful in Checkupino and portable to another Laravel/API project before building domain-heavy pages.
+
+1. [ ] Make `frontend/` type-clean and build-clean.
+   - Fix the missing `ForgetPassword.tsx` reducer/import and all TypeScript errors.
+   - Add `npm run typecheck`, production build, lint/format policy, and CI gates.
+
+2. [ ] Declare canonical ownership and routing.
+   - `/panel/*` is the product admin namespace.
+   - Keep root-admin developer utilities isolated and lazy under `/panel/dev/*` or a clearly equivalent namespace.
+   - Remove route/auth path drift and document deployment base-path behavior.
+
+3. [ ] Separate reusable admin core from Checkupino modules.
+   - Core: layout, theme, i18n/RTL, auth boundary, API client, navigation, permissions, forms, tables, feedback, errors, and route registry.
+   - Domain modules: users, doctors, reservations, payments, questionnaires, content, commerce, and settings.
+   - The core must not import Checkupino domain pages or hard-code Checkupino API routes.
+
+4. [ ] Consolidate a typed API/auth client.
+   - One environment-driven base URL and one normalized error/envelope layer.
+   - Session-cookie adapter for browser admin; a replaceable auth adapter boundary for reuse.
+   - Request cancellation/deduplication, CSRF bootstrapping, pagination/filter/sort helpers, and typed query/mutation hooks.
+
+5. [ ] Build a shared route/menu/permission registry.
+   - One definition drives routing, navigation, breadcrumbs, titles, lazy imports, and role/permission visibility.
+   - Backend remains the authority; frontend gates improve UX but never replace policies.
+
+6. [ ] Build reusable admin primitives.
+   - Data table, server pagination/filter/sort/search, form fields/validation, modal/drawer, archive confirmation, password step-up, file picker, status badge, audit history, empty/loading/error states, and toast/notification handling.
+   - Ensure Persian/RTL behavior is part of component acceptance, not a later patch.
+
+7. [ ] Make root-admin platform navigation first-class.
+   - Separate marketplace product/directory pages from root-admin system pages.
+   - Preserve extension slots for future tenant monitoring, feature entitlements, settings, audit events, health, jobs, and mobile configuration without building tenant pages in this phase.
+
+8. [ ] Remove or quarantine Velzon demo dependencies.
+   - Delete fake/demo data helpers only after no reusable core or product route depends on them.
+   - Keep selected developer reference pages only when they are clearly root-admin tools and remain lazy-loaded.
+   - Reduce the shared shell chunk and prevent toolbox assets from entering normal-admin startup bundles.
+
+9. [ ] Document and verify portability.
+   - Environment contract, required packages, auth/API adapter points, theme tokens, module registration, build commands, and extraction/copy checklist.
+   - Prove the admin core can boot with a minimal module manifest without Checkupino domain routes.
+
+### Phase 2 gate
+
+- [ ] `npm run typecheck` and `npm run build` pass in CI.
+- [ ] Root-admin and normal-admin route/menu authority is browser-tested.
+- [ ] The normal-admin initial bundle excludes developer-toolbox pages.
+- [ ] A second project can adopt the admin core through documented configuration rather than copying Checkupino business code.
+
+## Phase 3 - Functional Checkupino Demo
+
+Purpose: deliver one end-to-end usable product slice on the stable backend and reusable admin platform.
+
+### 3A. Root-admin and admin
+
+1. [ ] Complete root-admin platform capabilities for the demo scope.
+   - Manage marketplace admins/authority, account suspension/session revocation, hospital directory, marketplace settings, doctor verification, audit events, and system/queue/health visibility.
+   - Every privileged mutation is policy-checked, step-up protected where required, and audited. Tenant-instance management/monitoring UI remains Phase 7.
+
+2. [ ] Complete normal-admin capabilities for the demo scope.
+   - Manage permitted marketplace users/patients, hospital directory profiles, doctors/workplaces, specialties, checkup categories/checkups, schedules, reservations, payments, questionnaires, ratings, and reports without root-admin escalation paths.
+
+### 3B. Doctor and catalog
+
+3. [ ] Complete the base doctor workflow.
+   - Profile, specialty, verification state, offered checkups, availability, reservation queue, allowed status actions, requested tests/results, notes, private files, and reports.
+
+4. [ ] Complete the checkup catalog workflow.
+   - Categories, checkups, pricing, duration, doctor eligibility, safe archive/detach/reassignment, search/filter/sort, and historical snapshot behavior.
+
+### 3C. Reservation, payment, and questionnaire
+
+5. [ ] Complete the reservation workflow.
+   - Availability search, booking, conflict safety, cancellation, admin/doctor transitions, completion, rating request, ownership policies, and history.
+
+6. [ ] Complete the payment workflow.
+   - A deterministic sandbox/fake provider adapter for the demo, verified/idempotent callback path, payment status history, refund/void-ready contract, and audited root-admin override.
+
+7. [ ] Complete the questionnaire workflow.
+   - Admin CRUD, safe rich content, public/patient submission, lead linkage, validation/throttling/anti-automation, scoring, recommendations, results, and audit/history behavior.
+
+### 3D. Demo delivery
+
+8. [ ] Complete the booking-to-medical-outcome vertical slice.
+   - Doctor requests a result/test, patient uploads a private file, doctor reviews it and publishes a report/outcome, patient views the authorized outcome, and admins see only policy-permitted records.
+
+9. [ ] Create a deterministic demo seed and walkthrough.
+   - Root-admin, admin, doctor, and patient accounts; tenant/site; feature entitlements; checkups; schedules; questionnaire; sample reservation/payment states; and safe local-only credentials.
+   - Document the golden flow and capture repeatable screenshots/video only after the seeded flow is stable.
+
+10. [ ] Add end-to-end acceptance coverage for the golden path.
+   - Fresh database to login, configure catalog/doctor, book, pay through sandbox, complete reservation, upload/review/view a medical outcome, request rating, submit questionnaire, and review audit events.
+
+### Phase 3 gate
+
+- [ ] A fresh clone can run migrations/seeds and reach the demo without manual database repair.
+- [ ] Root-admin, admin, doctor, and patient permissions are proven by tests and browser acceptance.
+- [ ] The admin panel exposes every demo workflow through real APIs with no fake business data.
+- [ ] Booking, payment, questionnaire, archive, private-file, and privileged-action regressions are covered.
+- [ ] Ownership boundaries, PII-safe responses, account/session revocation, and browser CSRF/CORS behavior are acceptance-tested.
+
+## Phase 4 - Blogs and Content
+
+1. [ ] Implement posts/pages/categories/tags, media, authorship, drafts, scheduling, localization, SEO metadata, and safe archive.
+2. [ ] Add platform-global, tenant-specific, opt-in, and entitlement-gated content visibility.
+3. [ ] Build admin/root-admin content management using the shared Vite primitives.
+4. [ ] Expose tenant-safe/public read APIs with cache and publication rules.
+5. [ ] Add moderation, audit, and content visibility tests.
+
+## Phase 5 - Products and Commerce
+
+1. [ ] Implement products, variants, prices, inventory policy, media, categories, and safe archive.
+2. [ ] Implement carts/orders/order items, totals, discounts/tax extension points, and immutable purchase snapshots.
+3. [ ] Reuse the payment-provider boundary without coupling commerce payments to reservation payments.
+4. [ ] Build admin/root-admin commerce management using the shared Vite primitives.
+5. [ ] Add order/payment/idempotency/tenant-isolation regression tests.
+
+## Phase 6 - Mobile Application and Remote Settings
+
+1. [ ] Implement mobile client registration, minimum/supported version rules, maintenance messages, release channels, and scoped feature flags.
+2. [ ] Implement device and push-token ownership, revocation, notification preferences, and queued push adapters.
+3. [ ] Publish a versioned mobile API/auth contract using external bearer tokens and explicit abilities.
+4. [ ] Build root-admin mobile settings, release, feature, and health pages in the Vite admin.
+5. [ ] Add upgrade, disabled-feature, revoked-token, and tenant-scoping tests.
+
+## Phase 7 - Public/Patient and Tenant-Site Expansion
+
+1. [ ] Build the React + Tailwind public/patient application on the stable APIs.
+2. [ ] Build the isolated single-hospital tenant application/profile against its own configured database; no dynamic cross-tenant query path.
+3. [ ] Add hospital/clinic branding, locale, navigation, entitled local feature surfaces, and controlled content syndication.
+4. [ ] Add tenant-local admins, doctors, patients, booking, payment, questionnaires, results, files, ratings, and notifications.
+5. [ ] Add marketplace monitoring for tenant health, content sync, subscription state, sanitized aggregate usage, and recent error fingerprints without operational-data access.
+6. [ ] Add later medical workflows such as prescriptions/medications, follow-up plans, outcome tracking, and policy-scoped admin access.
+
+## Phase 8 - Operations, Reporting, and Production Readiness
+
+1. [ ] Add CI gates for backend tests, Pint, frontend typecheck/build, and production Docker image builds.
+2. [ ] Make local Docker bootstrap repeatable, including dependency install, key generation, migrations/seeds, root/admin Vite startup/build, and useful service health checks.
+3. [ ] Add production Compose smoke tests, environment validation, React-admin deployment, and a release-time migration policy.
+4. [ ] Define database/upload backup, restore, retention, and disaster-recovery procedures.
+5. [ ] Finalize TLS, reverse proxy, secret management, observability, queue/scheduler supervision, and alerting.
+6. [ ] Add operational dashboards, exports, analytics/reporting, and privacy-aware audit retention.
+7. [ ] Add PR/release checklists that enforce tests, migration safety, API compatibility, tenant isolation, and documentation updates.
+
+## Roadmap Guardrails
+
+- Do not build a feature UI before its backend state machine, ownership, policy, audit, and API contract are stable.
+- Do not add feature-specific alternatives to shared settings, media, money, tenant, audit, notification, or API primitives.
+- Do not expose fake/demo data through production routes.
+- Do not let frontend role checks substitute for backend authorization.
+- Do not physically delete historical reservation, payment, questionnaire, audit, or medical records through ordinary application actions.
+- Do not claim staging/production readiness until Phase 8 gates are green.

@@ -8,6 +8,7 @@ return new class extends Migration {
     public function up(): void {
         Schema::create('questionnaire_questions', function (Blueprint $table) {
             $table->id();
+            $table->ulid('public_id')->unique();
             $table->foreignId('questionnaire_id')->constrained('questionnaires')->cascadeOnDelete();
             $table->integer('sort_order')->default(0);
             $table->text('text');

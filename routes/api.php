@@ -5,13 +5,16 @@ use App\Enums\UserRole;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\MeController;
+use App\Http\Controllers\Api\PasswordConfirmationController;
 use App\Http\Controllers\Api\DoctorProfileController;
 use App\Http\Controllers\Api\BookingApiController;
 use \App\Http\Controllers\Api\UserProfileController;
 use \App\Http\Controllers\Api\AdminReservationController;
+use App\Http\Controllers\Api\ReservationRatingOptionController;
 use App\Http\Controllers\Api\Admin\UserController;
 use App\Http\Controllers\Api\Admin\QuestionnaireController;
 use App\Http\Controllers\Api\Admin\QuestionnaireSubmissionController;
+use App\Http\Controllers\Api\Admin\ReservationRatingOptionController as AdminReservationRatingOptionController;
 
 
 
@@ -28,32 +31,34 @@ Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 
     // رفرش توکن (فقط کاربر لاگین‌شده)
-    Route::middleware('auth:sanctum')->post('/refresh', [AuthController::class, 'refresh']);
+    Route::middleware(['auth:sanctum', 'account.active'])->post('/refresh', [AuthController::class, 'refresh']);
 
     // اطلاعات کاربر لاگین‌شده + لاگ‌اوت
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:sanctum', 'account.active'])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
+        Route::post('/confirm-password', [PasswordConfirmationController::class, 'store']);
 
         // پروفایل کاربر (Patient)
         Route::get('/profile', [UserProfileController::class, 'show']);
         Route::put('/profile', [UserProfileController::class, 'update']);
     });
-    Route::middleware('auth:sanctum')->get('/me', MeController::class);
+    Route::middleware(['auth:sanctum', 'account.active'])->get('/me', MeController::class);
 
 
 });
 // بقیه APIها (رزرو و...)
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'account.active'])->group(function () {
     Route::get('/checkups', [BookingApiController::class, 'checkups']);
     Route::get('/checkups/{checkup}/doctors', [BookingApiController::class, 'doctorsForCheckup']);
     Route::get('/doctors/{doctor}/availability', [BookingApiController::class, 'availability']);
+    Route::get('/reservation-rating-options', [ReservationRatingOptionController::class, 'index']);
     Route::get('/my/reservations', [BookingApiController::class, 'myReservations']);
     Route::post('/reservations', [BookingApiController::class, 'storeReservation']);
     Route::post('/reservations/{reservation}/cancel', [BookingApiController::class, 'cancelReservation']);
 
 });
 
-Route::middleware(['auth:sanctum', 'role:' . UserRole::Admin->value . '|' . UserRole::RootAdmin->value . ',sanctum'])
+Route::middleware(['auth:sanctum', 'account.active', 'role:' . UserRole::Admin->value . '|' . UserRole::RootAdmin->value . ',sanctum'])
     ->prefix('admin')
 
     ->group(function () {
@@ -63,11 +68,18 @@ Route::middleware(['auth:sanctum', 'role:' . UserRole::Admin->value . '|' . User
         Route::get('/reservations', [AdminReservationController::class, 'index']);
         Route::get('/reservations/{reservation}', [AdminReservationController::class, 'show']);
         Route::put('/reservations/{reservation}/status', [AdminReservationController::class, 'updateStatus']);
+        Route::get('/reservation-rating-options', [AdminReservationRatingOptionController::class, 'index']);
+        Route::post('/reservation-rating-options', [AdminReservationRatingOptionController::class, 'store']);
+        Route::get('/reservation-rating-options/{reservationRatingOption}', [AdminReservationRatingOptionController::class, 'show']);
+        Route::put('/reservation-rating-options/{reservationRatingOption}', [AdminReservationRatingOptionController::class, 'update']);
+        Route::delete('/reservation-rating-options/{reservationRatingOption}', [AdminReservationRatingOptionController::class, 'destroy']);
 
-        Route::post('/users', [UserController::class, 'store']);
+        Route::post('/users', [UserController::class, 'store'])
+            ->middleware('password.confirmed.recent');
         Route::get('/users', [UserController::class, 'index']);
         Route::get('/users/{user}', [UserController::class, 'show']);
-        Route::put('/users/{user}', [UserController::class, 'update']);
+        Route::put('/users/{user}', [UserController::class, 'update'])
+            ->middleware('password.confirmed.recent');
 
         Route::get('/questionnaires', [QuestionnaireController::class, 'index']);
         Route::get('/questionnaires/{questionnaire}', [QuestionnaireController::class, 'show']);
@@ -80,7 +92,7 @@ Route::middleware(['auth:sanctum', 'role:' . UserRole::Admin->value . '|' . User
     });
 
 
-Route::middleware(['auth:sanctum', 'role:' . UserRole::Doctor->value . ',sanctum'])
+Route::middleware(['auth:sanctum', 'account.active', 'role:' . UserRole::Doctor->value . ',sanctum'])
     ->prefix('doctor')
     ->group(function () {
         Route::get('/profile', [DoctorProfileController::class, 'show']);

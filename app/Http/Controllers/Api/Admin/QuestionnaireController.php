@@ -4,18 +4,41 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Questionnaire;
+use App\Support\QuerySorting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class QuestionnaireController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return Questionnaire::query()
-            ->withCount('questions')
-            ->latest('id')
-            ->paginate(20);
+        $query = Questionnaire::query()
+            ->withCount('questions');
+
+        if ($request->filled('q')) {
+            $term = trim((string) $request->query('q'));
+            $query->where(function ($q) use ($term): void {
+                $q->where('title', 'like', "%{$term}%")
+                    ->orWhere('slug', 'like', "%{$term}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->query('status'));
+        }
+
+        QuerySorting::apply($query, $request, [
+            'id' => 'questionnaires.id',
+            'title' => 'questionnaires.title',
+            'slug' => 'questionnaires.slug',
+            'status' => 'questionnaires.status',
+            'created_at' => 'questionnaires.created_at',
+            'updated_at' => 'questionnaires.updated_at',
+            'questions_count' => 'questions_count',
+        ], 'id', 'desc');
+
+        return $query->paginate(20);
     }
 
     public function show(Questionnaire $questionnaire)
@@ -39,6 +62,8 @@ class QuestionnaireController extends Controller
                 'status' => $data['status'] ?? 'draft',
                 'cover_image_url' => $data['cover_image_url'] ?? null,
                 'content_html' => $data['content_html'] ?? null,
+                'author_user_id' => request()->user()?->id,
+                'published_at' => ($data['status'] ?? 'draft') === 'published' ? now() : null,
             ]);
 
             $this->syncNested($q, $data);
@@ -58,6 +83,10 @@ class QuestionnaireController extends Controller
                 'status' => $data['status'] ?? $questionnaire->status,
                 'cover_image_url' => $data['cover_image_url'] ?? null,
                 'content_html' => $data['content_html'] ?? null,
+                'version' => $questionnaire->version + 1,
+                'published_at' => ($data['status'] ?? $questionnaire->status->value) === 'published'
+                    ? ($questionnaire->published_at ?? now())
+                    : null,
             ]);
 
             $this->syncNested($questionnaire, $data);

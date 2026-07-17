@@ -45,12 +45,7 @@ import {
 //SimpleBar
 import SimpleBar from "simplebar-react";
 import classnames from "classnames";
-
-//import Images
-import img01 from "../../assets/images/sidebar/img-1.jpg";
-import img02 from "../../assets/images/sidebar/img-2.jpg";
-import img03 from "../../assets/images/sidebar/img-3.jpg";
-import img04 from "../../assets/images/sidebar/img-4.jpg";
+import { shellAssets } from "../../Layouts/shellAssets";
 import { createSelector } from 'reselect';
 
 const RightSidebar = (props: any) => {
@@ -1176,7 +1171,7 @@ const RightSidebar = (props: any) => {
                                                         }}
                                                     />
                                                     <label className="form-check-label p-0 avatar-sm h-auto" htmlFor="sidebarimg-01">
-                                                        <img src={img01} alt="" className="avatar-md w-auto object-fit-cover" />
+                                                        <img src={shellAssets.sidebarImage1} alt="" className="avatar-md w-auto object-fit-cover" />
                                                     </label>
 
                                                 </div>
@@ -1195,7 +1190,7 @@ const RightSidebar = (props: any) => {
                                                         }}
                                                     />
                                                     <label className="form-check-label p-0 avatar-sm h-auto" htmlFor="sidebarimg-02">
-                                                        <img src={img02} alt="" className="avatar-md w-auto object-fit-cover" />
+                                                        <img src={shellAssets.sidebarImage2} alt="" className="avatar-md w-auto object-fit-cover" />
                                                     </label>
                                                 </div>
                                                 <div className="form-check sidebar-setting card-radio">
@@ -1212,7 +1207,7 @@ const RightSidebar = (props: any) => {
                                                         }}
                                                     />
                                                     <label className="form-check-label p-0 avatar-sm h-auto" htmlFor="sidebarimg-03">
-                                                        <img src={img03} alt="" className="avatar-md w-auto object-fit-cover" />
+                                                        <img src={shellAssets.sidebarImage3} alt="" className="avatar-md w-auto object-fit-cover" />
                                                     </label>
                                                 </div>
                                                 <div className="form-check sidebar-setting card-radio">
@@ -1229,7 +1224,7 @@ const RightSidebar = (props: any) => {
                                                         }}
                                                     />
                                                     <label className="form-check-label p-0 avatar-sm h-auto" htmlFor="sidebarimg-04">
-                                                        <img src={img04} alt="" className="avatar-md w-auto object-fit-cover" />
+                                                        <img src={shellAssets.sidebarImage4} alt="" className="avatar-md w-auto object-fit-cover" />
                                                     </label>
                                                 </div>
                                             </div>

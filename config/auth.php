@@ -117,4 +117,6 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    'high_authority_password_timeout' => env('AUTH_HIGH_AUTHORITY_PASSWORD_TIMEOUT', 900),
+
 ];

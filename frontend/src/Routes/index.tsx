@@ -9,6 +9,12 @@ import VerticalLayout from "../Layouts/index";
 import { authProtectedRoutes, publicRoutes } from "./allRoutes";
 import AuthProtected  from './AuthProtected';
 
+const routeFallback = (
+    <div className="d-flex justify-content-center align-items-center py-4">
+        <div className="spinner-border text-primary" role="status" aria-hidden="true"></div>
+    </div>
+);
+
 const Index = () => {
     return (
         <React.Fragment>
@@ -19,7 +25,9 @@ const Index = () => {
                             path={route.path}
                             element={
                                 <NonAuthLayout>
-                                    {route.component}
+                                    <React.Suspense fallback={routeFallback}>
+                                        {route.component}
+                                    </React.Suspense>
                                 </NonAuthLayout>
                             }
                             key={idx}
@@ -32,8 +40,12 @@ const Index = () => {
                         <Route
                             path={route.path}
                             element={
-                                <AuthProtected>
-                                    <VerticalLayout>{route.component}</VerticalLayout>
+                                <AuthProtected allowedRoles={route.allowedRoles}>
+                                    <VerticalLayout>
+                                        <React.Suspense fallback={routeFallback}>
+                                            {route.component}
+                                        </React.Suspense>
+                                    </VerticalLayout>
                                 </AuthProtected>}
                             key={idx}
                         />

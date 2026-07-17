@@ -44,7 +44,6 @@ Core implemented domains:
 
 - `AI_BOOT.md`
 - `CODEX_RULES.md`
-- `CURRENT_SPRINT.md`
 - `CURRENT_TASK.md`
 - `docs/ai-context/modules/*.md` for the active domain only
 - `docs/TODO.md`
@@ -263,13 +262,12 @@ As of 2026-06-14:
 
 1. Read `AI_BOOT.md`.
 2. Read `CODEX_RULES.md`.
-3. Read `CURRENT_SPRINT.md`.
-4. Read `CURRENT_TASK.md`.
-5. Read only the relevant `docs/ai-context/modules/*.md` file if the task maps to a domain.
-6. Read only the files directly named by the current task or module.
-7. Read routes/controllers/models/policies/services only when the task requires them.
-8. Read tests relevant to the behavior being changed.
-9. Do not read full `README.md`, `docs/TODO.md`, `docs/PROJECT_MAP.md`, ADRs, or architecture docs unless the session is explicitly planning/architecture review.
+3. Read `CURRENT_TASK.md`.
+4. Read only the relevant `docs/ai-context/modules/*.md` file if the task maps to a domain.
+5. Read only the files directly named by the current task or module.
+6. Read routes/controllers/models/policies/services only when the task requires them.
+7. Read tests relevant to the behavior being changed.
+8. Do not read full `README.md`, `docs/TODO.md`, `docs/PROJECT_MAP.md`, ADRs, or architecture docs unless the session is explicitly planning/architecture review.
 
 ### Planning or architecture review sessions
 
@@ -278,7 +276,7 @@ As of 2026-06-14:
 3. Read `docs/PROJECT_MAP.md`.
 4. Read `docs/TODO.md`.
 5. Read relevant ADR/boundary docs.
-6. Then create/update `CURRENT_SPRINT.md` and `CURRENT_TASK.md`.
+6. Then create/update `CURRENT_TASK.md`; keep the ordered roadmap in `docs/TODO.md`.
 
 ### Avoid by default
 

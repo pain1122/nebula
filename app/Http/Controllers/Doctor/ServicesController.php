@@ -11,6 +11,10 @@ class ServicesController extends Controller
     public function edit()
     {
         $profile = auth()->user()->doctorProfile;
+
+        if (! $profile?->workplaces()->where('is_active', true)->exists()) {
+            return back()->withErrors(['workplace' => 'An active workplace is required before services can be configured.']);
+        }
         $checkups = Checkup::with('category')->orderBy('title')->get();
 
         return view('doctor.services.edit', compact('profile', 'checkups'));
@@ -28,7 +32,8 @@ class ServicesController extends Controller
             return back()->withErrors(['profile' => 'Doctor profile not found.']);
         }
 
-        $profile->checkups()->sync($ids);
+        $workplace = $profile->workplaces()->where('is_active', true)->orderBy('id')->firstOrFail();
+        $workplace->checkups()->sync($ids);
 
         return back()->with('status', 'Services updated successfully.');
     }

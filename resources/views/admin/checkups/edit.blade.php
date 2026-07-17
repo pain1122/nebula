@@ -9,6 +9,7 @@
             <div>
                 <label class="block mb-1">دسته</label>
                 <select name="checkup_category_id" class="w-full border rounded p-2">
+                    <option value="">No category</option>
                     @foreach($cats as $c)
                         <option value="{{ $c->id }}" @selected(old('checkup_category_id',$item->checkup_category_id)==$c->id)>{{ $c->name }}</option>
                     @endforeach

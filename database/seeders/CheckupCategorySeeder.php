@@ -2,21 +2,21 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\CheckupCategory;
+use Illuminate\Database\Seeder;
 
 class CheckupCategorySeeder extends Seeder
 {
     public function run(): void
     {
-        $items = [
-            ['name' => 'عمومی',    'slug' => 'general', 'description' => 'چکاپ‌های عمومی و پایه'],
-            ['name' => 'قلب و عروق','slug' => 'cardio',  'description' => 'غربالگری و ارزیابی قلبی‌عروقی'],
-            ['name' => 'گوارش',    'slug' => 'gi',      'description' => 'آزمایش‌ها و ارزیابی‌های گوارشی'],
+        $categories = [
+            ['name' => 'General Health', 'slug' => 'general', 'description' => 'General and preventive health assessments.'],
+            ['name' => 'Cardiovascular', 'slug' => 'cardio', 'description' => 'Heart and cardiovascular screening services.'],
+            ['name' => 'Digestive Health', 'slug' => 'gi', 'description' => 'Gastrointestinal and liver assessments.'],
         ];
 
-        foreach ($items as $i) {
-            CheckupCategory::updateOrCreate(['slug' => $i['slug']], $i);
+        foreach ($categories as $category) {
+            CheckupCategory::updateOrCreate(['slug' => $category['slug']], $category);
         }
     }
 }

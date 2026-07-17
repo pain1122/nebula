@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Admin;
 
-use App\Enums\UserRole;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreCheckupRequest extends FormRequest
 {
@@ -11,7 +11,10 @@ class StoreCheckupRequest extends FormRequest
 
     public function rules(): array {
         return [
-            'checkup_category_id' => ['required','exists:checkup_categories,id'],
+            'checkup_category_id' => [
+                'required',
+                Rule::exists('checkup_categories', 'id')->whereNull('deleted_at'),
+            ],
             'title' => ['required','string','max:190'],
             'slug' => ['required','string','max:190','unique:checkups,slug'],
             'description' => ['nullable','string','max:5000'],

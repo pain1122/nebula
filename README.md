@@ -59,7 +59,6 @@ For AI-assisted work, start with the small routing packet instead of loading the
 
 - `AI_BOOT.md`
 - `CODEX_RULES.md`
-- `CURRENT_SPRINT.md`
 - `CURRENT_TASK.md`
 - `docs/ai-context/modules/*.md` only for the active domain
 

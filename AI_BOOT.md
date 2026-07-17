@@ -7,8 +7,7 @@ Purpose: keep AI/Codex sessions focused, safe, and context-efficient.
 For a normal task, read only these files first:
 
 1. `CODEX_RULES.md`
-2. `CURRENT_SPRINT.md`
-3. `CURRENT_TASK.md`
+2. `CURRENT_TASK.md`
 
 Stop there unless the task names a domain or file that needs more context.
 
@@ -70,7 +69,7 @@ If more is needed, split the task.
 - Public/client target is React + Tailwind.
 - Spatie roles are the only authorization source of truth.
 - `users.role` has been removed from the active schema.
-- Current runtime roles are `admin`, `doctor`, and `patient`.
+- Current runtime roles are `root-admin`, `admin`, `doctor`, and `patient`.
 - Browser admin auth must not store bearer tokens in `localStorage` or `sessionStorage`.
 
 ## Heavy Paths To Avoid
@@ -93,12 +92,11 @@ When sources conflict, use this order:
 1. Current source code and database schema
 2. Passing tests and actual command output
 3. CURRENT_TASK.md
-4. CURRENT_SPRINT.md
-5. domain module docs
-6. docs/PROJECT_MAP.md
-7. docs/TODO.md
-8. README.md
-9. archived vision documents
+4. domain module docs
+5. docs/PROJECT_MAP.md
+6. docs/TODO.md
+7. README.md
+8. archived vision documents
 
 If a lower-priority doc conflicts with code, do not follow it blindly. Report the conflict and suggest a doc update.
 
@@ -131,11 +129,11 @@ Stop and ask before continuing if:
 
 - the task requires touching more than 3 source files
 - the task crosses more than one domain module
-- a migration is needed
+- a migration is needed but is not explicitly authorized by the user or `CURRENT_TASK.md`
 - an auth, role, payment, booking, or medical/reporting rule is unclear
 - source code conflicts with a context doc
 - tests fail and the cause is not obvious
-- a proposed fix requires deleting or renaming files
+- a proposed fix requires deleting or renaming files that the user or `CURRENT_TASK.md` did not explicitly authorize
 - a proposed fix requires adding a dependency
 
 
@@ -143,7 +141,7 @@ Stop and ask before continuing if:
 
 When a task changes project reality, update the smallest relevant context file:
 
-- current active work: `CURRENT_TASK.md` or `CURRENT_SPRINT.md`
+- current active work: `CURRENT_TASK.md`
 - domain facts: matching `docs/ai-context/modules/*.md`
 - durable architecture decisions: ADR or `docs/architecture/*`
 - roadmap/history: `docs/TODO.md`
@@ -154,8 +152,7 @@ When a task changes project reality, update the smallest relevant context file:
 If context was compacted, lost, or the user says "re-sync":
 
 1. Re-read `AI_BOOT.md`.
-2. Re-read `CURRENT_SPRINT.md`.
-3. Re-read `CURRENT_TASK.md`.
-4. Load only the module named by the current task.
-5. Summarize current focus, current step, forbidden areas, and likely files.
-6. Do not give code until the user confirms the re-sync is correct.
+2. Re-read `CURRENT_TASK.md`.
+3. Load only the module named by the current task.
+4. Summarize current focus, current step, forbidden areas, and likely files.
+5. Do not give code until the user confirms the re-sync is correct.

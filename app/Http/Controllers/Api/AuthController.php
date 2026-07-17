@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Enums\UserRole;
 use App\Models\User;
 use App\Models\DoctorProfile;
+use DateTimeInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends ApiController
 {
@@ -53,12 +55,12 @@ class AuthController extends ApiController
             $user->assignRole($defaultRole);
         }
 
-        $tokenName = $data['device_name'] ?? 'pwa';
-        $token = $user->createToken($tokenName)->plainTextToken;
+        $token = $this->createApiToken($user, $data['device_name'] ?? 'pwa');
 
         return $this->successResponse(
             data: [
-                'token' => $token,
+                'token' => $token['plain_text_token'],
+                'expires_at' => $token['expires_at'],
                 'user' => $this->formatUser($user),
             ],
             message: 'Registered successfully.',
@@ -115,13 +117,14 @@ class AuthController extends ApiController
             'experience_years' => $data['experience_years'] ?? null,
             'verified' => false, // بعداً ادمین تأیید می‌کند
         ]);
+        $doctorProfile->specialties()->attach($data['specialty_id'], ['is_primary' => true]);
 
-        $tokenName = $data['device_name'] ?? 'pwa';
-        $token = $user->createToken($tokenName)->plainTextToken;
+        $token = $this->createApiToken($user, $data['device_name'] ?? 'pwa');
 
         return $this->successResponse(
             data: [
-                'token' => $token,
+                'token' => $token['plain_text_token'],
+                'expires_at' => $token['expires_at'],
                 'user' => $this->formatUser($user),
                 'doctor_profile' => [
                     'id' => $doctorProfile->id,
@@ -151,12 +154,22 @@ class AuthController extends ApiController
             );
         }
 
-        $tokenName = $data['device_name'] ?? 'pwa';
-        $token = $user->createToken($tokenName)->plainTextToken;
+        if (! $user->permitsAuthentication()) {
+            $user->tokens()->delete();
+
+            return $this->errorResponse(
+                message: 'This account is not active.',
+                status: 403,
+                errors: ['account' => ['account_inactive']]
+            );
+        }
+
+        $token = $this->createApiToken($user, $data['device_name'] ?? 'pwa');
 
         return $this->successResponse(
             data: [
-                'token' => $token,
+                'token' => $token['plain_text_token'],
+                'expires_at' => $token['expires_at'],
                 'user' => $this->formatUser($user),
             ],
             message: 'Logged in successfully.'
@@ -171,13 +184,22 @@ class AuthController extends ApiController
 
         $user = $request->user();
         $tokenName = $data['device_name'] ?? 'pwa';
+        $currentToken = $user->currentAccessToken();
 
-        $request->user()->currentAccessToken()?->delete();
-        $token = $user->createToken($tokenName)->plainTextToken;
+        if (! $currentToken instanceof PersonalAccessToken) {
+            return $this->errorResponse(
+                message: 'Bearer token required for token refresh.',
+                status: 401
+            );
+        }
+
+        $currentToken->delete();
+        $token = $this->createApiToken($user, $tokenName);
 
         return $this->successResponse(
             data: [
-                'token' => $token,
+                'token' => $token['plain_text_token'],
+                'expires_at' => $token['expires_at'],
                 'user' => $this->formatUser($user),
             ],
             message: 'Token refreshed successfully.'
@@ -192,6 +214,28 @@ class AuthController extends ApiController
             data: null,
             message: 'Logged out successfully.'
         );
+    }
+
+    private function createApiToken(User $user, string $tokenName): array
+    {
+        $expiresAt = $this->apiTokenExpiresAt();
+        $token = $user->createToken($tokenName, ['*'], $expiresAt);
+
+        return [
+            'plain_text_token' => $token->plainTextToken,
+            'expires_at' => $expiresAt?->toISOString(),
+        ];
+    }
+
+    private function apiTokenExpiresAt(): ?DateTimeInterface
+    {
+        $expirationMinutes = config('sanctum.expiration');
+
+        if ($expirationMinutes === null) {
+            return null;
+        }
+
+        return now()->addMinutes((int) $expirationMinutes);
     }
 
     private function splitName(string $name): array

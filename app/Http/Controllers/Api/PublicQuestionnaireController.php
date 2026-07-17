@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Questionnaire;
 use App\Models\QuestionnaireSubmission;
 use App\Models\Lead;
+use App\Support\QuerySorting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -24,9 +25,17 @@ class PublicQuestionnaireController extends Controller
                         ->orWhere('slug', 'like', "%{$q}%");
                 });
             })
-            ->withCount('questions')
-            ->latest('id')
-            ->paginate(24);
+            ->withCount('questions');
+
+        QuerySorting::apply($items, $request, [
+            'id' => 'questionnaires.id',
+            'title' => 'questionnaires.title',
+            'slug' => 'questionnaires.slug',
+            'updated_at' => 'questionnaires.updated_at',
+            'questions_count' => 'questions_count',
+        ], 'id', 'desc');
+
+        $items = $items->paginate(24);
 
         return response()->json([
             'data' => $items->items(),
@@ -65,7 +74,6 @@ class PublicQuestionnaireController extends Controller
                 'choices' => $item->choices->map(fn($c) => [
                     'id' => $c->id,
                     'text' => $c->text,
-                    'score' => $c->score,
                     'sort_order' => $c->sort_order,
                 ]),
             ]),
@@ -114,6 +122,16 @@ class PublicQuestionnaireController extends Controller
 
             $total = 0;
             $answersJson = [];
+            $submittedQuestionIds = collect($payload['answers'])
+                ->pluck('question_id')
+                ->map(fn ($id): int => (int) $id);
+
+            if (
+                $submittedQuestionIds->count() !== $submittedQuestionIds->unique()->count()
+                || $submittedQuestionIds->sort()->values()->all() !== $q->questions->pluck('id')->sort()->values()->all()
+            ) {
+                abort(422, 'Exactly one answer is required for every questionnaire question.');
+            }
 
             foreach ($payload['answers'] as $a) {
                 $qid = (int) $a['question_id'];
@@ -146,6 +164,7 @@ class PublicQuestionnaireController extends Controller
 
             $submission = QuestionnaireSubmission::create([
                 'questionnaire_id' => $q->id,
+                'questionnaire_version' => $q->version,
                 'questionnaire_title' => $q->title,
                 'questionnaire_slug' => $q->slug,
 
@@ -157,7 +176,7 @@ class PublicQuestionnaireController extends Controller
                 'submitter_phone' => $payload['submitter_phone'],
 
                 // ✅ اگر لاگین بود null، اگر مهمان بود مقدار بده
-                'guest_token' => $user ? null : bin2hex(random_bytes(16)),
+                'guest_token_hash' => $user ? null : hash('sha256', bin2hex(random_bytes(32))),
                 'guest_phone' => $user ? null : $payload['submitter_phone'],
 
                 'answers_json' => $answersJson,
@@ -188,7 +207,7 @@ class PublicQuestionnaireController extends Controller
             }
 
             return response()->json([
-                'submission_id' => $submission->id,
+                'submission_id' => $submission->public_id,
                 'total_score' => $total,
                 'recommendation' => $rec ? [
                     'title' => $rec->title,

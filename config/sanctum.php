@@ -2,6 +2,8 @@
 
 use Laravel\Sanctum\Sanctum;
 
+$tokenExpirationMinutes = env('SANCTUM_TOKEN_EXPIRATION_MINUTES', 43200);
+
 return [
 
     /*
@@ -47,7 +49,7 @@ return [
     |
     */
 
-    'expiration' => null,
+    'expiration' => $tokenExpirationMinutes === null ? null : (int) $tokenExpirationMinutes,
 
     /*
     |--------------------------------------------------------------------------

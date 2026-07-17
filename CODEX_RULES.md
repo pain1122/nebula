@@ -6,7 +6,7 @@
 - When edits are approved, keep them limited to the requested scope and verify them.
 
 ## Context Loading
-- Start with `AI_BOOT.md`, then `CODEX_RULES.md`, then `CURRENT_SPRINT.md`, then `CURRENT_TASK.md`.
+- Start with `AI_BOOT.md`, then `CODEX_RULES.md`, then `CURRENT_TASK.md`.
 - Load a domain module from `docs/ai-context/modules/` only when the current task touches that domain.
 - Prefer the module scan lists over broad `app/`, `routes/`, `database/`, or `frontend/src/pages/` reads.
 - Use `docs/PROJECT_MAP.md` for architecture orientation and `docs/TODO.md` for roadmap/history; do not load them by default for normal implementation tasks.

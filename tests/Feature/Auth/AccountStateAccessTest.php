@@ -67,4 +67,28 @@ class AccountStateAccessTest extends TestCase
             ->getJson('/api/auth/me')
             ->assertOk();
     }
+
+    public function test_existing_browser_session_is_invalidated_after_suspension(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $user->forceFill([
+            'account_state' => AccountState::Suspended,
+            'account_state_changed_at' => now(),
+        ])->save();
+
+        $this
+            ->withHeaders([
+                'Origin' => 'http://localhost:3000',
+                'Referer' => 'http://localhost:3000/',
+            ])
+            ->withSession(['session_probe' => 'present'])
+            ->getJson('/api/auth/me')
+            ->assertForbidden()
+            ->assertSessionMissing('session_probe');
+
+        $this->assertGuest('web');
+    }
 }

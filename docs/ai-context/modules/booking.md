@@ -1,11 +1,12 @@
 ## Verification Status
 
-Last verified against code: 2026-07-10
+Last verified against code: 2026-07-19
 Verification method:
 - repo inspection
-- route list
-- tests
-- scoped Pint
+- SQLite and MySQL full backend suites: 106 tests, 575 assertions
+- marketplace migration/seed lifecycle and MySQL constraint inspection
+- focused booking IDOR, owner/state injection, slot, eligibility, and payment-guard tests
+- 99-route listing and touched-file Pint
 
 If this file conflicts with source code, source code wins.
 Update this module after verification.
@@ -31,6 +32,7 @@ Do not load this module for role taxonomy, admin shell routing, payment-only lif
 - Reservation status is cast to `App\Models\ReservationStatus`.
 - Booking, admin reservation, doctor reservation, checkup, doctor, user, questionnaire, and rating-option list endpoints touched in this slice use whitelisted `sort_by`/`sort_dir` handling through `App\Support\QuerySorting`.
 - Reservation rating pros/cons are admin-managed DB records exposed through active client reads; the actual post-completion rating submission flow is not implemented yet.
+- Patient cancellation returns not-found for another patient's reservation, and reservation creation ignores client-supplied owner, tenant, lifecycle-state, and price fields.
 
 ## Open First
 
@@ -93,5 +95,5 @@ Manual smoke path:
 ## Update After Changes
 
 - This module for durable booking facts.
-- `docs/TODO.md` Phase 5 for roadmap status.
+- `docs/TODO.md` Phase 1 item 16 and Phase 3 for roadmap status.
 - `docs/architecture/boundaries.md` if shared domain-service boundaries change.

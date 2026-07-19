@@ -122,4 +122,26 @@ class AuthTokenTest extends TestCase
             ->getJson('/api/auth/me')
             ->assertUnauthorized();
     }
+
+    public function test_me_response_uses_an_explicit_safe_field_allowlist(): void
+    {
+        $user = User::factory()->create([
+            'phone' => '09120000000',
+            'NID' => '1234567890',
+            'bio' => 'private profile data',
+        ]);
+
+        $response = $this
+            ->actingAs($user, 'sanctum')
+            ->getJson('/api/auth/me')
+            ->assertOk();
+
+        $this->assertEqualsCanonicalizing([
+            'id',
+            'name',
+            'email',
+            'roles',
+            'doctor_profile',
+        ], array_keys($response->json('data')));
+    }
 }

@@ -31,6 +31,13 @@ class FoundationQuestionnaireMedicalMigrationLifecycleTest extends TestCase
         'database/migrations/2026_06_03_103137_create_leads_table.php',
     ];
 
+    protected function tearDown(): void
+    {
+        Artisan::call('migrate:fresh', ['--force' => true]);
+
+        parent::tearDown();
+    }
+
     public function test_questionnaire_and_medical_group_rolls_back_and_reapplies(): void
     {
         Artisan::call('migrate:fresh', ['--path' => $this->paths, '--force' => true]);

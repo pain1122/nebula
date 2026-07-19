@@ -23,6 +23,13 @@ class FoundationBookingPaymentMigrationLifecycleTest extends TestCase
         'database/migrations/2025_11_09_123759_create_payments_table.php',
     ];
 
+    protected function tearDown(): void
+    {
+        Artisan::call('migrate:fresh', ['--force' => true]);
+
+        parent::tearDown();
+    }
+
     public function test_booking_and_payment_group_rolls_back_and_reapplies(): void
     {
         Artisan::call('migrate:fresh', ['--path' => $this->paths, '--force' => true]);

@@ -20,6 +20,13 @@ class FoundationMarketplaceDirectoryCatalogMigrationLifecycleTest extends TestCa
         'database/migrations/2025_11_09_105440_create_checkups_table.php',
     ];
 
+    protected function tearDown(): void
+    {
+        Artisan::call('migrate:fresh', ['--force' => true]);
+
+        parent::tearDown();
+    }
+
     public function test_directory_doctor_and_catalog_group_rolls_back_and_reapplies(): void
     {
         Artisan::call('migrate:fresh', ['--path' => $this->paths, '--force' => true]);

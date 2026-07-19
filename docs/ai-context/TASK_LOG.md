@@ -2,6 +2,12 @@
 
 Purpose: tiny chronological memory for AI sessions. Keep this short. Link to durable docs instead of repeating them.
 
+## 2026-07-19
+
+- Phase 1A item 3 is complete. Root-admin-only suspend/close/reactivate now requires policy authorization, recent session-backed password confirmation, and a reason; state metadata, fail-closed audit, all Sanctum-token deletion, and all database-session deletion are atomic. Closed accounts cannot reopen, non-database session drift fails closed, and future user-sensitive jobs inherit execution-time account checks. Full SQLite and disposable-MySQL suites pass 121 tests/640 assertions; the temporary MySQL schema was removed. Booking correctness is next.
+- Current Task items 8 and 9 are complete. SQLite and disposable MySQL both pass 106 tests/575 assertions; marketplace and isolated tenant fresh/repeat seed, rollback/reapply, indexes, retention foreign keys, and schema separation are verified. Security coverage now includes root-admin-only admin identity management, reservation IDOR/ownership injection, `/api/auth/me` privacy, browser-session invalidation, and Sanctum CSRF/CORS behavior. Touched files pass Pint; repository-wide Pint retains 65 pre-existing issues. Review: `docs/audits/foundation-verification-gate-2026-07-19.md`.
+- The foundation-baseline slice is closed, but roadmap Phase 1 remains active. The next bounded task is item 16 booking correctness; Phase 2 must not start while the remaining runtime/product gates are open.
+
 ## 2026-07-12
 
 - Current Task item 7 is complete. Factories now model roles/account states and the foundation entity families; production-safe foundation registries are separated from local/testing marketplace demo accounts and transactions. Demo data covers three directory hospitals, two doctors with per-workplace services/windows, questionnaire internals, and six reservation/payment lifecycle cases. A separate tenant seeder proves one hospital profile, local admin authority, setting, and entitlement without marketplace/operational tables. SQLite/MySQL fresh and repeat seeds, 96 tests/539 assertions, Pint, and 102-route loading pass. Review: `docs/audits/task-7-factories-seeders-code-review-2026-07-12.md`. Item 8 verification is next.

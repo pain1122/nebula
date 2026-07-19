@@ -1,11 +1,11 @@
 ## Verification Status
 
-Last verified against code: 2026-07-10
+Last verified against code: 2026-07-19
 Verification method:
 - repo inspection
-- route list
-- tests
-- scoped Pint
+- SQLite and MySQL full backend suites: 106 tests, 575 assertions
+- marketplace migration/seed lifecycle and MySQL retention inspection
+- catalog archive, listing, booking eligibility, and touched-file Pint checks
 
 If this file conflicts with source code, source code wins.
 Update this module after verification.
@@ -95,5 +95,4 @@ Manual smoke path:
 ## Update After Changes
 
 - This module for durable checkup/service facts.
-- `docs/TODO.md` Phase 3.75 if catalog archive/history safety changes.
-- `docs/TODO.md` Phase 5 if eligibility enforcement changes.
+- `docs/TODO.md` Phase 1 and Phase 3 if catalog archive/history or eligibility behavior changes.

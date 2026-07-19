@@ -13,6 +13,15 @@ enum AccountState: string
         return $this === self::Active;
     }
 
+    public function canTransitionTo(self $target): bool
+    {
+        return match ($this) {
+            self::Active => in_array($target, [self::Suspended, self::Closed], true),
+            self::Suspended => in_array($target, [self::Active, self::Closed], true),
+            self::Closed => false,
+        };
+    }
+
     /**
      * @return list<string>
      */

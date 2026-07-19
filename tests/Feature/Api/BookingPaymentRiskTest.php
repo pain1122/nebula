@@ -108,6 +108,52 @@ class BookingPaymentRiskTest extends TestCase
         ]);
     }
 
+    public function test_patient_cannot_cancel_another_patients_reservation(): void
+    {
+        $owner = $this->patientUser();
+        $attacker = $this->patientUser();
+        $reservation = Reservation::factory()->for($owner)->create();
+
+        $this
+            ->actingAs($attacker, 'sanctum')
+            ->postJson('/api/reservations/'.$reservation->id.'/cancel')
+            ->assertNotFound();
+
+        $this->assertSame(
+            ReservationStatus::Pending,
+            $reservation->fresh()->status
+        );
+    }
+
+    public function test_client_cannot_inject_reservation_ownership_or_state(): void
+    {
+        $patient = $this->patientUser();
+        $otherPatient = $this->patientUser();
+        [$checkup, $doctor] = $this->bookablePair(attachPivot: true);
+
+        $response = $this
+            ->actingAs($patient, 'sanctum')
+            ->postJson('/api/reservations', $this->reservationPayload(
+                $checkup,
+                $doctor,
+                [
+                    'user_id' => $otherPatient->id,
+                    'tenant_id' => 999,
+                    'status' => ReservationStatus::Completed->value,
+                    'price_snapshot' => 1,
+                ]
+            ))
+            ->assertCreated();
+
+        $reservation = Reservation::query()->findOrFail(
+            $response->json('data.reservation.id')
+        );
+
+        $this->assertSame($patient->id, $reservation->user_id);
+        $this->assertSame(ReservationStatus::Pending, $reservation->status);
+        $this->assertSame($checkup->price, $reservation->price_snapshot);
+    }
+
     private function patientUser(): User
     {
         $patient = User::factory()->create();
@@ -189,7 +235,7 @@ class BookingPaymentRiskTest extends TestCase
     }
 
     /**
-     * @param array<string, mixed> $overrides
+     * @param  array<string, mixed>  $overrides
      * @return array<string, mixed>
      */
     private function reservationPayload(Checkup $checkup, DoctorProfile $doctor, array $overrides = []): array

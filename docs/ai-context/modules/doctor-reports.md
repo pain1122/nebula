@@ -1,11 +1,11 @@
 ## Verification Status
 
-Last verified against code: 2026-07-10
+Last verified against code: 2026-07-19
 Verification method:
 - repo inspection
-- route list
-- tests
-- scoped Pint
+- SQLite and MySQL full backend suites: 106 tests, 575 assertions
+- medical schema retention and migration lifecycle checks
+- reservation ownership/payment-completion regressions and 99-route listing
 
 If this file conflicts with source code, source code wins.
 Update this module after verification.
@@ -86,4 +86,4 @@ Manual smoke path:
 ## Update After Changes
 
 - This module for durable doctor/report facts.
-- `docs/TODO.md` Phase 6 for notes/files/reporting roadmap status.
+- `docs/TODO.md` Phase 1 item 19 and Phase 3 for notes/files/reporting roadmap status.

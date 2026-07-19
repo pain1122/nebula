@@ -104,6 +104,8 @@ If a lower-priority doc conflicts with code, do not follow it blindly. Report th
 
 Default for this project is inspect, explain, and propose before broad or risky edits.
 
+The foundation-baseline verification passed on 2026-07-19, but this mode remains intentional until the remaining Phase 1 correctness, payment, questionnaire, medical-file, high-authority, and shared-runtime gaps are closed.
+
 Small approved maintenance edits may be made directly when the user asks for them, but keep them scoped, explain the touched files, and verify.
 
 Do not rename files/routes, add dependencies, or change architecture without explicit approval.

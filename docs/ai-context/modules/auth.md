@@ -1,18 +1,12 @@
 ## Verification Status
 
-Last verified against code: 2026-07-10
+Last verified against code: 2026-07-19
 Verification method:
 - repo inspection
-- PHP syntax checks for touched PHP files
-- route list verification: 91 routes
-- database role check confirmed `root-admin`, `admin`, `doctor`, and `patient` with `guard_name = sanctum`
-- manual normal-admin API checks confirmed `root-admin` users cannot be listed, filtered, shown, updated, or created through admin user management
-- API admin user audit tests passed: 3 tests, 27 assertions
-- API admin user step-up tests passed: 7 tests, 18 assertions
-- API admin questionnaire soft-delete tests passed: 2 tests, 15 assertions
-- Catalog archive safety tests passed: 17 tests, 154 assertions
-- API bearer-token policy tests passed: 5 tests, 15 assertions
-- full backend tests passed: 67 tests, 320 assertions
+- full SQLite and MySQL backend suites: 121 tests, 640 assertions
+- route list verification: 99 non-vendor routes
+- focused admin authority, audit, step-up, token, account-state, response-privacy, and CSRF/CORS regressions
+- touched-file Pint
 - Manual browser smoke for the admin step-up flow is still a follow-up worry, especially once the frontend password-confirmation prompt/modal is wired.
 
 If this file conflicts with source code, source code wins.
@@ -39,6 +33,7 @@ Do not load payment, booking, doctor-reporting, or notification modules for a pu
 - `root-admin` is implemented as a distinct Spatie role.
 - `root-admin` is admin-equivalent through backend helpers, route middleware, and policies, not through double role assignment.
 - Normal admin user-management APIs must not create, assign, list, show, or update `root-admin` users.
+- Normal admins also cannot list, show, create, assign, or update `admin` identities; root-admin alone manages marketplace admins through the current admin-user API.
 - API admin user create/update writes fail-closed audit rows to one shared DB-backed `audit_events` table in the same transaction as the user mutation.
 - `audit_events.batch_id` is nullable and reserved for future bulk-action grouping; single-record audit events leave it null.
 - Audit events are written from Laravel application code, not DB triggers.
@@ -58,7 +53,12 @@ Do not load payment, booking, doctor-reporting, or notification modules for a pu
 - Browser admin auth must not store bearer tokens in `localStorage` or `sessionStorage`.
 - Marketplace users now have public ULIDs and an authentication-level `active`/`suspended`/`closed` state separate from patient lifecycle state.
 - Web/API login rejects inactive users. Authenticated routes apply `account.active`; it revokes Sanctum tokens and invalidates the current browser session for suspended/closed users.
-- Proactive mutation-time deletion of every remote Redis session still requires a stable session index/service before the Phase 1 gate can claim that stronger behavior.
+- `PUT /api/admin/users/{user}/account-state` is root-admin-only, rejects root-admin targets, requires recent session-backed password confirmation plus a reason, and allows `active -> suspended|closed` and `suspended -> active|closed`; closed accounts cannot reopen.
+- Account-state mutation, metadata, all-token deletion, all database-backed browser-session deletion, and audit creation share one transaction. Runtime session-driver drift away from the default database connection fails closed.
+- Database-backed sessions are the canonical browser-session strategy in development, testing, and production templates; Redis remains available for cache and queues.
+- Future queued work acting for a user must extend `App\Jobs\UserSensitiveJob`, whose final middleware reloads account state at execution time and skips inactive or deleted users.
+- `/api/auth/me` uses an explicit safe-field allowlist, and the verification suite covers browser-session invalidation plus allowed/unknown CORS origins and matching/missing CSRF tokens.
+- `.env.production.example` requires replacement HTTPS origins and secure, HTTP-only session cookies.
 
 ## Open First
 
@@ -73,6 +73,9 @@ Do not load payment, booking, doctor-reporting, or notification modules for a pu
 - `app/Http/Middleware/EnsureRecentPasswordConfirmation.php`
 - `app/Models/AuditEvent.php`
 - `app/Services/AuditLogger.php`
+- `app/Services/AccountStateService.php`
+- `app/Services/BrowserSessionRevoker.php`
+- `app/Jobs/UserSensitiveJob.php`
 - `config/auth.php`
 - `bootstrap/app.php`
 - `routes/api.php`
@@ -130,6 +133,9 @@ php artisan test --filter=AdminUserStepUpTest
 php artisan test --filter=AdminQuestionnaireSoftDeleteTest
 php artisan test --filter=AuthTokenTest
 php artisan test --filter=CatalogDestructiveDataSafetyTest
+php artisan test --filter=AdminAccountStateTest
+php artisan test --filter=AccountStateServiceTest
+php artisan test --filter=UserSensitiveJobTest
 ```
 
 Manual follow-up worry for the step-up UX:

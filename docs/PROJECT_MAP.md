@@ -1,6 +1,6 @@
 # Project Map - Checkupino (Nebula)
 
-Snapshot date: 2026-06-14
+Snapshot date: 2026-07-19
 
 ## Fast Context For Agents
 
@@ -11,8 +11,8 @@ Always remember:
 - `frontend/` is a parked Velzon Vite workspace with working Sanctum session auth.
 - Spatie roles are the only authority source.
 - `users.role` does not exist anymore.
-- Current runtime roles: admin, doctor, patient.
-- Booking domain still needs pivot eligibility, generated-slot enforcement, and shared service consolidation.
+- Current runtime roles: `root-admin`, `admin`, `doctor`, and `patient`.
+- Booking uses workplace-scoped service eligibility, generated future slots, shared services, and locked conflict rechecks; duration, rescheduling, and hold-expiration work remains.
 - Do not load `frontend/public/assets`, `vendor`, or `node_modules`.
 
 ## 1) Project Reality
@@ -27,14 +27,15 @@ Current primary runtime:
 Target UI direction:
 - Admin web app: React + Bootstrap under `/panel/*`.
 - Client/public web app: React + Tailwind.
-- Current `frontend/` folder is a Vite-powered Velzon React-TS admin shell with working Sanctum session auth, but route ownership and demo-toolbox isolation are not complete yet.
+- Current `frontend/` folder is a Vite-powered Velzon React-TS admin shell with working Sanctum session auth and root-admin developer routes isolated under `/panel/dev/*`; it is not yet the canonical production admin.
 
 Core implemented domains:
 - Auth + roles: Breeze + Sanctum + Spatie Permission.
 - First-party browser SPA auth: Sanctum session/cookie flow is wired in `frontend/`.
 - Role authority: Spatie only. `users.role` has been removed from the active schema.
 - Patient/lead model: unknown public submitters become `leads`; registered patients are users with the `patient` Spatie role.
-- Booking: checkups, doctors, reservations, payments, and the `checkup_doctor` pivot foundation.
+- Booking: marketplace hospitals, doctor workplaces, workplace-scoped services/windows, reservations, schedule history, payment summaries, and provider attempts.
+- Platform foundation: settings/features, audit/outbox, monitoring-only tenant instances, and a separate minimal tenant schema/profile/authority/entitlement foundation.
 - Admin CRUD: specialties, checkup categories, checkups, users, reservations, questionnaires.
 - Doctor profile/services.
 - Medical user profile via `user_profiles`.
@@ -117,15 +118,37 @@ User classification:
 - No active `users.role` column.
 
 Medical booking:
+- `marketplace_hospitals`
+- `hospital_listing_requests`
 - `specialties`
 - `doctor_profiles`
+- `doctor_specialty`
+- `doctor_workplaces`
+- `doctor_workplace_checkup`
+- `doctor_working_windows`
 - `checkup_categories`
 - `checkups`
-- `checkup_doctor`
 - `reservations`
+- `reservation_schedule_changes`
 - `reservation_notes`
 - `reservation_files`
-- `payments`
+- `reservation_payment_summaries`
+- `payment_attempts`
+- `payment_provider_events`
+- `payment_adjustments`
+
+Shared platform primitives:
+- `audit_events`
+- `setting_definitions`
+- `setting_values`
+- `features`
+- `outbox_events`
+- `tenant_instances`
+- `tenant_feature_overrides`
+- `tenant_health_snapshots`
+
+Isolated tenant foundation:
+- Six migrations under `database/migrations/tenant/` create one local hospital profile, local identities/roles/sessions, settings/entitlements, audit, and outbox without marketplace operational tables.
 
 Questionnaires:
 - `questionnaires`
@@ -202,59 +225,30 @@ The parked `frontend/` Vite-powered Velzon React-TS template is excluded from th
 
 ## 9) Current Verification Snapshot
 
-As of 2026-06-14:
-- `php artisan test` passes with 25 tests and 61 assertions.
-- `tests/TestCase.php` disables Vite and seeds core roles during feature tests.
-- Production route list excludes `/debug/res-last`.
-- Roles table contains `admin`, `doctor`, and `patient`.
-- Migrated `users` schema has no `role` column.
-- `/healthz` exists for container health checks.
-- Backend Sanctum session-cookie smoke test passed: `/sanctum/csrf-cookie` -> JSON `POST /login` -> `/api/auth/me`.
-- Frontend Vite migration is pushed as `6267c1b chore: migrate frontend template to vite`.
-- `cd frontend && npm run build` succeeds.
-- `cd frontend && npm start` runs Vite on `localhost:3000`; template renders and redirects to `/login`.
-- Active frontend env migration is verified and committed.
-- Frontend session-auth flow is browser-tested: login, dashboard refresh, profile dropdown, `/profile`, logout, and logged-out dashboard redirect.
-- Auth-specific Firebase/JWT/fake backend files have been removed from the frontend runtime.
-- Known frontend warnings: large chunks from full Velzon demo inventory; stale Browserslist/baseline data; Tailwind content warning is not an admin blocker yet.
+As of 2026-07-19:
+- Full backend suite passes on SQLite and disposable MySQL: 121 tests, 640 assertions.
+- Marketplace 24-migration and isolated tenant 6-migration paths pass fresh apply, rollback, reapply, and repeat seeding.
+- MySQL unique indexes, historical-record foreign-key rules, and marketplace/tenant table separation are inspected and verified.
+- Security regressions cover root-admin-only admin identity management, reservation IDOR/ownership injection, response privacy, account/token/session revocation, audit redaction, and Sanctum CSRF/CORS behavior.
+- Touched PHP files pass Pint; repository-wide Pint still reports 65 pre-existing style issues.
+- Route loading passes with 99 non-vendor routes.
+- Detailed evidence: `docs/audits/foundation-verification-gate-2026-07-19.md`.
 
 ## 10) Immediate Next Work
 
-1. Finish Phase 3 documentation/commit:
-- Commit the session-auth cleanup, auth helper removals, CORS config, i18n/theme updates, and docs together if the working tree scope is accepted.
-- Do not include generated `frontend/dist` output unless deliberately changing deployment strategy.
-
-2. Start Phase 3.5 root-admin/developer toolbox:
-- Add `root_admin` to role taxonomy and seeders.
-- Decide whether root-admin receives admin role too or is treated as admin-equivalent in policies.
-- Split product admin routes from Velzon utility/demo routes.
-- Lazy-load root-admin demo/toolbox pages so normal admin does not pay the bundle cost.
-
-3. Keep fake/demo data boundary explicit:
-- `fakebackend_helper.ts` still supports Velzon demo data slices.
-- Do not treat demo helpers as product API infrastructure.
-- Move them behind root-admin/devtool boundaries before trimming the full Velzon inventory.
+1. Finish Phase 1 booking correctness: allowed/default duration, audited conflict-checked rescheduling, pending-hold expiration/release, and concurrency coverage.
+2. Finish payment callbacks/overrides, questionnaire anti-automation/content safety, private medical file/report workflows, and remaining high-authority audit/step-up policies.
+3. Complete runtime behavior for settings/media/API/integration primitives beyond the verified foundation schemas and contracts.
+4. Start Phase 2 reusable Vite admin work only after the remaining Phase 1 gate is intentionally closed.
 
 ## 11) Current Open Risks
 
-1. Booking eligibility source:
-- `checkup_doctor` exists, but runtime booking still needs to enforce it consistently.
-
-2. Slot validity:
-- Reservation creation checks conflicts, but must also prove the requested slot came from generated availability.
-
-3. Domain duplication:
-- Web and API booking controllers still need shared booking decision logic.
-
-4. Reservation/payment lifecycle:
-- Payment callbacks and deterministic status transitions are not finished.
-
-5. API response contracts:
-- API envelope consistency still needs tests and cleanup, especially questionnaire public responses.
-
-6. Frontend boundary:
-- React admin/client boundaries, route ownership, root-admin utilities, and CSS separation are planned but not complete.
-- The active browser auth path is session-cookie based, but mobile/external bearer-token policy still needs hardening.
+1. Booking lifecycle: rescheduling, allowed duration, explicit pending-hold expiration/release, and concurrent overlap acceptance remain unfinished.
+2. Payment lifecycle: provider callbacks, deterministic transition service, refunds/voids, and audited overrides remain unfinished.
+3. Medical files/reports: schema and retention metadata exist, but authorized upload/download/review/report workflows do not.
+4. Shared primitives: settings, media, API, notification/integration, and outbox schemas/contracts need complete runtime services and policies.
+5. High authority: doctor verification, catalog pricing/update, questionnaire administration, reservation/payment overrides, and future bulk actions need complete policy/step-up/audit coverage.
+6. Frontend boundary: the React workspace remains a parked template until the Phase 2 type/build/API/core portability gate.
 
 ## 12) Recommended Scan Order (Future Sessions)
 

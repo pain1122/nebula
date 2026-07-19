@@ -18,6 +18,13 @@ class FoundationIdentityMigrationLifecycleTest extends TestCase
         'database/migrations/2025_11_09_061807_create_permission_tables.php',
     ];
 
+    protected function tearDown(): void
+    {
+        Artisan::call('migrate:fresh', ['--force' => true]);
+
+        parent::tearDown();
+    }
+
     public function test_identity_foundation_rolls_back_and_reapplies_as_a_group(): void
     {
         Artisan::call('migrate:fresh', [

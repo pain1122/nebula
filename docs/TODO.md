@@ -1,6 +1,6 @@
 # TODO - Foundation-to-Product Roadmap
 
-Snapshot date: 2026-07-12
+Snapshot date: 2026-07-19
 
 ## How This Roadmap Works
 
@@ -52,7 +52,7 @@ The project already has a useful verified base:
 - Payment guards that block casual unpaid-to-paid and premature done transitions.
 - Checkup/category safe archives that preserve checkups, reservations, payments, notes, files, and doctor assignments.
 
-Last recorded verification on 2026-07-10: 67 backend tests and 320 assertions passed, with disposable SQLite and MySQL migration apply/rollback/re-apply checks. This is historical evidence, not a substitute for rerunning verification after the migration baseline is rebuilt.
+Foundation baseline verification on 2026-07-19: 106 backend tests and 575 assertions passed on both SQLite and disposable MySQL. Marketplace and isolated tenant fresh/repeat seed, rollback, reapply, index/constraint inspection, IDOR/ownership injection, response privacy, account/session revocation, and CSRF/CORS checks passed. Touched files pass Pint; repository-wide Pint still has 65 pre-existing issues. Evidence: `docs/audits/foundation-verification-gate-2026-07-19.md`.
 
 ## Phase 1 - Foundation and Future-Safe Baselines (Active)
 
@@ -60,48 +60,49 @@ Purpose: settle the contracts that every later feature would otherwise force us 
 
 ### 1A. Architecture and ownership contract
 
-1. [ ] Record the canonical domain boundaries.
+1. [x] Record the canonical domain boundaries.
    - Identity/authority, tenant/platform, catalog, scheduling, reservations, payments, questionnaires, medical records, content, commerce, mobile configuration, notifications, and files/media.
    - Define which module owns each state transition and which modules may only read it.
 
-2. [ ] Implement the approved marketplace/tenant separation before recreating the schema.
+2. [x] Implement the approved marketplace/tenant separation before recreating the schema.
    - Marketplace: manually curated hospital directory, doctor workplaces, per-workplace services/schedules, and marketplace-owned reservations/payments.
    - Tenant: one implicit hospital profile with entirely local admins/doctors/patients and operational data; no hospital selector or marketplace workplace relation.
    - Marketplace monitoring stores tenant instance health/subscription/feature metadata only and grants no tenant operational access.
    - Phase 1 tenant scope is a minimal separate-schema/profile/local-authority/entitlement/audit skeleton only. Full tenant doctors, patients, booking, payment, medical workflows, monitoring UI, and website features remain Phase 7 after the main marketplace features.
    - Done when: `docs/architecture/foundation-target-domain-and-ownership-contract.md` is represented by the baseline schema and connection/policy design.
 
-3. [ ] Implement the approved authority and account-lifecycle matrix.
+3. [x] Implement the approved authority and account-lifecycle matrix.
    - Define root-admin-only, admin, doctor, patient, and public abilities.
    - Decide whether normal admins may create or manage other admins.
    - Define which mutations require recent-password step-up, audit events, reason fields, or dual confirmation.
    - Enforce account states `active`, `suspended`, and `closed`; suspension/closure immediately revoke sessions and bearer tokens.
    - Keep reservation `pending` and hospital-listing/review pending states separate from account state.
    - Require policies for marketplace ownership and tenant-local ownership instead of relying on scattered controller ID checks; normal product flows never authorize cross-tenant operational access.
+   - Completion evidence: root-admin-only account-state policy/endpoint, recent-password step-up, required reason, transactional fail-closed audit, synchronous all-token and database-session revocation, permanent closure rules, and account-aware queued-job base pass 121 tests/640 assertions on SQLite and disposable MySQL.
 
-4. [ ] Standardize cross-domain lifecycle rules.
+4. [x] Standardize cross-domain lifecycle rules.
    - Archive versus delete, immutable history snapshots, status transition ownership, timestamps/timezones, money representation, public identifiers, idempotency keys, and actor attribution.
    - Historical reservation/payment/questionnaire/medical records must survive catalog or account archival.
    - Normalize enum/database/API vocabulary, including changing the existing mixed `canceled`/`cancelled` reservation-status usage to the chosen target spelling: `cancelled`.
 
 ### 1B. Clean database baseline
 
-5. [ ] Inventory the schema expressed by current migrations, models, enums, factories, seeders, and tests.
+5. [x] Inventory the schema expressed by current migrations, models, enums, factories, seeders, and tests.
    - Produce an old-to-new table/constraint map before deleting migration history.
    - Confirm every database targeted by the reset is disposable and contains no required data.
    - Include fillable/guarded ownership fields, status comments/defaults, API resources, and sensitive fields that must not leak into responses or logs.
 
-6. [ ] Replace the historical migration chain with coherent baseline migrations.
+6. [x] Replace the historical migration chain with coherent baseline migrations.
    - Group migrations by dependency and domain instead of preserving accidental development chronology.
    - Require correct `up()` and `down()` behavior, deterministic ordering, and clean foreign-key creation.
    - Remove old migration files only as part of the verified replacement change.
 
-7. [ ] Enforce intended integrity in the database.
+7. [x] Enforce intended integrity in the database.
    - One doctor profile per user and the intended payment cardinality per reservation.
    - Unique/indexed tenant domains, memberships, slugs, public IDs, provider references, and idempotency keys where applicable.
    - Restrict or null foreign keys according to retention rules; do not use destructive cascades for historical business records.
 
-8. [ ] Rebuild deterministic seed and demo data.
+8. [x] Rebuild deterministic seed and demo data.
    - Roles/permissions, a local root-admin, normal admin, doctor, patient, base tenant/site, feature keys, settings, checkups, schedules, questionnaires, and payment-provider fixtures.
    - Never embed production credentials or make local demo credentials valid outside local/testing environments.
 
@@ -176,12 +177,13 @@ These are contracts and extension points, not permission to build their complete
 
 ### Phase 1 gate
 
-- [ ] Fresh migration, seed, rollback, and re-apply pass on disposable SQLite and MySQL databases.
-- [ ] The minimal tenant-foundation migration path independently verifies its single-hospital profile, local authority, entitlement, audit/outbox, and marketplace-separation constraints without full tenant features.
+- [x] Fresh migration, seed, rollback, and re-apply pass on disposable SQLite and MySQL databases.
+- [x] The minimal tenant-foundation migration path independently verifies its single-hospital profile, local authority, entitlement, audit/outbox, and marketplace-separation constraints without full tenant features.
 - [ ] Backend tests and formatting checks pass against the rebuilt baseline.
+  - Current status: 106 tests/575 assertions pass on SQLite and MySQL, and touched files pass Pint; repository-wide Pint still reports 65 pre-existing issues.
 - [ ] Schema constraints, policies, enums, services, seeders, and docs agree.
-- [ ] Ownership/IDOR, tenant mass-assignment, PII redaction, session invalidation, and CSRF/CORS regression tests pass.
-- [ ] No current behavior is silently lost during migration consolidation.
+- [x] Ownership/IDOR, tenant mass-assignment, PII redaction, session invalidation, and CSRF/CORS regression tests pass.
+- [x] No current behavior is silently lost during migration consolidation.
 - [ ] Review and intentionally update the `AI_BOOT.md` Working Mode after the foundation gate, as previously deferred.
 
 ## Phase 2 - Reusable Vite Admin Platform

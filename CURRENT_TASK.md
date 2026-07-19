@@ -1,6 +1,6 @@
 # CURRENT_TASK.md
 
-Snapshot date: 2026-07-12
+Snapshot date: 2026-07-19
 
 ## Planning Model
 
@@ -13,9 +13,9 @@ Snapshot date: 2026-07-12
 
 Phase 1 - Foundation and Future-Safe Baselines.
 
-Current slice: define the target foundation and prepare a safe clean-migration reset before building more feature or admin UI.
+Current slice: finish Phase 1 item 16 booking correctness now that the remaining Phase 1A authority/account-lifecycle work is verified.
 
-Current position: item 7 is complete. Marketplace foundation/demo fixtures and the isolated tenant bootstrap now match the rebuilt schema and pass repeat-seed checks on SQLite and MySQL. Item 8—the full foundation and security verification gate—is next. Detailed reviews: `docs/audits/foundation-baseline-code-review-2026-07-12.md` and `docs/audits/task-7-factories-seeders-code-review-2026-07-12.md`.
+Current position: items 8 and 9 plus Phase 1A item 3 are complete. Root-admin-only account suspension, permanent closure, and suspended-account reactivation now use policy authorization, recent session-backed password confirmation, a required reason, one transactional service, fail-closed audit, synchronous bearer-token revocation, and atomic deletion of every database-backed browser session. User-sensitive queued jobs have a mandatory account-state-aware base. The full backend suite passes on SQLite and disposable MySQL with 121 tests/640 assertions. Booking correctness is the next active Phase 1 gate. Foundation evidence remains in `docs/audits/foundation-verification-gate-2026-07-19.md`; account-lifecycle evidence is recorded in the auth module and task log.
 
 ## Why This Comes First
 
@@ -45,7 +45,7 @@ This slice is backend/data/documentation focused. Do not create or alter Blade o
 - Historical business records use archive/retention rules, not destructive application cascades.
 - Checkup/category safe archive behavior already implemented must survive the migration rewrite.
 - Current databases may be reset; old migrations may be removed only as part of a complete, verified replacement baseline.
-- The `AI_BOOT.md` Working Mode is not changed in this slice; review it after the Phase 1 gate.
+- The `AI_BOOT.md` Working Mode remains unchanged after the 2026-07-19 foundation review; reconsider it only when the remaining Phase 1 gate closes.
 
 ## Approved Product Decisions
 
@@ -108,15 +108,31 @@ Detailed contract: `docs/architecture/foundation-target-domain-and-ownership-con
    - Keep credentials local/testing only.
    - Evidence: role/account-state factories plus 25 domain factory files cover the marketplace entity families; split foundation/demo seeders create hospitals, workplace services/windows, catalog, settings/features, questionnaire, reservation/payment lifecycle fixtures, and an isolated tenant-local bootstrap. SQLite and MySQL fresh/repeat seeds pass; 96 tests/539 assertions and Pint pass. See `docs/audits/task-7-factories-seeders-code-review-2026-07-12.md`.
 
-8. [ ] Verify the foundation.
+8. [x] Verify the foundation.
    - Disposable SQLite: marketplace plus minimal tenant-foundation fresh migrate/seed, rollback, re-apply, schema assertions, and applicable backend tests.
    - Disposable MySQL: marketplace plus minimal tenant-foundation fresh migrate/seed, rollback, re-apply, constraints/index inspection, and applicable backend tests.
    - Run ownership/IDOR, tenant mass-assignment, PII redaction, account/session revocation, and CSRF/CORS regression checks.
    - Run Pint and route-list checks.
 
-9. [ ] Align handoff documentation and close the Phase 1 gate.
+9. [x] Align handoff documentation and close the foundation-baseline slice.
    - Update domain modules, project map, TODO status, this task, and task log with actual verified behavior.
-   - Then review the deferred `AI_BOOT.md` Working Mode and select the first Phase 2 Vite-admin task.
+   - The deferred `AI_BOOT.md` Working Mode was reviewed and retained because roadmap Phase 1 correctness/runtime items remain open. Do not select a Phase 2 task yet.
+
+## Next Active Queue
+
+1. [x] Complete the approved authority and account-lifecycle matrix from `docs/TODO.md` Phase 1A item 3.
+   - Preserve the existing `auth:sanctum`/web authentication, `account.active` middleware, Spatie role authority, bearer-token rotation, inactive-login rejection, all-token deletion, and current-session invalidation behavior.
+   - Add root-admin-only suspend, close, and reactivate actions through one transactional account-state service.
+   - Require a reason, policy authorization, recent session-backed password confirmation, and fail-closed audit logging for every account-state mutation.
+   - Revoke all Sanctum bearer tokens synchronously and clean up every stored browser session through the canonical database session strategy in the same transaction; non-database or separate-connection session configuration fails closed.
+   - Require queued user-sensitive jobs to recheck account state before executing.
+   - Verified normal-admin/root-admin boundaries, valid transitions, multiple bearer tokens, multiple browser sessions, audit/session/token rollback, configuration drift, queued-job rechecks, and suspended normal-user access on SQLite and MySQL.
+
+2. [ ] Finish booking correctness from `docs/TODO.md` Phase 1 item 16. **Next active item.**
+   - Lock the allowed/default duration contract.
+   - Implement audited, conflict-checked, history-preserving rescheduling.
+   - Define and enforce one-hour pending-hold expiration/release behavior.
+   - Keep booking decisions centralized in `BookingService`/`SchedulingService` and verify concurrent overlap protection.
 
 ## Preserved Implemented Behavior
 
@@ -140,7 +156,7 @@ Stop and request a product decision if:
 - the work would cross into Phase 2 frontend implementation before the Phase 1 gate
 - verification fails and the cause is not understood
 
-## Definition Of Done
+## Foundation Baseline Definition Of Done
 
 This task is complete only when:
 

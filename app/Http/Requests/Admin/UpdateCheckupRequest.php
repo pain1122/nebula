@@ -7,19 +7,25 @@ use Illuminate\Validation\Rule;
 
 class UpdateCheckupRequest extends FormRequest
 {
-    public function authorize(): bool { return auth()->check() && auth()->user()->canAccessAdminPanel(); }
+    public function authorize(): bool
+    {
+        return auth()->check() && auth()->user()->canAccessAdminPanel();
+    }
 
-    public function rules(): array {
+    public function rules(): array
+    {
         $id = $this->route('checkup')->id ?? null;
+
         return [
             'checkup_category_id' => [
                 'nullable',
                 Rule::exists('checkup_categories', 'id')->whereNull('deleted_at'),
             ],
-            'title' => ['required','string','max:190'],
-            'slug' => ['required','string','max:190', Rule::unique('checkups','slug')->ignore($id)],
-            'description' => ['nullable','string','max:5000'],
-            'price' => ['required','integer','min:0'],
+            'title' => ['required', 'string', 'max:190'],
+            'slug' => ['required', 'string', 'max:190', Rule::unique('checkups', 'slug')->ignore($id)],
+            'description' => ['nullable', 'string', 'max:5000'],
+            'price' => ['required', 'integer', 'min:0'],
+            'reason' => ['required', 'string', 'max:1000'],
         ];
     }
 }

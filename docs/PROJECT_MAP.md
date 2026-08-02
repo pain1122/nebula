@@ -1,6 +1,6 @@
 # Project Map - Checkupino (Nebula)
 
-Snapshot date: 2026-07-19
+Snapshot date: 2026-08-03
 
 ## Fast Context For Agents
 
@@ -12,7 +12,8 @@ Always remember:
 - Spatie roles are the only authority source.
 - `users.role` does not exist anymore.
 - Current runtime roles: `root-admin`, `admin`, `doctor`, and `patient`.
-- Booking uses workplace-scoped service eligibility, generated future slots, shared services, and locked conflict rechecks; duration, rescheduling, and hold-expiration work remains.
+- Booking uses workplace-scoped service eligibility, generated future slots, locked conflict rechecks, throttled active-hold caps, and scheduled/synchronous hold expiry; history-preserving rescheduling remains Phase 1E.
+- Phase 1C backend primitives are verified complete. Phase 1D is closed as a contract-only extension gate; Phase 1E and Phase 2 remain open.
 - Do not load `frontend/public/assets`, `vendor`, or `node_modules`.
 
 ## 1) Project Reality
@@ -34,8 +35,9 @@ Core implemented domains:
 - First-party browser SPA auth: Sanctum session/cookie flow is wired in `frontend/`.
 - Role authority: Spatie only. `users.role` has been removed from the active schema.
 - Patient/lead model: unknown public submitters become `leads`; registered patients are users with the `patient` Spatie role.
-- Booking: marketplace hospitals, doctor workplaces, workplace-scoped services/windows, reservations, schedule history, payment summaries, and provider attempts.
-- Platform foundation: settings/features, audit/outbox, monitoring-only tenant instances, and a separate minimal tenant schema/profile/authority/entitlement foundation.
+- Booking/payment: marketplace hospitals, doctor workplaces, workplace-scoped services/windows, reservations, schedule history, one payment summary with repeated attempts, verified callback decisions, adjustments, canonical-success locking, reconciliation, and expiring holds.
+- Platform foundation: typed scoped settings, signed entitlements, audited marketplace tenant controls, signed sanitized heartbeats, provider-neutral integrations, recoverable outbox dispatch, monitoring-only tenant instances, and a separate minimal tenant schema/profile/authority/entitlement foundation.
+- Storage/API foundation: separated public media and private quarantined reservation files, explicit API resources/form requests, version/correlation metadata, capped pagination, and PII-safe representative contracts.
 - Admin CRUD: specialties, checkup categories, checkups, users, reservations, questionnaires.
 - Doctor profile/services.
 - Medical user profile via `user_profiles`.
@@ -52,6 +54,7 @@ Core implemented domains:
 - `docs/PROJECT_MAP.md`
 - `docs/adr/ADR-0001-ui-auth-role-architecture.md`
 - `docs/architecture/boundaries.md`
+- `docs/architecture/phase-1d-future-feature-extension-contract.md` when later content, commerce, mobile, tenant-site, report/file, or notification boundaries are relevant
 - `docs/deployment/docker-production.md`
 - `routes/web.php`
 - `routes/api.php`
@@ -92,15 +95,16 @@ Web routes using session auth:
 
 API routes using Sanctum:
 - `/api/auth/*` for register, doctor register, login, refresh, logout, profile, and me.
+- `/api/tenant-heartbeats/{tenantInstance}` for signed, throttled, sanitized monitoring input.
 - `/api/checkups*`, `/api/reservations*`, `/api/my/reservations`.
 - `/api/doctor/*` for doctor profile and reservation workflows.
-- `/api/admin/*` for users, doctor verification, reservations, questionnaires, and submissions.
+- `/api/admin/*` for users, doctor verification, reservations, questionnaires/submissions, tenant registry/feature controls, and scoped marketplace settings.
 - Public questionnaire endpoints: `/api/questionnaires*`.
 
 Role middleware strategy:
 - Role names come from `App\Enums\UserRole`.
 - API role checks specify the `sanctum` guard.
-- Spatie roles are seeded as `admin`, `doctor`, and `patient`.
+- Spatie roles are seeded as `root-admin`, `admin`, `doctor`, and `patient`.
 
 ## 5) Data Model Clusters
 
@@ -225,30 +229,30 @@ The parked `frontend/` Vite-powered Velzon React-TS template is excluded from th
 
 ## 9) Current Verification Snapshot
 
-As of 2026-07-19:
-- Full backend suite passes on SQLite and disposable MySQL: 121 tests, 640 assertions.
-- Marketplace 24-migration and isolated tenant 6-migration paths pass fresh apply, rollback, reapply, and repeat seeding.
-- MySQL unique indexes, historical-record foreign-key rules, and marketplace/tenant table separation are inspected and verified.
-- Security regressions cover root-admin-only admin identity management, reservation IDOR/ownership injection, response privacy, account/token/session revocation, audit redaction, and Sanctum CSRF/CORS behavior.
-- Touched PHP files pass Pint; repository-wide Pint still reports 65 pre-existing style issues.
-- Route loading passes with 99 non-vendor routes.
-- Detailed evidence: `docs/audits/foundation-verification-gate-2026-07-19.md`.
+As of 2026-08-03:
+- The final Phase 1C checkout passes SQLite 186 tests/950 assertions with one expected MySQL-only skip and disposable MySQL 187 tests/961 assertions, including production outbox integration and concurrent payment success.
+- Marketplace and isolated tenant paths pass fresh migration, repeat seed, rollback, reapply, and reseed. Verified disposable schemas contain 50 marketplace tables and 22 isolated tenant tables.
+- Entitlement, monitoring, settings, file, audit/step-up, API-resource, outbox, payment, hold-expiration, and MySQL-locking regressions pass.
+- Tenant isolation retains one local installation/profile/user/role/entitlement and excludes inspected marketplace, booking, payment, questionnaire, and medical-file tables.
+- Touched PHP files pass Pint; route loading passes with 104 non-vendor routes.
+- Detailed evidence: `docs/audits/phase-1c-verification-gate-2026-08-03.md`.
+- Phase 1D's six future-domain baselines are reconciled in `docs/architecture/phase-1d-future-feature-extension-contract.md`; it intentionally adds no speculative runtime code or schema.
+- The code-level Phase 1C learning reference is `docs/reports/phase-1c-code-learning-report-2026-08-03.md`.
 
 ## 10) Immediate Next Work
 
-1. Finish Phase 1 booking correctness: allowed/default duration, audited conflict-checked rescheduling, pending-hold expiration/release, and concurrency coverage.
-2. Finish payment callbacks/overrides, questionnaire anti-automation/content safety, private medical file/report workflows, and remaining high-authority audit/step-up policies.
-3. Complete runtime behavior for settings/media/API/integration primitives beyond the verified foundation schemas and contracts.
-4. Start Phase 2 reusable Vite admin work only after the remaining Phase 1 gate is intentionally closed.
+1. Blueprint and implement the bounded Phase 1E item 16 booking-correctness slice in `CURRENT_TASK.md` without reopening completed Phase 1C primitives.
+2. Then address Phase 1E payment/reservation completion, questionnaire anti-automation/content safety, the minimum medical report workflow, and remaining high-authority paths in roadmap order.
+3. Start Phase 2 reusable Vite admin work only after the remaining Phase 1 gate is intentionally closed.
 
 ## 11) Current Open Risks
 
-1. Booking lifecycle: rescheduling, allowed duration, explicit pending-hold expiration/release, and concurrent overlap acceptance remain unfinished.
-2. Payment lifecycle: provider callbacks, deterministic transition service, refunds/voids, and audited overrides remain unfinished.
-3. Medical files/reports: schema and retention metadata exist, but authorized upload/download/review/report workflows do not.
-4. Shared primitives: settings, media, API, notification/integration, and outbox schemas/contracts need complete runtime services and policies.
-5. High authority: doctor verification, catalog pricing/update, questionnaire administration, reservation/payment overrides, and future bulk actions need complete policy/step-up/audit coverage.
-6. Frontend boundary: the React workspace remains a parked template until the Phase 2 type/build/API/core portability gate.
+1. Booking lifecycle: history-preserving rescheduling and concurrent overlap acceptance remain Phase 1E work.
+2. Payment lifecycle: no provider SDK/HTTP webhook adapter, executed refund/void integration, appointment-completion workflow, or rating trigger exists; Phase 1C provides the provider-neutral and state-safety foundations only.
+3. Medical files/reports: private upload/download/quarantine primitives exist, but the doctor-request/patient-upload/review/report workflow does not.
+4. Questionnaire product safety: throttling plus CAPTCHA/anti-automation and stored-HTML policy remain open.
+5. Future bulk/high-authority endpoints must adopt the completed policy/step-up/reason/fail-closed-audit pattern when introduced.
+6. Frontend boundary: the React workspace remains a parked template until the remaining Phase 1 gate and Phase 2 type/build/API/core portability gates.
 
 ## 12) Recommended Scan Order (Future Sessions)
 

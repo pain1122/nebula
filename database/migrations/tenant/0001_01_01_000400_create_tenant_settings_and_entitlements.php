@@ -17,6 +17,7 @@ return new class extends Migration
             $table->json('default_value')->nullable();
             $table->json('validation_rules')->nullable();
             $table->string('sensitivity', 30)->default('internal');
+            $table->json('allowed_scopes');
             $table->text('description')->nullable();
             $table->timestamps();
         });
@@ -41,6 +42,7 @@ return new class extends Migration
             $table->boolean('enabled');
             $table->string('entitlement_version', 100);
             $table->string('signature_algorithm', 30);
+            $table->string('signing_key_id', 100);
             $table->text('signature');
             $table->timestamp('issued_at');
             $table->timestamp('expires_at')->index();

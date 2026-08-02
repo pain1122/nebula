@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\OutboxEventType;
 use App\Models\Checkup;
 use App\Models\DoctorProfile;
 use App\Models\DoctorWorkplace;
@@ -15,6 +16,10 @@ use Illuminate\Validation\ValidationException;
 
 class BookingService
 {
+    public function __construct(
+        private readonly OutboxPublisher $outboxPublisher,
+    ) {}
+
     /**
      * @return array{0: Reservation, 1: Payment}
      */
@@ -52,6 +57,20 @@ class BookingService
             $workplace,
             $idempotencyKey
         ): array {
+            User::query()->whereKey($user->getKey())->lockForUpdate()->firstOrFail();
+            $activeHoldLimit = max(1, (int) config('payments.max_active_holds_per_user', 3));
+            $activeHoldCount = Reservation::query()
+                ->where('user_id', $user->getKey())
+                ->where('status', ReservationStatus::Pending)
+                ->where('hold_expires_at', '>', now())
+                ->count();
+
+            if ($activeHoldCount >= $activeHoldLimit) {
+                throw ValidationException::withMessages([
+                    'reservation' => ['active_hold_limit_reached'],
+                ]);
+            }
+
             $lockedCheckup = Checkup::query()->whereKey($checkup->id)->lockForUpdate()->first();
 
             if (! $lockedCheckup) {
@@ -103,7 +122,9 @@ class BookingService
                 'duration_minutes' => $durationMinutes,
                 'timezone' => $lockedWorkplace->hospital->timezone,
                 'status' => ReservationStatus::Pending,
-                'hold_expires_at' => now()->addHour(),
+                'hold_expires_at' => now()->addMinutes(
+                    max(1, (int) config('payments.hold_minutes', 60))
+                ),
                 'booking_idempotency_key' => $idempotencyKey,
                 'hospital_name_snapshot' => $lockedWorkplace->hospital->name,
                 'doctor_name_snapshot' => $lockedDoctor->user->name,
@@ -119,6 +140,16 @@ class BookingService
                 'currency' => $currency,
                 'status' => 'unpaid',
             ]);
+
+            $this->outboxPublisher->marketplace(
+                $reservation,
+                OutboxEventType::ReservationCreated,
+                [
+                    'reservation_public_id' => (string) $reservation->public_id,
+                    'actor_public_id' => (string) $user->public_id,
+                    'occurred_at' => now()->toISOString(),
+                ],
+            );
 
             return [$reservation, $payment];
         });

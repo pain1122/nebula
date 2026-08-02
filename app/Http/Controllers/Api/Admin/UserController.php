@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Enums\AccountState;
 use App\Enums\UserRole;
 use App\Http\Controllers\Api\ApiController;
+use App\Http\Resources\AdminUserResource;
 use App\Models\User;
 use App\Services\AccountStateService;
 use App\Services\AuditLogger;
@@ -76,29 +77,21 @@ class UserController extends ApiController
             'created_at' => 'users.created_at',
         ], 'id', 'desc');
 
-        $users = $query
-            ->get()
-            ->map(function (User $u) {
-                return [
-                    'id' => $u->id,
-                    'role' => $u->roles->pluck('name')->first(),
-                    'first_name' => $u->first_name,
-                    'last_name' => $u->last_name,
-                    'name' => $u->name,
-                    'email' => $u->email,
-                    'phone' => $u->phone,
-                    'birth_date' => $u->birth_date?->format('Y-m-d'),
-                    'NID' => $u->NID,
-                    'city' => $u->city,
-                    'country' => $u->country,
-                    'zip_code' => $u->zip_code,
-                    'bio' => $u->bio,
-                    'patient_status' => $u->patient_status,
-                    'created_at' => optional($u->created_at)->toISOString(),
-                ];
-            });
+        $users = $query->paginate(max(1, min($request->integer('per_page', 20), 100)));
 
-        return $this->successResponse(data: ['users' => $users]);
+        return $this->successResponse(
+            data: [
+                'users' => AdminUserResource::collection($users->getCollection())->resolve($request),
+            ],
+            meta: [
+                'pagination' => [
+                    'current_page' => $users->currentPage(),
+                    'last_page' => $users->lastPage(),
+                    'per_page' => $users->perPage(),
+                    'total' => $users->total(),
+                ],
+            ],
+        );
     }
 
     public function show(Request $request, User $user)
@@ -106,21 +99,7 @@ class UserController extends ApiController
         $this->assertCanManageAdminIdentity($request, $user);
 
         return $this->successResponse(data: [
-            'user' => [
-                'id' => $user->id,
-                'role' => $user->roles->pluck('name')->first(), // spatie
-                'first_name' => $user->first_name,
-                'last_name' => $user->last_name,
-                'phone' => $user->phone,
-                'email' => $user->email,
-                'birth_date' => $user->birth_date?->format('Y-m-d'),
-                'NID' => $user->NID,
-                'city' => $user->city,
-                'country' => $user->country,
-                'zip_code' => $user->zip_code,
-                'bio' => $user->bio,
-                'patient_status' => $user->patient_status,
-            ],
+            'user' => (new AdminUserResource($user->loadMissing('roles')))->resolve($request),
         ]);
     }
 
@@ -182,10 +161,13 @@ class UserController extends ApiController
                 after: $this->auditedUserSnapshot($user),
             );
 
-            return $user->fresh();
+            return $user->fresh()->load('roles');
         });
 
-        return $this->successResponse(data: ['user' => $user], message: 'User created.');
+        return $this->successResponse(
+            data: ['user' => (new AdminUserResource($user))->resolve($request)],
+            message: 'User created.',
+        );
     }
 
     public function update(Request $request, User $user, AuditLogger $auditLogger)
@@ -239,10 +221,13 @@ class UserController extends ApiController
                 after: $this->auditedUserSnapshot($user),
             );
 
-            return $user->fresh();
+            return $user->fresh()->load('roles');
         });
 
-        return $this->successResponse(data: ['user' => $user], message: 'User updated.');
+        return $this->successResponse(
+            data: ['user' => (new AdminUserResource($user))->resolve($request)],
+            message: 'User updated.',
+        );
     }
 
     public function updateAccountState(

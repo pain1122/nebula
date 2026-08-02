@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PaymentSummaryStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +14,7 @@ class Payment extends Model
     protected $table = 'reservation_payment_summaries';
 
     protected $attributes = [
-        'status' => 'unpaid',
+        'status' => PaymentSummaryStatus::Unpaid->value,
     ];
 
     protected $fillable = [
@@ -30,6 +31,7 @@ class Payment extends Model
         return [
             'paid_at' => 'datetime',
             'refunded_at' => 'datetime',
+            'status' => PaymentSummaryStatus::class,
         ];
     }
 
@@ -46,5 +48,10 @@ class Payment extends Model
     public function attempts()
     {
         return $this->hasMany(PaymentAttempt::class, 'payment_summary_id');
+    }
+
+    public function adjustments()
+    {
+        return $this->hasMany(PaymentAdjustment::class, 'payment_summary_id');
     }
 }

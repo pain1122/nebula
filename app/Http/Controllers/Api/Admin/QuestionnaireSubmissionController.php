@@ -2,21 +2,26 @@
 
 namespace App\Http\Controllers\Api\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\ApiController;
+use App\Http\Resources\QuestionnaireSubmissionResource;
 use App\Models\QuestionnaireSubmission;
+use App\Services\AuditLogger;
 use App\Support\QuerySorting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
-class QuestionnaireSubmissionController extends Controller
+class QuestionnaireSubmissionController extends ApiController
 {
     public function index(Request $request)
     {
+        Gate::forUser($request->user())->authorize('viewAny', QuestionnaireSubmission::class);
         $questionnaireId = $request->query('questionnaire_id');
         $q = $request->query('q'); // phone / token / id
-        $perPage = (int) ($request->query('per_page', 20));
+        $perPage = max(1, min($request->integer('per_page', 20), 100));
 
         $items = QuestionnaireSubmission::query()
-            ->when($questionnaireId, fn($x) => $x->where('questionnaire_id', (int)$questionnaireId))
+            ->when($questionnaireId, fn ($x) => $x->where('questionnaire_id', (int) $questionnaireId))
             ->when($q, function ($x) use ($q) {
                 $x->where(function ($qq) use ($q) {
                     $qq->where('id', $q)
@@ -33,27 +38,70 @@ class QuestionnaireSubmissionController extends Controller
             'created_at' => 'questionnaire_submissions.created_at',
         ], 'id', 'desc');
 
-        $items = $items->paginate($perPage);
+        $items = $items->with('questionnaire:id,public_id')->paginate($perPage);
 
-        return response()->json([
-            'data' => $items->items(),
-            'meta' => [
-                'current_page' => $items->currentPage(),
-                'last_page' => $items->lastPage(),
-                'per_page' => $items->perPage(),
-                'total' => $items->total(),
+        return $this->successResponse(
+            data: QuestionnaireSubmissionResource::collection($items->getCollection())->resolve($request),
+            message: 'Questionnaire submissions.',
+            meta: [
+                'pagination' => [
+                    'current_page' => $items->currentPage(),
+                    'last_page' => $items->lastPage(),
+                    'per_page' => $items->perPage(),
+                    'total' => $items->total(),
+                ],
             ],
+        );
+    }
+
+    public function show(Request $request, QuestionnaireSubmission $submission)
+    {
+        Gate::forUser($request->user())->authorize('view', $submission);
+
+        return $this->successResponse(
+            data: (new QuestionnaireSubmissionResource($submission->load('questionnaire:id,public_id')))->resolve($request),
+            message: 'Questionnaire submission.',
+        );
+    }
+
+    public function destroy(
+        Request $request,
+        QuestionnaireSubmission $submission,
+        AuditLogger $auditLogger,
+    ) {
+        Gate::forUser($request->user())->authorize('delete', $submission);
+
+        $data = $request->validate([
+            'reason' => ['required', 'string', 'max:1000'],
         ]);
-    }
 
-    public function show(QuestionnaireSubmission $submission)
-    {
-        return response()->json($submission);
-    }
+        DB::transaction(function () use ($request, $submission, $auditLogger, $data): void {
+            $lockedSubmission = QuestionnaireSubmission::query()
+                ->lockForUpdate()
+                ->findOrFail($submission->getKey());
 
-    public function destroy(QuestionnaireSubmission $submission)
-    {
-        $submission->delete();
+            $before = [
+                'questionnaire_public_id' => $lockedSubmission->questionnaire?->public_id,
+                'deleted_at' => $lockedSubmission->deleted_at?->toISOString(),
+            ];
+
+            $lockedSubmission->delete();
+
+            $auditLogger->log(
+                request: $request,
+                actor: $request->user(),
+                action: 'admin.questionnaire_submission.archived',
+                subject: $lockedSubmission,
+                riskLevel: 'critical',
+                before: $before,
+                after: [
+                    'questionnaire_public_id' => $before['questionnaire_public_id'],
+                    'deleted_at' => $lockedSubmission->deleted_at?->toISOString(),
+                ],
+                reason: $data['reason'],
+            );
+        });
+
         return response()->noContent();
     }
 }

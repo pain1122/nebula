@@ -65,7 +65,7 @@ class ListingFilterSortTest extends TestCase
             ->actingAs($admin, 'sanctum')
             ->getJson('/api/admin/reservations?sort_by=patient_name&sort_dir=asc')
             ->assertOk()
-            ->json('data.data');
+            ->json('data');
 
         $this->assertSame([$aliceReservation->id, $zoeReservation->id], array_column($sorted, 'id'));
 
@@ -73,7 +73,7 @@ class ListingFilterSortTest extends TestCase
             ->actingAs($admin, 'sanctum')
             ->getJson('/api/admin/reservations?payment_status=paid&q=Beta&sort_by=checkup_title')
             ->assertOk()
-            ->json('data.data');
+            ->json('data');
 
         $this->assertSame([$aliceReservation->id], array_column($filtered, 'id'));
     }

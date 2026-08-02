@@ -2,17 +2,21 @@
 
 namespace App\Http\Controllers\Api\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\ApiController;
+use App\Http\Requests\Admin\UpsertQuestionnaireRequest;
+use App\Http\Resources\AdminQuestionnaireResource;
 use App\Models\Questionnaire;
+use App\Services\AuditLogger;
 use App\Support\QuerySorting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Gate;
 
-class QuestionnaireController extends Controller
+class QuestionnaireController extends ApiController
 {
     public function index(Request $request)
     {
+        Gate::forUser($request->user())->authorize('viewAny', Questionnaire::class);
         $query = Questionnaire::query()
             ->withCount('questions');
 
@@ -38,24 +42,44 @@ class QuestionnaireController extends Controller
             'questions_count' => 'questions_count',
         ], 'id', 'desc');
 
-        return $query->paginate(20);
+        $questionnaires = $query->paginate(max(1, min($request->integer('per_page', 20), 100)));
+
+        return $this->successResponse(
+            data: AdminQuestionnaireResource::collection($questionnaires->getCollection())->resolve($request),
+            message: 'Admin questionnaires.',
+            meta: [
+                'pagination' => [
+                    'current_page' => $questionnaires->currentPage(),
+                    'last_page' => $questionnaires->lastPage(),
+                    'per_page' => $questionnaires->perPage(),
+                    'total' => $questionnaires->total(),
+                ],
+            ],
+        );
     }
 
-    public function show(Questionnaire $questionnaire)
+    public function show(Request $request, Questionnaire $questionnaire)
     {
+        Gate::forUser($request->user())->authorize('view', $questionnaire);
         $questionnaire->load([
-            'questions.choices' => fn($q) => $q->orderBy('sort_order'),
-            'recommendations' => fn($q) => $q->orderBy('priority')->orderBy('min_score'),
+            'questions.choices' => fn ($q) => $q->orderBy('sort_order'),
+            'recommendations' => fn ($q) => $q->orderBy('priority')->orderBy('min_score'),
         ]);
 
-        return $questionnaire;
+        return $this->successResponse(
+            data: (new AdminQuestionnaireResource($questionnaire))->resolve($request),
+            message: 'Admin questionnaire.',
+        );
     }
 
-    public function store(Request $request)
+    public function store(UpsertQuestionnaireRequest $request, AuditLogger $auditLogger)
     {
-        $data = $this->validatePayload($request);
+        Gate::authorize('create', Questionnaire::class);
+        $data = $request->validated();
+        $reason = trim($data['reason']);
+        unset($data['reason']);
 
-        return DB::transaction(function () use ($data) {
+        $questionnaire = DB::transaction(function () use ($data, $reason, $request, $auditLogger) {
             $q = Questionnaire::create([
                 'title' => $data['title'],
                 'slug' => $data['slug'],
@@ -68,64 +92,105 @@ class QuestionnaireController extends Controller
 
             $this->syncNested($q, $data);
 
+            $auditLogger->log(
+                request: $request,
+                actor: $request->user(),
+                action: 'admin.questionnaire.created',
+                subject: $q,
+                riskLevel: 'high',
+                before: null,
+                after: $this->auditSnapshot($q),
+                reason: $reason,
+            );
+
             return $q->fresh()->load(['questions.choices', 'recommendations']);
         });
+
+        return $this->successResponse(
+            data: (new AdminQuestionnaireResource($questionnaire))->resolve($request),
+            message: 'Questionnaire created.',
+            status: 201,
+        );
     }
 
-    public function update(Request $request, Questionnaire $questionnaire)
+    public function update(UpsertQuestionnaireRequest $request, Questionnaire $questionnaire, AuditLogger $auditLogger)
     {
-        $data = $this->validatePayload($request, $questionnaire->id);
+        Gate::authorize('update', $questionnaire);
+        $data = $request->validated();
+        $reason = trim($data['reason']);
+        unset($data['reason']);
 
-        return DB::transaction(function () use ($questionnaire, $data) {
-            $questionnaire->update([
+        $questionnaire = DB::transaction(function () use ($questionnaire, $data, $reason, $request, $auditLogger) {
+            $lockedQuestionnaire = Questionnaire::query()->lockForUpdate()->findOrFail($questionnaire->getKey());
+            $before = $this->auditSnapshot($lockedQuestionnaire);
+            $lockedQuestionnaire->update([
                 'title' => $data['title'],
                 'slug' => $data['slug'],
-                'status' => $data['status'] ?? $questionnaire->status,
+                'status' => $data['status'] ?? $lockedQuestionnaire->status,
                 'cover_image_url' => $data['cover_image_url'] ?? null,
                 'content_html' => $data['content_html'] ?? null,
-                'version' => $questionnaire->version + 1,
-                'published_at' => ($data['status'] ?? $questionnaire->status->value) === 'published'
-                    ? ($questionnaire->published_at ?? now())
+                'version' => $lockedQuestionnaire->version + 1,
+                'published_at' => ($data['status'] ?? $lockedQuestionnaire->status->value) === 'published'
+                    ? ($lockedQuestionnaire->published_at ?? now())
                     : null,
             ]);
 
-            $this->syncNested($questionnaire, $data);
+            $this->syncNested($lockedQuestionnaire, $data);
 
-            return $questionnaire->fresh()->load(['questions.choices', 'recommendations']);
+            $auditLogger->log(
+                request: $request,
+                actor: $request->user(),
+                action: 'admin.questionnaire.updated',
+                subject: $lockedQuestionnaire,
+                riskLevel: 'high',
+                before: $before,
+                after: $this->auditSnapshot($lockedQuestionnaire),
+                reason: $reason,
+            );
+
+            return $lockedQuestionnaire->fresh()->load(['questions.choices', 'recommendations']);
         });
+
+        return $this->successResponse(
+            data: (new AdminQuestionnaireResource($questionnaire))->resolve($request),
+            message: 'Questionnaire updated.',
+        );
     }
 
-    public function destroy(Questionnaire $questionnaire)
+    public function destroy(Request $request, Questionnaire $questionnaire, AuditLogger $auditLogger)
     {
-        $questionnaire->delete();
+        Gate::authorize('delete', $questionnaire);
+        $data = $request->validate(['reason' => ['required', 'string', 'max:1000']]);
+
+        DB::transaction(function () use ($request, $questionnaire, $auditLogger, $data): void {
+            $lockedQuestionnaire = Questionnaire::query()->lockForUpdate()->findOrFail($questionnaire->getKey());
+            $before = $this->auditSnapshot($lockedQuestionnaire);
+            $lockedQuestionnaire->delete();
+            $auditLogger->log(
+                request: $request,
+                actor: $request->user(),
+                action: 'admin.questionnaire.archived',
+                subject: $lockedQuestionnaire,
+                riskLevel: 'critical',
+                before: $before,
+                after: $this->auditSnapshot($lockedQuestionnaire),
+                reason: trim($data['reason']),
+            );
+        });
+
         return response()->noContent();
     }
 
-    private function validatePayload(Request $request, ?int $ignoreId = null): array
+    /** @return array<string, mixed> */
+    private function auditSnapshot(Questionnaire $questionnaire): array
     {
-        return $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255', Rule::unique('questionnaires', 'slug')->ignore($ignoreId)],
-            'status' => ['nullable', Rule::in(['draft', 'published'])],
-            'cover_image_url' => ['nullable', 'string', 'max:1024'],
-            'content_html' => ['nullable', 'string'],
-
-            'questions' => ['required', 'array', 'min:1'],
-            'questions.*.text' => ['required', 'string'],
-            'questions.*.sort_order' => ['nullable', 'integer'],
-            'questions.*.choices' => ['required', 'array', 'min:1'],
-            'questions.*.choices.*.text' => ['required', 'string'],
-            'questions.*.choices.*.score' => ['required', 'integer'],
-            'questions.*.choices.*.sort_order' => ['nullable', 'integer'],
-
-            'recommendations' => ['nullable', 'array'],
-            'recommendations.*.min_score' => ['required_with:recommendations', 'integer'],
-            'recommendations.*.max_score' => ['required_with:recommendations', 'integer'],
-            'recommendations.*.title' => ['required_with:recommendations', 'string', 'max:255'],
-            'recommendations.*.body_html' => ['nullable', 'string'],
-            'recommendations.*.priority' => ['nullable', 'integer'],
-            'recommendations.*.conditions' => ['nullable', 'array'],
-        ]);
+        return [
+            'slug' => $questionnaire->slug,
+            'status' => $questionnaire->status->value,
+            'version' => $questionnaire->version,
+            'published_at' => $questionnaire->published_at?->toISOString(),
+            'deleted_at' => $questionnaire->deleted_at?->toISOString(),
+        ];
     }
 
     private function syncNested(Questionnaire $q, array $data): void
@@ -150,7 +215,7 @@ class QuestionnaireController extends Controller
             }
         }
 
-        if (!empty($data['recommendations'])) {
+        if (! empty($data['recommendations'])) {
             foreach ($data['recommendations'] as $ri => $rec) {
                 $q->recommendations()->create([
                     'min_score' => $rec['min_score'],

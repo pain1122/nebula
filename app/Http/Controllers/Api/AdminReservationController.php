@@ -7,6 +7,7 @@ use App\Models\Payment;
 use App\Models\Reservation;
 use App\Models\ReservationStatus;
 use App\Models\User;
+use App\Services\ReservationOverrideService;
 use App\Support\QuerySorting;
 use Illuminate\Http\Request;
 
@@ -30,35 +31,48 @@ class AdminReservationController extends ApiController
         }
 
         return [
-            'id'        => $r->id,
+            'id' => $r->id,
+            'public_id' => (string) $r->public_id,
             'starts_at' => optional($r->starts_at)->toIso8601String(),
-            'ends_at'   => optional($r->ends_at)->toIso8601String(),
-            'status'    => $status,
+            'ends_at' => optional($r->ends_at)->toIso8601String(),
+            'status' => $status,
 
             'patient' => $r->user ? [
-                'id'    => $r->user->id,
-                'name'  => $r->user->name,
+                'id' => $r->user->id,
+                'public_id' => (string) $r->user->public_id,
+                'name' => $r->user->name,
                 'email' => $r->user->email,
             ] : null,
 
             'doctor' => $r->doctor ? [
-                'id'        => $r->doctor->id,
-                'name'      => optional($r->doctor->user)->name,
+                'id' => $r->doctor->id,
+                'public_id' => (string) $r->doctor->public_id,
+                'name' => optional($r->doctor->user)->name,
                 'specialty' => optional($r->doctor->specialty)->name ?? null,
             ] : null,
 
             'checkup' => $r->checkup ? [
-                'id'          => $r->checkup->id,
-                'title'       => $r->checkup->title,
-                'price'       => $r->checkup->price,
+                'id' => $r->checkup->id,
+                'public_id' => (string) $r->checkup->public_id,
+                'title' => $r->checkup->title,
+                'price' => $r->checkup->price,
+                'money' => [
+                    'amount' => $r->checkup->price,
+                    'currency' => $r->checkup->currency,
+                ],
                 'category_id' => $r->checkup->checkup_category_id,
             ] : null,
 
             'payment' => $r->payment ? [
-                'id'       => $r->payment->id,
-                'amount'   => $r->payment->amount,
+                'id' => $r->payment->id,
+                'public_id' => (string) $r->payment->public_id,
+                'amount' => $r->payment->amount,
                 'currency' => $r->payment->currency,
-                'status'   => $r->payment->status,
+                'money' => [
+                    'amount' => $r->payment->amount,
+                    'currency' => $r->payment->currency,
+                ],
+                'status' => $r->payment->status->value,
                 'provider' => $r->payment->provider,
             ] : null,
         ];
@@ -76,12 +90,12 @@ class AdminReservationController extends ApiController
     public function index(Request $request)
     {
         $query = Reservation::with([
-                'user:id,name,email',
-                'doctor.user:id,name',
-                'doctor.specialty:id,name',
-                'checkup:id,title,price,checkup_category_id',
-                'payment',
-            ])
+            'user:id,public_id,name,email',
+            'doctor.user:id,public_id,name',
+            'doctor.specialty:id,name',
+            'checkup:id,public_id,title,price,currency,checkup_category_id',
+            'payment',
+        ])
             ->select('reservations.*');
 
         // فیلتر status
@@ -176,12 +190,20 @@ class AdminReservationController extends ApiController
             ),
         ], 'starts_at', 'desc');
 
-        $reservations = $query->paginate(20)
+        $reservations = $query->paginate(max(1, min($request->integer('per_page', 20), 100)))
             ->through(fn (Reservation $r) => $this->formatAdminReservation($r));
 
         return $this->successResponse(
-            data: $reservations,
-            message: 'Admin reservations list.'
+            data: $reservations->items(),
+            message: 'Admin reservations list.',
+            meta: [
+                'pagination' => [
+                    'current_page' => $reservations->currentPage(),
+                    'last_page' => $reservations->lastPage(),
+                    'per_page' => $reservations->perPage(),
+                    'total' => $reservations->total(),
+                ],
+            ],
         );
     }
 
@@ -191,10 +213,10 @@ class AdminReservationController extends ApiController
     public function show(Request $request, Reservation $reservation)
     {
         $reservation->loadMissing([
-            'user:id,name,email',
-            'doctor.user:id,name',
+            'user:id,public_id,name,email',
+            'doctor.user:id,public_id,name',
             'doctor.specialty:id,name',
-            'checkup:id,title,price,checkup_category_id',
+            'checkup:id,public_id,title,price,currency,checkup_category_id',
             'payment',
         ]);
 
@@ -211,10 +233,11 @@ class AdminReservationController extends ApiController
      *   "status": "pending" | "done" | "cancelled" | "paid"
      * }
      */
-    public function updateStatus(Request $request, Reservation $reservation)
+    public function updateStatus(Request $request, Reservation $reservation, ReservationOverrideService $service)
     {
         $data = $request->validate([
             'status' => ['required', 'string'],
+            'reason' => ['required', 'string', 'max:1000'],
         ]);
 
         try {
@@ -229,58 +252,27 @@ class AdminReservationController extends ApiController
             );
         }
 
-        $reservation->loadMissing('payment');
-
-        if ($newStatus === ReservationStatus::Confirmed && $reservation->payment?->status !== 'paid') {
+        try {
+            $reservation = $service->changeStatus(
+                $request,
+                $request->user(),
+                $reservation,
+                $newStatus,
+                $data['reason'],
+            );
+        } catch (\DomainException $exception) {
             return $this->errorResponse(
-                message: 'Reservation cannot be marked paid before payment is verified.',
+                message: $exception->getMessage(),
                 status: 422,
-                errors: [
-                    'payment' => ['payment_not_verified'],
-                ]
+                errors: ['status' => ['invalid_transition']],
             );
         }
 
-        if ($newStatus === ReservationStatus::Completed) {
-            if ($reservation->payment?->status !== 'paid') {
-                return $this->errorResponse(
-                    message: 'Reservation cannot be completed before payment is verified.',
-                    status: 422,
-                    errors: [
-                        'payment' => ['payment_not_verified'],
-                    ]
-                );
-            }
-
-            if ($reservation->starts_at && $reservation->starts_at->isFuture()) {
-                return $this->errorResponse(
-                    message: 'Reservation cannot be completed before its appointment time.',
-                    status: 422,
-                    errors: [
-                        'reservation' => ['too_early_to_complete'],
-                    ]
-                );
-            }
-        }
-
-        $reservation->status = $newStatus;
-
-        if ($newStatus === ReservationStatus::Completed) {
-            $reservation->completed_at = now();
-        }
-
-        if ($newStatus === ReservationStatus::Cancelled) {
-            $reservation->cancelled_at = now();
-            $reservation->cancelled_by = $request->user()->id;
-        }
-
-        $reservation->save();
-
         $reservation->loadMissing([
             'user:id,name,email',
-            'doctor.user:id,name',
+            'doctor.user:id,public_id,name',
             'doctor.specialty:id,name',
-            'checkup:id,title,price,checkup_category_id',
+            'checkup:id,public_id,title,price,currency,checkup_category_id',
             'payment',
         ]);
 

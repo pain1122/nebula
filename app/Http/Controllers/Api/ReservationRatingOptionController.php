@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Resources\ReservationRatingOptionResource;
 use App\Models\ReservationRatingOption;
 use Illuminate\Http\Request;
 
@@ -20,7 +21,7 @@ class ReservationRatingOptionController extends ApiController
         }
 
         return $this->successResponse(
-            data: $query->get(),
+            data: ReservationRatingOptionResource::collection($query->get())->resolve($request),
             message: 'Reservation rating options.'
         );
     }

@@ -5,15 +5,16 @@ namespace App\Http\Controllers\Api;
 use App\Models\DoctorProfile;
 use App\Models\Specialty;
 use App\Models\User;
-use App\Support\QuerySorting;
+use App\Services\AuditLogger;
 use App\Services\DoctorScheduleService;
+use App\Support\QuerySorting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class DoctorProfileController extends ApiController
 {
-    public function __construct(private DoctorScheduleService $doctorScheduleService)
-    {
-    }
+    public function __construct(private DoctorScheduleService $doctorScheduleService) {}
 
     // GET /api/doctor/profile
     public function show(Request $request)
@@ -22,7 +23,7 @@ class DoctorProfileController extends ApiController
 
         return $this->successResponse(
             data: [
-                'user'           => $this->formatUser($user),
+                'user' => $this->formatUser($user),
                 'doctor_profile' => $user->doctorProfile,
             ],
             message: 'Doctor profile.'
@@ -33,12 +34,12 @@ class DoctorProfileController extends ApiController
     public function update(Request $request)
     {
         $data = $request->validate([
-            'specialty_id'     => ['sometimes', 'exists:specialties,id'],
-            'fee'              => ['sometimes', 'integer', 'min:0'],
-            'bio'              => ['nullable', 'string'],
+            'specialty_id' => ['sometimes', 'exists:specialties,id'],
+            'fee' => ['sometimes', 'integer', 'min:0'],
+            'bio' => ['nullable', 'string'],
             'experience_years' => ['nullable', 'integer', 'min:0'],
-            'availability'     => ['nullable', 'array'], // JSON schedule
-            'workplace_id'     => ['required_with:availability', 'exists:doctor_workplaces,id'],
+            'availability' => ['nullable', 'array'], // JSON schedule
+            'workplace_id' => ['required_with:availability', 'exists:doctor_workplaces,id'],
         ]);
 
         $user = $request->user();
@@ -142,14 +143,36 @@ class DoctorProfileController extends ApiController
     }
 
     // PUT /api/admin/doctors/{doctorProfile}/verify
-    public function verify(DoctorProfile $doctorProfile, Request $request)
+    public function verify(DoctorProfile $doctorProfile, Request $request, AuditLogger $auditLogger)
     {
+        Gate::authorize('verify', $doctorProfile);
         $data = $request->validate([
             'verified' => ['required', 'boolean'],
+            'reason' => ['required', 'string', 'max:1000'],
         ]);
 
-        $doctorProfile->verified = $data['verified'];
-        $doctorProfile->save();
+        $doctorProfile = DB::transaction(function () use ($doctorProfile, $request, $auditLogger, $data): DoctorProfile {
+            $lockedProfile = DoctorProfile::query()->lockForUpdate()->findOrFail($doctorProfile->getKey());
+            $before = $this->verificationSnapshot($lockedProfile);
+            $lockedProfile->forceFill([
+                'verified' => $data['verified'],
+                'verified_at' => $data['verified'] ? now() : null,
+                'verified_by' => $request->user()->getKey(),
+            ])->save();
+
+            $auditLogger->log(
+                request: $request,
+                actor: $request->user(),
+                action: 'admin.doctor.verification_changed',
+                subject: $lockedProfile,
+                riskLevel: 'critical',
+                before: $before,
+                after: $this->verificationSnapshot($lockedProfile),
+                reason: trim($data['reason']),
+            );
+
+            return $lockedProfile->fresh(['user:id,name,email', 'specialty:id,name']);
+        });
 
         return $this->successResponse(
             data: $doctorProfile->fresh(['user:id,name,email', 'specialty:id,name']),
@@ -157,5 +180,15 @@ class DoctorProfileController extends ApiController
                 ? 'Doctor verified.'
                 : 'Doctor unverified.'
         );
+    }
+
+    /** @return array<string, mixed> */
+    private function verificationSnapshot(DoctorProfile $profile): array
+    {
+        return [
+            'verified' => (bool) $profile->verified,
+            'verified_at' => $profile->verified_at?->toISOString(),
+            'verified_by' => $profile->verified_by,
+        ];
     }
 }

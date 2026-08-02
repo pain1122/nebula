@@ -104,7 +104,7 @@ If a lower-priority doc conflicts with code, do not follow it blindly. Report th
 
 Default for this project is inspect, explain, and propose before broad or risky edits.
 
-The foundation-baseline verification passed on 2026-07-19, but this mode remains intentional until the remaining Phase 1 correctness, payment, questionnaire, medical-file, high-authority, and shared-runtime gaps are closed.
+The foundation-baseline verification passed on 2026-07-19, and the shared-runtime and future-extension contract gates are now closed. This mode remains intentional until the remaining Phase 1 booking correctness, payment, questionnaire, medical-file, and high-authority gaps are closed.
 
 Small approved maintenance edits may be made directly when the user asks for them, but keep them scoped, explain the touched files, and verify.
 

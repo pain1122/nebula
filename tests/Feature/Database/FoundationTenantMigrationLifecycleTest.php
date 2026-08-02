@@ -49,6 +49,17 @@ class FoundationTenantMigrationLifecycleTest extends TestCase
             $this->assertTrue($tenant->hasTable($table), "Expected tenant {$table} to exist.");
         }
 
+        $this->assertTrue($tenant->hasColumns('feature_entitlements', [
+            'feature_key',
+            'enabled',
+            'entitlement_version',
+            'signature_algorithm',
+            'signing_key_id',
+            'signature',
+            'issued_at',
+            'expires_at',
+        ]));
+
         foreach ([
             'marketplace_hospitals',
             'doctor_workplaces',

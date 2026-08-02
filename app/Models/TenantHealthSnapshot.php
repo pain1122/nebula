@@ -9,7 +9,8 @@ class TenantHealthSnapshot extends Model
 {
     use HasUlids;
 
-    protected $fillable = ['tenant_instance_id', 'health_status', 'component_statuses', 'error_fingerprints', 'aggregate_counters', 'observed_at'];
+    protected $fillable = ['tenant_instance_id', 'heartbeat_nonce', 'health_status', 'component_statuses', 'error_fingerprints', 'aggregate_counters', 'observed_at'];
+
     protected function casts(): array
     {
         return [
@@ -19,5 +20,9 @@ class TenantHealthSnapshot extends Model
             'observed_at' => 'datetime',
         ];
     }
-    public function uniqueIds(): array { return ['public_id']; }
+
+    public function uniqueIds(): array
+    {
+        return ['public_id'];
+    }
 }

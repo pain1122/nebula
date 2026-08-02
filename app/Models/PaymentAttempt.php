@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PaymentAttemptStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -21,7 +22,7 @@ class PaymentAttempt extends Model
     ];
 
     protected $attributes = [
-        'status' => 'initiated',
+        'status' => PaymentAttemptStatus::Initiated->value,
     ];
 
     protected function casts(): array
@@ -31,6 +32,7 @@ class PaymentAttempt extends Model
             'expires_at' => 'datetime',
             'completed_at' => 'datetime',
             'metadata' => 'array',
+            'status' => PaymentAttemptStatus::class,
         ];
     }
 

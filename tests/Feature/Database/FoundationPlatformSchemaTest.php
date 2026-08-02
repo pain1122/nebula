@@ -21,6 +21,7 @@ class FoundationPlatformSchemaTest extends TestCase
             'setting_values',
             'features',
             'outbox_events',
+            'public_media_attachments',
             'tenant_instances',
             'tenant_feature_overrides',
             'tenant_health_snapshots',
@@ -38,11 +39,21 @@ class FoundationPlatformSchemaTest extends TestCase
             'correlation_id',
         ]));
         $this->assertTrue(Schema::hasColumns('tenant_health_snapshots', [
+            'heartbeat_nonce',
             'health_status',
             'component_statuses',
             'error_fingerprints',
             'aggregate_counters',
             'observed_at',
+        ]));
+
+        $this->assertTrue(Schema::hasColumns('public_media_attachments', [
+            'attachable_type',
+            'attachable_id',
+            'disk',
+            'path',
+            'checksum_sha256',
+            'archived_at',
         ]));
 
         foreach (['patient_id', 'reservation_id', 'payment_id', 'questionnaire_submission_id', 'medical_file_id'] as $column) {

@@ -32,8 +32,6 @@ class QuestionnaireSubmission extends Model
         'guest_token_hash',
     ];
 
-
-
     protected $casts = [
         'answers_json' => 'array',
         'meta' => 'array',
@@ -43,5 +41,10 @@ class QuestionnaireSubmission extends Model
     public function uniqueIds(): array
     {
         return ['public_id'];
+    }
+
+    public function questionnaire()
+    {
+        return $this->belongsTo(Questionnaire::class);
     }
 }

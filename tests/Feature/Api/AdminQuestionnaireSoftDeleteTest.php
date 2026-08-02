@@ -3,13 +3,17 @@
 namespace Tests\Feature\Api;
 
 use App\Enums\UserRole;
+use App\Models\AuditEvent;
 use App\Models\Questionnaire;
 use App\Models\QuestionnaireChoice;
 use App\Models\QuestionnaireQuestion;
 use App\Models\QuestionnaireRecommendation;
 use App\Models\QuestionnaireSubmission;
 use App\Models\User;
+use App\Services\AuditLogger;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Mockery\MockInterface;
+use RuntimeException;
 use Tests\TestCase;
 
 class AdminQuestionnaireSoftDeleteTest extends TestCase
@@ -42,8 +46,13 @@ class AdminQuestionnaireSoftDeleteTest extends TestCase
         $submission = $this->submission($questionnaire);
 
         $this
-            ->actingAs($admin, 'sanctum')
-            ->deleteJson('/api/admin/questionnaires/'.$questionnaire->id)
+            ->actingAs($admin)
+            ->withHeader('Origin', 'http://localhost:3000')
+            ->withHeader('Referer', 'http://localhost:3000')
+            ->withSession(['auth.password_confirmed_at' => time()])
+            ->deleteJson('/api/admin/questionnaires/'.$questionnaire->id, [
+                'reason' => 'Questionnaire retired',
+            ])
             ->assertNoContent();
 
         $this->assertSoftDeleted('questionnaires', [
@@ -78,8 +87,13 @@ class AdminQuestionnaireSoftDeleteTest extends TestCase
         $submission = $this->submission($questionnaire);
 
         $this
-            ->actingAs($admin, 'sanctum')
-            ->deleteJson('/api/admin/questionnaire-submissions/'.$submission->id)
+            ->actingAs($admin)
+            ->withHeader('Origin', 'http://localhost:3000')
+            ->withHeader('Referer', 'http://localhost:3000')
+            ->withSession(['auth.password_confirmed_at' => time()])
+            ->deleteJson('/api/admin/questionnaire-submissions/'.$submission->id, [
+                'reason' => 'Retention-approved archival',
+            ])
             ->assertNoContent();
 
         $this->assertSoftDeleted('questionnaire_submissions', [
@@ -92,6 +106,52 @@ class AdminQuestionnaireSoftDeleteTest extends TestCase
             'id' => $questionnaire->id,
             'deleted_at' => null,
         ]);
+
+        $event = AuditEvent::query()->sole();
+        $this->assertSame('admin.questionnaire_submission.archived', $event->action);
+        $this->assertSame('Retention-approved archival', $event->reason);
+        $this->assertArrayNotHasKey('answers_json', $event->before);
+        $this->assertArrayNotHasKey('submitter_phone', $event->before);
+    }
+
+    public function test_submission_archive_requires_step_up_reason_and_rolls_back_on_audit_failure(): void
+    {
+        $admin = $this->adminUser();
+        $submission = $this->submission($this->questionnaire());
+
+        $this->actingAs($admin)
+            ->withHeader('Origin', 'http://localhost:3000')
+            ->withHeader('Referer', 'http://localhost:3000')
+            ->deleteJson('/api/admin/questionnaire-submissions/'.$submission->id, [
+                'reason' => 'Missing step-up',
+            ])
+            ->assertStatus(423);
+
+        $this->actingAs($admin)
+            ->withHeader('Origin', 'http://localhost:3000')
+            ->withHeader('Referer', 'http://localhost:3000')
+            ->withSession(['auth.password_confirmed_at' => time()])
+            ->deleteJson('/api/admin/questionnaire-submissions/'.$submission->id)
+            ->assertUnprocessable();
+
+        $this->mock(AuditLogger::class, function (MockInterface $mock): void {
+            $mock->shouldReceive('log')->once()->andThrow(new RuntimeException('audit failed'));
+        });
+
+        $this->actingAs($admin)
+            ->withHeader('Origin', 'http://localhost:3000')
+            ->withHeader('Referer', 'http://localhost:3000')
+            ->withSession(['auth.password_confirmed_at' => time()])
+            ->deleteJson('/api/admin/questionnaire-submissions/'.$submission->id, [
+                'reason' => 'Must roll back',
+            ])
+            ->assertStatus(500);
+
+        $this->assertDatabaseHas('questionnaire_submissions', [
+            'id' => $submission->id,
+            'deleted_at' => null,
+        ]);
+        $this->assertDatabaseCount('audit_events', 0);
     }
 
     private function adminUser(): User

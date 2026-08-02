@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\UserRole;
+use App\Http\Controllers\Api\Admin\PlatformPrimitiveController;
 use App\Http\Controllers\Api\Admin\QuestionnaireController;
 use App\Http\Controllers\Api\Admin\QuestionnaireSubmissionController;
 use App\Http\Controllers\Api\Admin\ReservationRatingOptionController as AdminReservationRatingOptionController;
@@ -13,8 +14,12 @@ use App\Http\Controllers\Api\MeController;
 use App\Http\Controllers\Api\PasswordConfirmationController;
 use App\Http\Controllers\Api\PublicQuestionnaireController;
 use App\Http\Controllers\Api\ReservationRatingOptionController;
+use App\Http\Controllers\Api\TenantHeartbeatController;
 use App\Http\Controllers\Api\UserProfileController;
 use Illuminate\Support\Facades\Route;
+
+Route::post('/tenant-heartbeats/{tenantInstance:public_id}', TenantHeartbeatController::class)
+    ->middleware('throttle:30,1');
 
 Route::prefix('auth')->group(function () {
     // ثبت‌نام
@@ -46,7 +51,8 @@ Route::middleware(['auth:sanctum', 'account.active'])->group(function () {
     Route::get('/doctors/{doctor}/availability', [BookingApiController::class, 'availability']);
     Route::get('/reservation-rating-options', [ReservationRatingOptionController::class, 'index']);
     Route::get('/my/reservations', [BookingApiController::class, 'myReservations']);
-    Route::post('/reservations', [BookingApiController::class, 'storeReservation']);
+    Route::post('/reservations', [BookingApiController::class, 'storeReservation'])
+        ->middleware('throttle:reservation-holds');
     Route::post('/reservations/{reservation}/cancel', [BookingApiController::class, 'cancelReservation']);
 
 });
@@ -56,16 +62,21 @@ Route::middleware(['auth:sanctum', 'account.active', 'role:'.UserRole::Admin->va
 
     ->group(function () {
         Route::get('/doctors', [DoctorProfileController::class, 'index']);
-        Route::put('/doctors/{doctorProfile}/verify', [DoctorProfileController::class, 'verify']);
+        Route::put('/doctors/{doctorProfile}/verify', [DoctorProfileController::class, 'verify'])
+            ->middleware('password.confirmed.recent');
 
         Route::get('/reservations', [AdminReservationController::class, 'index']);
         Route::get('/reservations/{reservation}', [AdminReservationController::class, 'show']);
-        Route::put('/reservations/{reservation}/status', [AdminReservationController::class, 'updateStatus']);
+        Route::put('/reservations/{reservation}/status', [AdminReservationController::class, 'updateStatus'])
+            ->middleware('password.confirmed.recent');
         Route::get('/reservation-rating-options', [AdminReservationRatingOptionController::class, 'index']);
-        Route::post('/reservation-rating-options', [AdminReservationRatingOptionController::class, 'store']);
+        Route::post('/reservation-rating-options', [AdminReservationRatingOptionController::class, 'store'])
+            ->middleware('password.confirmed.recent');
         Route::get('/reservation-rating-options/{reservationRatingOption}', [AdminReservationRatingOptionController::class, 'show']);
-        Route::put('/reservation-rating-options/{reservationRatingOption}', [AdminReservationRatingOptionController::class, 'update']);
-        Route::delete('/reservation-rating-options/{reservationRatingOption}', [AdminReservationRatingOptionController::class, 'destroy']);
+        Route::put('/reservation-rating-options/{reservationRatingOption}', [AdminReservationRatingOptionController::class, 'update'])
+            ->middleware('password.confirmed.recent');
+        Route::delete('/reservation-rating-options/{reservationRatingOption}', [AdminReservationRatingOptionController::class, 'destroy'])
+            ->middleware('password.confirmed.recent');
 
         Route::post('/users', [UserController::class, 'store'])
             ->middleware('password.confirmed.recent');
@@ -78,12 +89,24 @@ Route::middleware(['auth:sanctum', 'account.active', 'role:'.UserRole::Admin->va
 
         Route::get('/questionnaires', [QuestionnaireController::class, 'index']);
         Route::get('/questionnaires/{questionnaire}', [QuestionnaireController::class, 'show']);
-        Route::post('/questionnaires', [QuestionnaireController::class, 'store']);
-        Route::put('/questionnaires/{questionnaire}', [QuestionnaireController::class, 'update']);
-        Route::delete('/questionnaires/{questionnaire}', [QuestionnaireController::class, 'destroy']);
+        Route::post('/questionnaires', [QuestionnaireController::class, 'store'])
+            ->middleware('password.confirmed.recent');
+        Route::put('/questionnaires/{questionnaire}', [QuestionnaireController::class, 'update'])
+            ->middleware('password.confirmed.recent');
+        Route::delete('/questionnaires/{questionnaire}', [QuestionnaireController::class, 'destroy'])
+            ->middleware('password.confirmed.recent');
         Route::get('/questionnaire-submissions', [QuestionnaireSubmissionController::class, 'index']);
         Route::get('/questionnaire-submissions/{submission}', [QuestionnaireSubmissionController::class, 'show']);
-        Route::delete('/questionnaire-submissions/{submission}', [QuestionnaireSubmissionController::class, 'destroy']);
+        Route::delete('/questionnaire-submissions/{submission}', [QuestionnaireSubmissionController::class, 'destroy'])
+            ->middleware('password.confirmed.recent');
+        Route::put('/tenant-instances/{tenantInstance:public_id}', [PlatformPrimitiveController::class, 'updateTenant'])
+            ->middleware('password.confirmed.recent');
+        Route::put('/tenant-instances/{tenantInstance:public_id}/features/{feature:key}', [PlatformPrimitiveController::class, 'setFeature'])
+            ->middleware('password.confirmed.recent')
+            ->withoutScopedBindings();
+        Route::put('/settings/{settingKey}', [PlatformPrimitiveController::class, 'updateSetting'])
+            ->where('settingKey', '[A-Za-z0-9._-]+')
+            ->middleware('password.confirmed.recent');
     });
 
 Route::middleware(['auth:sanctum', 'account.active', 'role:'.UserRole::Doctor->value.',sanctum'])

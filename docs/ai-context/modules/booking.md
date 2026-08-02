@@ -1,12 +1,13 @@
 ## Verification Status
 
-Last verified against code: 2026-07-19
+Last verified against code: 2026-08-03
 Verification method:
 - repo inspection
-- SQLite and MySQL full backend suites: 106 tests, 575 assertions
-- marketplace migration/seed lifecycle and MySQL constraint inspection
-- focused booking IDOR, owner/state injection, slot, eligibility, and payment-guard tests
-- 99-route listing and touched-file Pint
+- SQLite full backend suite: 186 tests, 950 assertions, with one expected MySQL-only skip
+- disposable-MySQL full suite: 187 tests, 961 assertions, including deterministic payment row-lock concurrency
+- marketplace/tenant migration and seed lifecycle inspection
+- focused booking ownership, slot, eligibility, hold-cap, expiry, override, and payment tests
+- 104-route listing and touched-file Pint
 
 If this file conflicts with source code, source code wins.
 Update this module after verification.
@@ -26,8 +27,11 @@ Do not load this module for role taxonomy, admin shell routing, payment-only lif
 - Runtime service eligibility uses `doctor_workplace_checkup`; it is scoped to one doctor/hospital workplace, not specialty/category matching.
 - `BookingService` re-fetches and locks an active checkup before creation, then enforces verified doctor, checkup/doctor pivot membership, future slot, generated-slot match, and conflict recheck inside the booking transaction. A stale archived checkup model cannot create a reservation.
 - Booking creates a one-hour `pending` hold and one `unpaid` reservation payment summary together. Multiple later provider attempts belong to that summary.
+- The same booking transaction writes a sanitized `reservation.created` outbox intent; focused and full SQLite/MySQL regressions pass.
+- Booking locks the patient row before counting active holds, applies the configured per-user cap, and the API route adds authenticated user/device/IP throttles. An idempotent booking retry is resolved before the cap is evaluated.
 - Canonical reservation states are `pending`, `confirmed`, `completed`, `cancelled`, and `expired`.
 - Availability uses normalized `doctor_working_windows`. Confirmed reservations and unexpired pending holds block conflicts; stale pending/cancelled/completed/expired rows do not.
+- `ReservationHoldService` expires overdue pending holds and their open payment attempts idempotently. `ExpireOverdueReservationHolds` is scheduled every minute, while booking/payment paths still recheck expiry synchronously.
 - Reservations snapshot hospital, doctor, service/category, price/currency, duration, and timezone and reserve append-only schedule-change history.
 - Reservation status is cast to `App\Models\ReservationStatus`.
 - Booking, admin reservation, doctor reservation, checkup, doctor, user, questionnaire, and rating-option list endpoints touched in this slice use whitelisted `sort_by`/`sort_dir` handling through `App\Support\QuerySorting`.
@@ -43,6 +47,9 @@ Do not load this module for role taxonomy, admin shell routing, payment-only lif
 - `app/Http/Controllers/Api/AdminReservationController.php`
 - `app/Services/BookingService.php`
 - `app/Services/SchedulingService.php`
+- `app/Services/ReservationHoldService.php`
+- `app/Jobs/ExpireOverdueReservationHolds.php`
+- `config/payments.php`
 - `app/Support/QuerySorting.php`
 - `app/Models/Reservation.php`
 - `app/Models/ReservationStatus.php`
@@ -72,6 +79,8 @@ Views:
 - Keep the active-checkup row lock before reservation/payment creation so archive and booking cannot race.
 - Do not treat specialty/category matching as a booking eligibility rule; use the workplace-service pivot.
 - Do not change payment lifecycle from booking code unless the payment task is in scope.
+- Do not let retrying or creating a payment attempt extend `hold_expires_at`.
+- Keep both scheduled cleanup and synchronous validity checks; scheduled work is not an authorization/state-transition guarantee.
 - Do not compare enum-cast reservation statuses as raw strings without checking casts.
 - Current validation accepts a requested duration only when that exact duration produces a generated availability slot. A stricter allowed-duration product policy is still a TODO.
 

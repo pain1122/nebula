@@ -43,6 +43,7 @@ return new class extends Migration
             $table->id();
             $table->ulid('public_id')->unique();
             $table->foreignId('tenant_instance_id')->constrained()->restrictOnDelete();
+            $table->ulid('heartbeat_nonce')->unique();
             $table->string('health_status', 30)->index();
             $table->json('component_statuses')->nullable();
             $table->json('error_fingerprints')->nullable();

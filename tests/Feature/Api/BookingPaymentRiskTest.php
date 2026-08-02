@@ -65,7 +65,7 @@ class BookingPaymentRiskTest extends TestCase
 
     public function test_admin_cannot_mark_unpaid_reservation_as_paid_without_verified_payment(): void
     {
-        $admin = $this->adminUser();
+        $rootAdmin = User::factory()->rootAdmin()->create();
         [$checkup, $doctor] = $this->bookablePair(attachPivot: true);
         $patient = $this->patientUser();
 
@@ -96,11 +96,16 @@ class BookingPaymentRiskTest extends TestCase
         ]);
 
         $this
-            ->actingAs($admin, 'sanctum')
+            ->actingAs($rootAdmin)
+            ->withHeader('Origin', 'http://localhost:3000')
+            ->withHeader('Referer', 'http://localhost:3000')
+            ->withSession(['auth.password_confirmed_at' => time()])
             ->putJson('/api/admin/reservations/'.$reservation->id.'/status', [
                 'status' => ReservationStatus::Confirmed->value,
+                'reason' => 'Confirm only after a verified payment',
             ])
-            ->assertStatus(422);
+            ->assertStatus(422)
+            ->assertJsonPath('errors.status.0', 'invalid_transition');
 
         $this->assertDatabaseHas('reservations', [
             'id' => $reservation->id,
@@ -154,20 +159,43 @@ class BookingPaymentRiskTest extends TestCase
         $this->assertSame($checkup->price, $reservation->price_snapshot);
     }
 
+    public function test_active_hold_cap_is_enforced_after_idempotent_retries_are_resolved(): void
+    {
+        config(['payments.max_active_holds_per_user' => 1]);
+        $patient = $this->patientUser();
+        [$checkup, $doctor] = $this->bookablePair(attachPivot: true);
+        $payload = $this->reservationPayload($checkup, $doctor);
+
+        $this->actingAs($patient, 'sanctum')
+            ->withHeader('Idempotency-Key', 'hold-cap-first-request')
+            ->withHeader('X-Device-ID', 'test-device')
+            ->postJson('/api/reservations', $payload)
+            ->assertCreated();
+
+        $this->actingAs($patient, 'sanctum')
+            ->withHeader('Idempotency-Key', 'hold-cap-first-request')
+            ->withHeader('X-Device-ID', 'test-device')
+            ->postJson('/api/reservations', $payload)
+            ->assertCreated();
+
+        $this->actingAs($patient, 'sanctum')
+            ->withHeader('Idempotency-Key', 'hold-cap-second-request')
+            ->withHeader('X-Device-ID', 'test-device')
+            ->postJson('/api/reservations', $this->reservationPayload($checkup, $doctor, [
+                'starts_at' => $this->futureMonday()->addMinutes(30)->format('Y-m-d\TH:i'),
+            ]))
+            ->assertUnprocessable()
+            ->assertJsonPath('errors.reservation.0', 'active_hold_limit_reached');
+
+        $this->assertDatabaseCount('reservations', 1);
+    }
+
     private function patientUser(): User
     {
         $patient = User::factory()->create();
         $patient->syncRoles([UserRole::Patient->value]);
 
         return $patient;
-    }
-
-    private function adminUser(): User
-    {
-        $admin = User::factory()->create();
-        $admin->syncRoles([UserRole::Admin->value]);
-
-        return $admin;
     }
 
     /**

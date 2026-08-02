@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Services\SettingsRegistry;
+use App\Support\TenantEntitlementSignature;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -72,26 +74,29 @@ class TenantFoundationSeeder extends Seeder
             'model_id' => $userId,
         ]);
 
-        $definitionKey = 'hospital.default_timezone';
-        $db->table('setting_definitions')->updateOrInsert(
-            ['key' => $definitionKey],
-            [
-                'public_id' => $this->existingPublicId($db, 'setting_definitions', 'key', $definitionKey),
-                'group' => 'hospital',
-                'value_type' => 'string',
-                'default_value' => json_encode('Asia/Tehran', JSON_THROW_ON_ERROR),
-                'validation_rules' => json_encode(['timezone'], JSON_THROW_ON_ERROR),
-                'sensitivity' => 'public',
-                'description' => 'The isolated hospital local timezone.',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]
-        );
-        $definitionId = $db->table('setting_definitions')->where('key', $definitionKey)->value('id');
+        foreach (app(SettingsRegistry::class)->definitions('tenant') as $definitionKey => $setting) {
+            $db->table('setting_definitions')->updateOrInsert(
+                ['key' => $definitionKey],
+                [
+                    'public_id' => $this->existingPublicId($db, 'setting_definitions', 'key', $definitionKey),
+                    'group' => $setting['group'],
+                    'value_type' => $setting['value_type'],
+                    'default_value' => json_encode($setting['default'], JSON_THROW_ON_ERROR),
+                    'validation_rules' => json_encode($setting['validation_rules'], JSON_THROW_ON_ERROR),
+                    'sensitivity' => $setting['sensitivity'],
+                    'allowed_scopes' => json_encode($setting['allowed_scopes'], JSON_THROW_ON_ERROR),
+                    'description' => $setting['description'],
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]
+            );
+        }
+
+        $definitionId = $db->table('setting_definitions')->where('key', 'booking.default_timezone')->value('id');
         $db->table('setting_values')->updateOrInsert(
-            ['setting_definition_id' => $definitionId, 'scope_type' => 'hospital', 'scope_key' => 'self'],
+            ['setting_definition_id' => $definitionId, 'scope_type' => 'hospital', 'scope_key' => 'hospital'],
             [
-                'public_id' => $this->existingScopedSettingPublicId($db, $definitionId),
+                'public_id' => $this->existingScopedSettingPublicId($db, $definitionId, 'hospital'),
                 'value' => json_encode('Asia/Tehran', JSON_THROW_ON_ERROR),
                 'updated_by' => $userId,
                 'created_at' => $now,
@@ -99,17 +104,29 @@ class TenantFoundationSeeder extends Seeder
             ]
         );
 
-        $entitlementPayload = 'tenant.foundation|enabled|foundation-v1';
+        $entitlementVersion = 'foundation-v1';
+        $entitlementExpiresAt = $now->copy()->addYear();
+        $signingKeyId = (string) config('tenant.entitlements.signing_key_id');
+        $signature = app(TenantEntitlementSignature::class)->sign(
+            installationKey: 'demo-tenant-foundation',
+            featureKey: 'tenant.foundation',
+            enabled: true,
+            entitlementVersion: $entitlementVersion,
+            issuedAt: $now,
+            expiresAt: $entitlementExpiresAt,
+            keyId: $signingKeyId,
+        );
         $db->table('feature_entitlements')->updateOrInsert(
             ['feature_key' => 'tenant.foundation'],
             [
                 'public_id' => $this->existingPublicId($db, 'feature_entitlements', 'feature_key', 'tenant.foundation'),
                 'enabled' => true,
-                'entitlement_version' => 'foundation-v1',
-                'signature_algorithm' => 'hmac-sha256-demo',
-                'signature' => hash_hmac('sha256', $entitlementPayload, (string) config('app.key')),
+                'entitlement_version' => $entitlementVersion,
+                'signature_algorithm' => TenantEntitlementSignature::ALGORITHM,
+                'signing_key_id' => $signingKeyId,
+                'signature' => $signature,
                 'issued_at' => $now,
-                'expires_at' => $now->copy()->addYear(),
+                'expires_at' => $entitlementExpiresAt,
                 'created_at' => $now,
                 'updated_at' => $now,
             ]
@@ -121,12 +138,12 @@ class TenantFoundationSeeder extends Seeder
         return $db->table($table)->where($column, $value)->value('public_id') ?? (string) Str::ulid();
     }
 
-    private function existingScopedSettingPublicId($db, int $definitionId): string
+    private function existingScopedSettingPublicId($db, int $definitionId, string $scopeKey): string
     {
         return $db->table('setting_values')
             ->where('setting_definition_id', $definitionId)
             ->where('scope_type', 'hospital')
-            ->where('scope_key', 'self')
+            ->where('scope_key', $scopeKey)
             ->value('public_id') ?? (string) Str::ulid();
     }
 }

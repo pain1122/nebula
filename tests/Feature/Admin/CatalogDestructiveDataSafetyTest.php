@@ -18,10 +18,10 @@ use App\Services\AuditLogger;
 use App\Services\BookingService;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use Mockery\MockInterface;
 use RuntimeException;
 use Tests\TestCase;
-use Illuminate\Validation\ValidationException;
 
 class CatalogDestructiveDataSafetyTest extends TestCase
 {
@@ -419,6 +419,7 @@ class CatalogDestructiveDataSafetyTest extends TestCase
 
         $this
             ->actingAs($admin)
+            ->withSession(['auth.password_confirmed_at' => time()])
             ->from(route('admin.checkups.edit', $history['checkup']))
             ->put(route('admin.checkups.update', $history['checkup']), [
                 'checkup_category_id' => $archivedCategory->id,
@@ -426,6 +427,7 @@ class CatalogDestructiveDataSafetyTest extends TestCase
                 'slug' => $history['checkup']->slug,
                 'description' => $history['checkup']->description,
                 'price' => $history['checkup']->price,
+                'reason' => 'Attempt archived category assignment',
             ])
             ->assertRedirect(route('admin.checkups.edit', $history['checkup']))
             ->assertSessionHasErrors('checkup_category_id');

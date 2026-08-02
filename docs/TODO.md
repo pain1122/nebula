@@ -1,6 +1,6 @@
 # TODO - Foundation-to-Product Roadmap
 
-Snapshot date: 2026-07-19
+Snapshot date: 2026-08-03
 
 ## How This Roadmap Works
 
@@ -52,7 +52,7 @@ The project already has a useful verified base:
 - Payment guards that block casual unpaid-to-paid and premature done transitions.
 - Checkup/category safe archives that preserve checkups, reservations, payments, notes, files, and doctor assignments.
 
-Foundation baseline verification on 2026-07-19: 106 backend tests and 575 assertions passed on both SQLite and disposable MySQL. Marketplace and isolated tenant fresh/repeat seed, rollback, reapply, index/constraint inspection, IDOR/ownership injection, response privacy, account/session revocation, and CSRF/CORS checks passed. Touched files pass Pint; repository-wide Pint still has 65 pre-existing issues. Evidence: `docs/audits/foundation-verification-gate-2026-07-19.md`.
+Phase 1C closed on 2026-08-03. The final checkout passes 186 tests/950 assertions on SQLite with one expected MySQL-only skip, and 187 tests/961 assertions on disposable MySQL including deterministic concurrent payment success. Touched Pint, 104-route discovery, marketplace/tenant lifecycles, isolation, settings, entitlement, file, audit/step-up, API, production outbox integration, payment, and hold regressions pass. Phase 1D is also closed as a contract-only architecture gate. Phase 1E remains open, so Phase 1 and the Vite-admin prerequisite gate are not complete. Evidence: `docs/audits/phase-1c-verification-gate-2026-08-03.md` and `docs/architecture/phase-1d-future-feature-extension-contract.md`.
 
 ## Phase 1 - Foundation and Future-Safe Baselines (Active)
 
@@ -108,54 +108,55 @@ Purpose: settle the contracts that every later feature would otherwise force us 
 
 ### 1C. Shared platform primitives
 
-9. [ ] Establish marketplace directory and tenant monitoring/subscription primitives.
-   - Marketplace hospitals, hospital-listing requests, doctor workplaces, monitored tenant instances, plans/subscriptions, feature keys, tenant overrides, and fail-closed tenant-local feature checks.
-   - Keep directory hospital identity separate from tenant-instance identity; any future link is optional display/monitoring metadata only.
-   - Implement only the minimum tenant registry/schema-version/feature-contract foundation now; defer monitoring dashboards and complete tenant operations to Phase 7.
+9. [x] Establish marketplace directory and tenant monitoring/subscription primitives.
+   - [x] Schema baseline: marketplace hospitals/listing requests/workplaces and tenant instances, minimal plan/subscription fields, feature keys/overrides, sanitized health snapshots, separate tenant installation/schema version, local hospital profile, and signed-entitlement storage exist with migration/seed coverage.
+   - [x] Runtime: fail-closed signed tenant-local entitlement decisions, explicit registry/override services and policies, signed allowlisted replay-resistant heartbeat ingestion, transactional audit, `tenant.entitlement.changed` outbox intent, and failure/isolation tests pass.
+   - Boundary: directory hospital identity and tenant-instance identity remain separate; the current `plan_key`/`subscription_status` fields are the minimum Phase 1 representation. Monitoring dashboards, billing workflows, and tenant operations remain Phase 7.
 
-10. [ ] Establish a scoped settings system.
-    - Typed keys, validation, defaults, and platform/tenant/user scopes.
-    - Reserve groups for branding, booking, payment providers, email/SMS, mobile client configuration, maintenance mode, and integrations.
-    - Secrets must use environment/secret storage; settings rows may reference configuration but must not become a plaintext secret vault.
+10. [x] Establish a scoped settings system.
+    - [x] Schema baseline: marketplace and tenant definition/value tables support typed metadata, defaults, validation metadata, sensitivity, scope keys, and secret references; three global marketplace settings are seeded.
+    - [x] Runtime: registry/resolver, type coercion and validation, scope/precedence enforcement, unknown-key rejection, entitlement intersection, secret-reference enforcement, policy/step-up/audit, and focused marketplace/tenant tests pass.
+    - Boundary: reserve branding, booking, payment-provider, email/SMS/push, mobile, maintenance, content, commerce, and integration groups without storing plaintext secrets or building their later product features.
 
-11. [ ] Establish shared media and private-file contracts.
-    - Reusable media metadata/attachment ownership for public images and documents.
-    - Separate private medical/report storage with policy-protected or signed short-lived downloads, MIME/extension/size validation, audit events, and no public-storage exposure.
-    - Define malware-scanning/quarantine integration points plus file replacement, archive, deletion, and retention rules.
+11. [x] Establish shared media and private-file contracts.
+    - [x] Schema baseline: reservation medical-file rows include public ID, uploader, opaque storage metadata, filenames, MIME/extension/size, checksum, classification, quarantine state, scan time, retention, archive metadata, and soft deletion.
+    - [x] Runtime: reusable public-media attachment primitive, explicit private disk, guarded upload/download services and policy, MIME/extension/size/checksum validation, scan/quarantine transitions, replacement/archive/retention behavior, audit, and authorization tests pass.
+    - Boundary: this item establishes reusable storage contracts only; the doctor-request/patient-upload/review/report workflow remains item 19.
 
-12. [ ] Complete the audit and step-up framework.
-    - Shared audit schema/logger, batch IDs, before/after metadata policy, actor/tenant/subject context, and fail-closed behavior for privileged mutations.
-    - Cover admin authority, doctor verification, reservation/payment overrides, catalog price/update/archive, questionnaire mutations, tenant settings, and future bulk actions.
-    - Redact passwords, tokens, secrets, medical payloads, and unnecessary PII from audit metadata and application logs.
+12. [x] Complete the audit and step-up framework.
+    - [x] Runtime baseline: shared audit schema/logger, batch/correlation fields, recursive sensitive-key filtering, recent session-backed password middleware, and transactional fail-closed coverage exist for account lifecycle, admin-user mutations, and catalog archive paths.
+    - [x] Runtime: allowlisted subject snapshots and policy/reason/step-up/fail-closed audit coverage pass for all currently existing privileged doctor verification, reservation/payment override, catalog, questionnaire, tenant-setting, and tenant-feature paths; future bulk endpoints must adopt the same boundary when introduced.
+    - Boundary: bearer-only step-up remains disabled until separately designed; audit metadata and application logs must exclude secrets, medical payloads, and unnecessary PII.
 
-13. [ ] Standardize API contracts.
-    - Versioning strategy, success/error envelope, validation errors, pagination/filter/sort query rules, enums, dates, money, idempotency, and typed OpenAPI-compatible shapes.
-    - Keep first-party session and mobile bearer-token authentication paths explicit and isolated.
-    - Use Form Requests/DTO-style input boundaries and guard ownership fields such as `tenant_id` from mass assignment.
-    - Use policies consistently for ownership/tenant authorization and API resources/transformers for explicit PII-safe response shapes.
-    - Validate CSRF/stateful-domain/CORS environment configuration and add session-auth regression tests.
+13. [x] Standardize API contracts.
+    - [x] Runtime baseline: first-party session and external bearer-token paths are separate; CSRF/stateful-domain/CORS regression tests, a partial success/error envelope, booking idempotency header, and allowlisted sorting exist.
+    - [x] Runtime: compatibility-safe version/correlation metadata, stable validation errors, capped pagination and allowlisted queries, enum/date/money shapes, representative Form Request writes and Resource reads, public-ID routing on new platform controls, mass-assignment hardening, and PII-safe contract tests pass.
+    - Boundary: standardize backend contracts without migrating or building the Vite admin in this item.
 
-14. [ ] Establish integration and background-work primitives.
-    - Provider adapters, queues/jobs, retries, idempotent callbacks/webhooks, notification events, and an outbox or equivalent reliable dispatch decision.
-    - Payment, email/SMS, push notifications, and future external integrations must plug into these boundaries.
+14. [x] Establish integration and background-work primitives.
+    - [x] Schema baseline: marketplace and tenant queue/outbox tables, an outbox model/factory, and an account-state-aware base for user-sensitive jobs exist.
+    - [x] Runtime: provider-neutral interfaces, typed domain events, production transaction integration for reservation/payment-attempt/tenant-entitlement intent, idempotent dispatch, stale-lease recovery, retry/backoff/terminal failure, status observability, callback verification, and duplicate/failure/isolation tests pass.
+    - Boundary: payment, email/SMS, push, and future providers must plug into these contracts; no vendor SDK or real credential is selected in Phase 1C.
 
-15. [ ] Establish payment and money foundations.
-    - Integer minor units plus currency, deterministic reservation/payment state machines, provider transaction references, callback verification, idempotency, refund/void concepts, and audited manual override policy.
-    - Keep provider-specific payloads outside the canonical reservation lifecycle.
-    - Support repeated attempts within a one-hour reservation hold, release expired unpaid slots, and enforce at most one canonical successful payment.
+15. [x] Establish payment and money foundations.
+    - [x] Schema/runtime baseline: integer minor-unit amounts and currencies, one payment summary per reservation, repeated attempts, provider-event receipts, adjustments, provider/idempotency uniqueness, one canonical-success reference, booking idempotency, one-hour hold timestamps, and live-hold conflict behavior exist.
+    - [x] Runtime: enum-safe services, verified/idempotent callbacks, locked canonical success, late/competing-callback reconciliation, refund/void request boundaries, audited root-admin override, scheduled and synchronous hold expiry, hold-abuse controls, and deterministic MySQL concurrency/failure tests pass.
+    - Boundary: provider payloads remain outside reservation state. Provider checkout UI/SDK selection, appointment completion, and rating triggers remain later work.
 
 ### 1D. Future-feature skeletons to reserve now
 
 These are contracts and extension points, not permission to build their complete UI during Phase 1.
 
-| Future feature | Baseline required now | Full implementation phase |
+Phase 1D closed on 2026-08-03. The six reserved baselines are defined in `docs/architecture/phase-1d-future-feature-extension-contract.md` and mapped to verified Phase 1C primitives. No speculative feature schema, runtime endpoints, provider integrations, or UI were added.
+
+| Future feature | Reserved baseline | Full implementation phase |
 | --- | --- | --- |
-| Blogs/content | tenant/platform ownership, locale, slug, publication state, SEO metadata, media attachments | Phase 4 |
-| Products/commerce | money/currency, catalog ownership, media, order/payment separation, tax/discount extension points | Phase 5 |
-| Mobile apps | API versioning, client settings, minimum version, maintenance flag, feature flags, device/push-token ownership | Phase 6 |
-| Hospital/clinic sites | isolated single-hospital profile/database, subscription, entitlement, branding, local identities/data, monitoring heartbeat | Phase 7 |
-| Reports/medical files | private file ownership, authorization, audit, retention, download contract | Phase 1 foundation and Phase 3 demo |
-| Notifications | domain events, templates, channels, queued delivery, preference/scoping rules | Phase 1 foundation and later feature phases |
+| [x] Blogs/content | tenant/platform ownership, locale, slug, publication state, SEO metadata, media attachments | Phase 4 |
+| [x] Products/commerce | money/currency, catalog ownership, media, order/payment separation, tax/discount extension points | Phase 5 |
+| [x] Mobile apps | API versioning, client settings, minimum version, maintenance flag, feature flags, device/push-token ownership | Phase 6 |
+| [x] Hospital/clinic sites | isolated single-hospital profile/database, subscription, entitlement, branding, local identities/data, monitoring heartbeat | Phase 7 |
+| [x] Reports/medical files | private file ownership, authorization, audit, retention, download contract | Phase 1 foundation and Phase 3 demo |
+| [x] Notifications | domain events, templates, channels, queued delivery, preference/scoping rules | Phase 1 foundation and later feature phases |
 
 ### 1E. Close current correctness and security gaps
 
@@ -179,10 +180,12 @@ These are contracts and extension points, not permission to build their complete
 
 - [x] Fresh migration, seed, rollback, and re-apply pass on disposable SQLite and MySQL databases.
 - [x] The minimal tenant-foundation migration path independently verifies its single-hospital profile, local authority, entitlement, audit/outbox, and marketplace-separation constraints without full tenant features.
-- [ ] Backend tests and formatting checks pass against the rebuilt baseline.
-  - Current status: 106 tests/575 assertions pass on SQLite and MySQL, and touched files pass Pint; repository-wide Pint still reports 65 pre-existing issues.
+- [ ] Backend tests and formatting checks pass against the completed Phase 1 baseline.
+  - Phase 1C status: the final checkout passes SQLite 186 tests/950 assertions with one expected MySQL-only skip and disposable MySQL 187 tests/961 assertions including concurrency; touched Phase 1C files pass Pint. Phase 1D is documentation-only. The overall checkbox remains open for Phase 1E and the repository-wide formatting decision.
 - [ ] Schema constraints, policies, enums, services, seeders, and docs agree.
-- [x] Ownership/IDOR, tenant mass-assignment, PII redaction, session invalidation, and CSRF/CORS regression tests pass.
+  - Phase 1C schema/runtime/docs agree and the Phase 1D extension contract is reconciled; this remains open for unfinished Phase 1E work.
+- [ ] Ownership/IDOR, tenant mass-assignment, PII-safe resources/audit, session invalidation, and CSRF/CORS regression coverage is complete.
+  - Phase 1C adds the settings, monitoring, file, API-resource, outbox, payment, and concurrency cases; the overall gate remains open for Phase 1E product workflows.
 - [x] No current behavior is silently lost during migration consolidation.
 - [ ] Review and intentionally update the `AI_BOOT.md` Working Mode after the foundation gate, as previously deferred.
 

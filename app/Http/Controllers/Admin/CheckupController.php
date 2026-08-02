@@ -60,9 +60,11 @@ class CheckupController extends Controller
         return view('admin.checkups.edit', ['item' => $checkup, 'cats' => $cats]);
     }
 
-    public function update(UpdateCheckupRequest $request, Checkup $checkup): RedirectResponse
+    public function update(UpdateCheckupRequest $request, Checkup $checkup, AuditLogger $auditLogger): RedirectResponse
     {
         $data = $request->validated();
+        $reason = trim($data['reason']);
+        unset($data['reason']);
         $originalCategoryId = $checkup->checkup_category_id;
         $requestedCategoryId = $data['checkup_category_id'] ?? null;
 
@@ -71,6 +73,9 @@ class CheckupController extends Controller
             $data,
             $originalCategoryId,
             $requestedCategoryId,
+            $request,
+            $auditLogger,
+            $reason,
         ): void {
             $categoryIds = collect([$originalCategoryId, $requestedCategoryId])
                 ->filter(fn ($id) => ! is_null($id))
@@ -106,7 +111,18 @@ class CheckupController extends Controller
                 ]);
             }
 
+            $before = $this->auditSnapshot($lockedCheckup);
             $lockedCheckup->update($data);
+            $auditLogger->log(
+                request: $request,
+                actor: $request->user(),
+                action: 'admin.checkup.updated',
+                subject: $lockedCheckup,
+                riskLevel: 'high',
+                before: $before,
+                after: $this->auditSnapshot($lockedCheckup),
+                reason: $reason,
+            );
         }, attempts: 3);
 
         return redirect()->route('admin.checkups.index')->with('status', 'چکاپ به‌روزرسانی شد.');

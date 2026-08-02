@@ -79,6 +79,11 @@ class FoundationBookingPaymentSchemaTest extends TestCase
         $this->assertSame($reservation->id, $summary->reservation_id);
         $this->assertDatabaseCount('reservation_payment_summaries', 1);
         $this->assertDatabaseCount('payment_attempts', 0);
+        $this->assertDatabaseHas('outbox_events', [
+            'event_type' => 'reservation.created',
+            'subject_id' => $reservation->id,
+            'status' => 'pending',
+        ]);
     }
 
     public function test_only_live_pending_or_confirmed_reservations_block_a_slot(): void

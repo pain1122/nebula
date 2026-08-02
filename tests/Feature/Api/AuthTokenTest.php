@@ -138,10 +138,16 @@ class AuthTokenTest extends TestCase
 
         $this->assertEqualsCanonicalizing([
             'id',
+            'public_id',
             'name',
             'email',
             'roles',
             'doctor_profile',
         ], array_keys($response->json('data')));
+
+        $response
+            ->assertJsonMissingPath('data.phone')
+            ->assertJsonMissingPath('data.NID')
+            ->assertJsonMissingPath('data.bio');
     }
 }

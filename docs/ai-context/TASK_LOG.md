@@ -2,6 +2,12 @@
 
 Purpose: tiny chronological memory for AI sessions. Keep this short. Link to durable docs instead of repeating them.
 
+## 2026-08-03
+
+- Phase 1C items 9-15 are complete. Final review connected reservation creation, payment-attempt creation, and marketplace tenant-feature override to typed outbox intent inside their owning transactions. Touched Pint and focused 18 tests/89 assertions pass; full SQLite passes 186 tests/950 assertions with one expected MySQL-only skip; full disposable MySQL passes 187 tests/961 assertions including deterministic concurrent payment locking. The isolated 22-table tenant lifecycle and 104-route discovery remain verified. Evidence: `docs/audits/phase-1c-verification-gate-2026-08-03.md`.
+- The seven-part Phase 1C code explanation is preserved in `docs/reports/phase-1c-code-learning-report-2026-08-03.md` for later study.
+- Phase 1D is complete as a contract-only gate. Six future domains now have explicit ownership, lifecycle/security invariants, mappings to verified Phase 1C extension points, and deferred implementation boundaries in `docs/architecture/phase-1d-future-feature-extension-contract.md`; no speculative schema, runtime endpoints, providers, or UI were added. Phase 1E and the overall Phase 1 gate remain open, with item 16 booking correctness next.
+
 ## 2026-07-19
 
 - Phase 1A item 3 is complete. Root-admin-only suspend/close/reactivate now requires policy authorization, recent session-backed password confirmation, and a reason; state metadata, fail-closed audit, all Sanctum-token deletion, and all database-session deletion are atomic. Closed accounts cannot reopen, non-database session drift fails closed, and future user-sensitive jobs inherit execution-time account checks. Full SQLite and disposable-MySQL suites pass 121 tests/640 assertions; the temporary MySQL schema was removed. Booking correctness is next.

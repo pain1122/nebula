@@ -17,7 +17,7 @@ class ReservationRatingOptionTest extends TestCase
         $admin = $this->userWithRole(UserRole::Admin);
 
         $created = $this
-            ->actingAs($admin, 'sanctum')
+            ->statefulAdmin($admin)
             ->postJson('/api/admin/reservation-rating-options', [
                 'type' => ReservationRatingOption::TYPE_PRO,
                 'label' => 'Clear explanation',
@@ -25,6 +25,7 @@ class ReservationRatingOptionTest extends TestCase
                 'description' => 'Doctor explained the result clearly.',
                 'active' => true,
                 'sort_order' => 10,
+                'reason' => 'Add feedback option',
             ])
             ->assertCreated()
             ->json('data');
@@ -37,7 +38,7 @@ class ReservationRatingOptionTest extends TestCase
         ]);
 
         $this
-            ->actingAs($admin, 'sanctum')
+            ->statefulAdmin($admin)
             ->putJson('/api/admin/reservation-rating-options/'.$created['id'], [
                 'type' => ReservationRatingOption::TYPE_CON,
                 'label' => 'Long wait',
@@ -45,14 +46,17 @@ class ReservationRatingOptionTest extends TestCase
                 'description' => null,
                 'active' => false,
                 'sort_order' => 20,
+                'reason' => 'Revise feedback option',
             ])
             ->assertOk()
             ->assertJsonPath('data.type', ReservationRatingOption::TYPE_CON)
             ->assertJsonPath('data.active', false);
 
         $this
-            ->actingAs($admin, 'sanctum')
-            ->deleteJson('/api/admin/reservation-rating-options/'.$created['id'])
+            ->statefulAdmin($admin)
+            ->deleteJson('/api/admin/reservation-rating-options/'.$created['id'], [
+                'reason' => 'Retire feedback option',
+            ])
             ->assertNoContent();
 
         $this->assertSoftDeleted('reservation_rating_options', [
@@ -96,5 +100,13 @@ class ReservationRatingOptionTest extends TestCase
         $user->syncRoles([$role->value]);
 
         return $user;
+    }
+
+    private function statefulAdmin(User $admin): static
+    {
+        return $this->actingAs($admin)
+            ->withHeader('Origin', 'http://localhost:3000')
+            ->withHeader('Referer', 'http://localhost:3000')
+            ->withSession(['auth.password_confirmed_at' => time()]);
     }
 }

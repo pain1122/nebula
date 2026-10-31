@@ -71,10 +71,13 @@ Use `docs/PROJECT_MAP.md` for architecture orientation and `docs/TODO.md` for fu
 
 This project is designed for Docker-based local development.
 
+For continuing the existing demo on another PC, first use the [Windows transfer readiness checklist](docs/deployment/windows10-transfer-readiness-2026-10-31.md). A clone does not include local images, dependencies, database/files or encryption keys; the fresh-install steps below do not preserve an existing demo database.
+
 ### 1) Requirements
 
 - Docker Desktop with Compose v2
 - Node.js 20.19+ for the root Vite toolchain
+- Node.js 24.19.0 and npm 11.17.0 for `frontend/` development and tests, as required by its package manifest
 - Git
 
 ### 2) Clone

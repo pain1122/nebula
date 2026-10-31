@@ -11,8 +11,8 @@ Route::middleware(['auth', 'account.active', 'verified', 'role:'.UserRole::Admin
     ->prefix('admin')->name('admin.')
     ->group(function () {
         Route::get('/', [AdminDashboard::class, '__invoke'])->name('dashboard');
-        Route::resource('specialties', SpecialtyController::class)->except('show');
-        Route::resource('checkup-categories', CheckupCategoryController::class)->except(['show', 'destroy']);
+        Route::resource('specialties', SpecialtyController::class)->except('show')->middlewareFor(['store', 'update', 'destroy'], 'password.confirmed.recent');
+        Route::resource('checkup-categories', CheckupCategoryController::class)->except(['show', 'destroy'])->middlewareFor(['store', 'update'], 'password.confirmed.recent');
         Route::get('checkup-categories/{checkup_category}/archive', [CheckupCategoryController::class, 'confirmArchive'])
             ->middleware('password.confirmed.recent:admin.checkup-categories.archive-confirm')
             ->name('checkup-categories.archive-confirm');
@@ -20,7 +20,9 @@ Route::middleware(['auth', 'account.active', 'verified', 'role:'.UserRole::Admin
             ->middleware('password.confirmed.recent:admin.checkup-categories.archive-confirm')
             ->name('checkup-categories.destroy');
 
-        Route::resource('checkups', CheckupController::class)->except(['show', 'destroy', 'update']);
+        Route::resource('checkups', CheckupController::class)
+            ->except(['show', 'destroy', 'update'])
+            ->middlewareFor('store', 'password.confirmed.recent:admin.checkups.create');
         Route::match(['put', 'patch'], 'checkups/{checkup}', [CheckupController::class, 'update'])
             ->middleware('password.confirmed.recent:admin.checkups.edit')
             ->name('checkups.update');

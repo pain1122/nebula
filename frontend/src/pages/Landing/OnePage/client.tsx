@@ -8,7 +8,8 @@ import "swiper/css/effect-fade";
 import "swiper/css/pagination";
 
 import {  Autoplay } from "swiper/modules";
-import { Swiper, SwiperSlide } from "swiper/react";
+import { SwiperSlide } from "swiper/react";
+import Swiper from "../../../Components/Common/DirectionalSwiper";
 
 // Import Images
 import amazon from "../../../assets/images/clients/amazon.svg";

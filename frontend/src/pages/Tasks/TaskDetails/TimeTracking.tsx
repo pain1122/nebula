@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Card, CardBody, DropdownItem, DropdownMenu, DropdownToggle, UncontrolledDropdown, Modal, ModalHeader, ModalBody } from "reactstrap";
+import { Card, CardBody, DropdownItem, DropdownToggle, UncontrolledDropdown, Modal, ModalHeader, ModalBody } from "reactstrap";
+import DropdownMenu from "../../../Components/Common/DirectionalDropdownMenu";
 
 import avatar10 from "../../../assets/images/users/avatar-10.jpg";
 import avatar8 from "../../../assets/images/users/avatar-8.jpg";

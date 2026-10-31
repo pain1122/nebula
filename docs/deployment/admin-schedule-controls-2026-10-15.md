@@ -1,0 +1,49 @@
+# Admin schedule controls — October 15, 2026
+
+The user approved the existing schedule URLs and bounded controls, then explicitly confirmed individual-slot pricing and instructed implementation. This completes the source and served/read-only control slice. Successful live saves and new concurrent MySQL write acceptance remain separate.
+
+Before: admin/root could inspect workplaces, service prices, recurring rules/breaks and dated slots; no panel controls were wired. After: the same workplace detail offers **Edit slot** and **Day / week controls**, using the retained Velzon dialog, fields and responsive table. Both start and end are displayed in hospital-local time, with exact public slot identity, existing money/enabled state, eligible targets and exclusions. No new panel URL, dependency, CSS or schema was introduced.
+
+## Server contract
+
+- `GET /api/admin/schedules/workplaces/{workplaceId}/slot-control` previews one service and `slot`, `day` or ISO Monday–Sunday `week`, anchored to a Gregorian hospital-local date. Slot scope requires the exact public ULID and matching local date. Selections are bounded to 250 occurrences, with explicit overflow refusal and exclusive next-local-midnight boundaries across DST. It never materializes occurrences.
+- `PUT` on the same endpoint accepts only that selection, optional exact integer `price` (0–9007199254740991) and/or `is_active`, expected revision, signed expiry, reason and explicit confirmation. Existing recent-password/session/CSRF/admin-role controls remain authoritative; preview and write throttles are 30/minute and 10/minute. Price changes spanning currencies refuse; enabled-state changes may preserve different currencies.
+- Preview revisions bind the actor/current roles, selection, targets, eligibility, current offering/doctor/hospital/rules, reservation/conflict history and latest doctor/admin workplace-control audit ID. They expire after five minutes. A repeated read can retain the signed expiry for the immediate preflight. New bookings/targets, eligibility/authority changes, duplicate delivery and same-second price round trips invalidate stale previews.
+- The admin acts as themselves, with fresh active authority and current role reads under lock. Another privileged doctor's private workplace remains hidden. Admin writes do not pass an assigned doctor as the actor to the existing doctor service.
+- Targets lock by ID before workplace, doctor and service, following the booking order for those records. Reservation/conflict reads use current locking reads under the doctor's lock. The entire mutation and allowlisted `admin.visit_slots.controlled` audit are one transaction, with bounded deadlock retries. Only actual changed rows enter exact before/after audit snapshots; no-op saves refuse. Existing times, currency, ownership, recurring defaults, reservations, payment facts and append-only history are untouched.
+- Past slots, unavailable offerings/rules, inconsistent bindings, any current reservation (including cancelled/expired history), rescheduled-away occurrences and overlapping confirmed/live-held reservations are excluded. The ordinary slot reader's existing history flag/filter now also includes append-only reschedule history. No patient/reservation identities or internal state enter preview DTOs.
+
+`app/Services/AdminVisitSlotControl.php` owns the admin boundary; `ScheduleControlController` is a thin private API adapter. `AuditLogger` and the backend/frontend Activity allowlists recognize the new metadata-only schedule event. Presentation remains separate in `SlotControlEditor.tsx` and `schedules/controls.ts` for a later client UI refactor.
+
+## Client safeguards
+
+The modal explicitly previews before it can save. Scope/service/date changes discard preview and confirmation; price/enabled changes discard confirmation. Unknown identities, inconsistent eligibility, duplicate/oversized rows, wrong periods and malformed money/time values refuse at the adapter. Preview expiry, cancellation/unmount and session-authority changes prevent stale continuation. The retained `ActionDialog` repeats a fresh signed preview before dispatch and after any password-confirmation retry. An ambiguous delivery freezes the form and disables reopening until an explicit successful table refresh; it never automatically repeats the write.
+
+## Verification and limits
+
+- Read-only container sanity: twelve intended services running, worker idle, scanner still stopped; unrelated projects untouched.
+- Isolated UID33/network-none/read-only-container SQLite gate: **37 tests / 682 assertions**, including retained schedule/catalog readers and successful synthetic individual/day/week mutations, zero/exact money, immutable facts, reservation/reschedule history, cross-workplace conflict, DST/250 bound, active authority/password/strict fields, expired/stale/duplicate/round-trip revision, audit rollback and Activity discovery. Pint passes seven touched PHP files (final two-file guard recheck also passes).
+- Frontend TypeScript and the full gate before the display-only end-time correction (**65 files / 625 tests**) pass. Final targeted schedule/control/Activity gate: **42 tests**. Governed/scoped lint, fixtures, formatting and unchanged quality ratchets pass (2515 any / 10 ambient / 40 legacy Apex / zero undeclared). Readiness safeguards: 14 tests pass.
+- Final UID33 real MySQL verification: **12 direct-controller preview reads** for existing synthetic admin/root, including stable-expiry repeats for individual/day/week, plus actual guest HTTP401; original/protected and twelve schedule/catalog/history table fingerprints remain. Raw initial proof is preserved; the final proof binds the later audit-ID revision guard and final helper. This is read acceptance, not concurrent or successful live mutation acceptance.
+- Final served/read-only browser proof: **11 retained role/clinical/reservation groups / 161 API requests**, and **33 native schedule/control groups / 170 API requests / four desktop-390px mirror cases / 22 viewport captures**, including both timestamp elements, admin/root ENFA individual/day/week previews/confirmation/cancellation, patient/doctor API/page/sidebar refusals and unchanged twelve schedule/catalog/history plus original/protected fingerprints. Zero business writes, external requests, blocked requests or browser exceptions. Inspected final Farsi desktop and390px individual-dialog viewport captures; tables retain horizontal scrolling. Readiness at2026-10-15T17:19:36.475Z verifies twelve services/56 assets/idle worker/jobs0/original-protected history; fresh scanning remains unavailable.
+
+Initial native acceptance passed 33 groups/170 API requests/four desktop–390px shell mirrors/22 viewport captures. Visual inspection then found the table displayed only its start time despite a start/end heading. The final UI displays both localized times; focused assertions inspect the actual portal dialog, and the final native harness requires both timestamp elements. Initial static/browser/native evidence is retained, not overwritten. Test-fixture pivot duplication, shell filter escaping, missing test import, rate-limit isolation, direct-controller request-binding order and explicit mock types were corrected without relaxing production guards. A temporary final static check correctly refused health `starting`; it was rerun only after actual health became `healthy`.
+
+No live schedule/business save, password confirmation, patient download, definition access, scanner/worker activation, queue consumption, materialization, migration, environment/credential change or unrelated container operation occurred. The existing doctor writer retains its previous workplace-before-slot order; new contention/deadlock behavior with doctor edits requires isolated concurrent MySQL acceptance. Bounded retries/atomic rollback are implemented, but SQLite and read-only MySQL do not establish that acceptance. Weekly-rule replacement, workplace/hospital editors and scheduling sweeps remain outside this narrow slice.
+
+## Deployment and rollback
+
+Only the already delegated static-admin config/build/recreate ran; cached dependencies were reused. Final healthy admin image: `sha256:9db9266418490bb311b4d0cb6b8ba59131edf7015f821d9f6b1f4e4dc23fdbe6`, 56 verified served/container assets. Retention and final read-only readiness are recorded in the immutable acceptance binding. The earlier intermediate `94e3e8a8` image is historical for the start-only preview; it is superseded by the final display correction.
+
+The quiet-validated, unexecuted UI rollback retains the accepted schedule-read image `4037f0c0` and all data:
+
+```powershell
+docker compose --project-name checkupino_prod --env-file .env.production --file docker-compose.prod.yml --file docker-compose.admin-schedule-controls-rollback.yml config --quiet
+if ($LASTEXITCODE -ne 0) { throw 'Schedule controls rollback configuration failed.' }
+docker compose --project-name checkupino_prod --env-file .env.production --file docker-compose.prod.yml --file docker-compose.admin-schedule-controls-rollback.yml up -d --no-deps --no-build --pull never admin
+if ($LASTEXITCODE -ne 0) { throw 'Schedule controls rollback failed.' }
+```
+
+This hides the new panel controls while preserving the governed additive backend API/history protection. It does not disable the guarded API itself or reverse any future legitimate save. Older read clients remain compatible; no database rollback or reseed is needed. Existing catalog rollback `43f3` remains available separately.
+
+The repeatable read-only checkpoint is `node scripts/media/check-demo-readiness.mjs`. Fixed evidence writers refuse overwriting accepted proof. Next in the agreed list: payment administration, then general settings with runtime binding, then the real dashboard; positive live-save/download-audit and fresh-scanner gates remain distinct, and the user-owned profile rehearsal remains deferred.

@@ -1,8 +1,8 @@
 # Foundation Target Domain and Ownership Contract
 
-Snapshot date: 2026-07-12
+Snapshot date: 2026-08-16
 
-Status: approved product direction for migration and shared-primitive planning.
+Status: approved ownership contract with its Phase 1 marketplace/minimal-tenant scope implemented and verified. Later tenant product scope remains Phase 7.
 
 Purpose: keep the main reservation marketplace and future hospital tenant websites structurally clean, operationally separate, and privacy-safe.
 
@@ -131,11 +131,11 @@ Payment status remains separate from reservation status.
 
 ## Scheduling and Plan Changes
 
-- A service/checkup defines a default duration, while each reservation snapshots its actual duration.
+- A doctor declares recurring working hours, visit duration, daily price, and break intervals. The server materializes persistent dated occurrences; the patient selects only a public slot ID and never chooses duration or trusted time/money facts.
 - Marketplace doctor schedules are scoped to a doctor-workplace association.
 - Tenant doctor schedules are local and implicitly scoped to the tenant hospital.
-- Authorized changes may update start, end, duration, doctor, or marketplace workplace through an explicit reschedule workflow.
-- Each change revalidates eligibility, working hours, reservation windows, payment implications, and conflicts inside the owning database.
+- The Phase 1 marketplace workflow moves a reservation only to another persistent slot for the same doctor/workplace/checkup and preserves the original price, currency, and payment facts.
+- Broader future reassignment may change doctor or marketplace workplace only through a separately approved payment/authority design. Every change revalidates eligibility, slot identity, and conflicts inside the owning database.
 - Previous/new values, actor, reason, and timestamp are preserved in schedule-change history and audit events.
 - Direct updates that erase schedule history are not allowed.
 - A reservation is never moved between the marketplace database and a tenant database. Cross-product movement is a cancel/new-booking workflow with explicit client action.

@@ -2,25 +2,8 @@ import React, { useState, useEffect } from "react";
 import Flatpickr from "react-flatpickr";
 import moment from "moment";
 
-import {
-  Col,
-  Container,
-  Row,
-  Card,
-  CardBody,
-  Input,
-  Button,
-  UncontrolledDropdown,
-  DropdownToggle,
-  DropdownMenu,
-  DropdownItem,
-  Modal,
-  Form,
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
-  FormFeedback,
-} from "reactstrap";
+import { Col, Container, Row, Card, CardBody, Input, Button, UncontrolledDropdown, DropdownToggle, DropdownItem, Modal, Form, ModalBody, ModalFooter, ModalHeader, FormFeedback } from "reactstrap";
+import DropdownMenu from "../../../Components/Common/DirectionalDropdownMenu";
 
 // import Flatpickr from "react-flatpickr";
 

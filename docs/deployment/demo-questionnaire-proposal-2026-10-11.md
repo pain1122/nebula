@@ -1,0 +1,17 @@
+# Fixed questionnaire demo page proposal
+
+Approved explicitly by the operator October11. Implemented/deployed acceptance and rollback: [demo-questionnaire-2026-10-11.md](demo-questionnaire-2026-10-11.md). This proposal remains the approved scope record.
+
+The existing published synthetic fixture is `demo-heart-health-screen`, version1, three questions. Public definition and submission APIs, exact-answer/choice validation, server scoring/recommendation snapshots, authenticated submission ownership and throttling are already implemented. This proposal connects that existing branch after the medical flow; it adds no builder, attachment field, dependency, schema, reseed, booking prerequisite or SEO page.
+
+Approve one canonical patient-only route **`/panel/my/questionnaire`**, bound to that fixed fixture, and one patient-sidebar Questionnaire item below reservations. Guests use the existing login guard; doctor/admin/root do not receive this patient route. Shared session/CSRF/transport/cache/abort and flag-owned English/Farsi direction remain unchanged.
+
+Use the retained Velzon Form Layouts vertical-form composition: existing page-content/fluid container/breadcrumb/row/xxl6 column/card/header/body/form/labels/radio inputs/submit button. Keep original Bootstrap classes and geometry; no custom styles or RTL correction. One selected choice per backend question, plus explicit submitter name and phone required by the existing API. Patient-owned identity comes from the authenticated session; the browser must never send user_id, questionnaire/version, score or publication/result facts.
+
+Submission performs a fresh definition read, verifies the selected question/choice set and blocks duplicates. A changed definition requires deliberate review; definitive validation errors remain editable, ambiguous delivery is not automatically replayed. Result state shows the backend submission ID, score and recommendation. Description and recommendation are displayed safely as text; do not inject arbitrary HTML. A successful result does not complete or pay a reservation.
+
+Localize controls, validation, pending/submitted/result labels and score formatting in English/Farsi. For this fixed synthetic fixture only, source-owned Farsi text may translate its exact existing title/question/choice/recommendation wording; apply it only to the matching fixture/version/source text and retain canonical backend text if the definition changes. No translated scores or medical claims are invented; the server still owns all scoring/recommendation decisions. There is no multilingual schema expansion.
+
+Verify source role/route/navigation contracts, server-owned scoring payload, exact answers, changed definitions, duplicate/cancel/ambiguous cases, escaped text and EN/FA. Then reuse the delegated static-admin build for this explicitly approved demo page, verify served artifact and actual synthetic patient submission/persistence/server score/result with no guest lead, protected-account or booking/payment/outbox mutation. Live submission is one ordinary API delivery, never a seed/manual result.
+
+This is the concrete approval boundary from AI_BOOT.md: “canonical `/panel/*` URLs, redirects, and deployment base-path behavior” and “navigation, page composition, component UX, Persian/RTL behavior, and visual direction”. Source integration starts after that approval. Medical controls are already approved and remain independently in progress.

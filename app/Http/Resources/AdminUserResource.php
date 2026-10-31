@@ -17,17 +17,25 @@ class AdminUserResource extends JsonResource
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'name' => $this->name,
-            'email' => $this->email,
-            'phone' => $this->phone,
-            'birth_date' => $this->birth_date?->format('Y-m-d'),
-            'NID' => $this->NID,
-            'city' => $this->city,
-            'country' => $this->country,
-            'zip_code' => $this->zip_code,
-            'bio' => $this->bio,
+            // Retain nullable wire keys for older clients, never their private values.
+            'email' => null,
+            'phone' => null,
+            'birth_date' => null,
+            'NID' => null,
+            'city' => null,
+            'country' => null,
+            'zip_code' => null,
+            'bio' => null,
             'patient_status' => $this->patient_status,
             'account_state' => $this->account_state?->value,
             'created_at' => $this->created_at?->toISOString(),
+            // Directory metadata only; never serialize the profile model or contact fields.
+            'doctor_profile' => $this->relationLoaded('doctorProfile') && $this->hasRole('doctor') && $this->doctorProfile ? [
+                'id' => $this->doctorProfile->id,
+                'verified' => (bool) $this->doctorProfile->verified,
+                'specialty' => $this->doctorProfile->specialty?->name,
+                'active_workplaces_count' => (int) $this->doctorProfile->active_workplaces_count,
+            ] : null,
         ];
     }
 }

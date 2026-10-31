@@ -10,8 +10,7 @@ class ReservationFilePolicy
 {
     public function upload(User $user, Reservation $reservation): bool
     {
-        return $user->canAccessAdminPanel()
-            || $reservation->user_id === $user->id
+        return $reservation->user_id === $user->id
             || $reservation->doctor?->user_id === $user->id;
     }
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, Card, CardBody, Col, Container, Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Form, Input, Label, Modal, ModalBody, Offcanvas, OffcanvasBody, Row, UncontrolledDropdown, FormFeedback } from 'reactstrap';
+import { Button, Card, CardBody, Col, Container, Dropdown, DropdownItem, DropdownToggle, Form, Input, Label, Modal, ModalBody, Offcanvas, OffcanvasBody, Row, UncontrolledDropdown, FormFeedback } from "reactstrap";
+import DropdownMenu from "../../../Components/Common/DirectionalDropdownMenu";
 import BreadCrumb from '../../../Components/Common/BreadCrumb';
 import DeleteModal from "../../../Components/Common/DeleteModal";
 import { ToastContainer } from 'react-toastify';

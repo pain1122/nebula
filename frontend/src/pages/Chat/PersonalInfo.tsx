@@ -1,15 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  Button,
-  Offcanvas,
-  OffcanvasBody,
-  Dropdown,
-  DropdownToggle,
-  DropdownMenu,
-  DropdownItem,
-  UncontrolledDropdown
-} from "reactstrap";
+import { Button, Offcanvas, OffcanvasBody, Dropdown, DropdownToggle, DropdownItem, UncontrolledDropdown } from "reactstrap";
+import DropdownMenu from "../../Components/Common/DirectionalDropdownMenu";
 import Img9 from "../../assets/images/small/img-9.jpg";
 import dummyImage from "../../assets/images/users/user-dummy-img.jpg";
 import { attachements } from "../../common/data/chat";

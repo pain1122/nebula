@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardBody, CardHeader, Col, DropdownItem, DropdownMenu, DropdownToggle, UncontrolledDropdown } from 'reactstrap';
+import { Card, CardBody, CardHeader, Col, DropdownItem, DropdownToggle, UncontrolledDropdown } from "reactstrap";
+import DropdownMenu from "../../Components/Common/DirectionalDropdownMenu";
 import { projectTasks } from '../../common/data';
 
 const MyTasks = () => {

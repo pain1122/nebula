@@ -1,18 +1,6 @@
 import React, { useState } from "react";
-import {
-  Card,
-  CardBody,
-  CardHeader,
-  Col,
-  Container,
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownToggle,
-  Input,
-  Label,
-  Row,
-} from "reactstrap";
+import { Card, CardBody, CardHeader, Col, Container, Dropdown, DropdownItem, DropdownToggle, Input, Label, Row } from "reactstrap";
+import DropdownMenu from "../../../Components/Common/DirectionalDropdownMenu";
 
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
 

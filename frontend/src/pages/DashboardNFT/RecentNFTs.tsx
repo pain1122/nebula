@@ -1,5 +1,6 @@
 import React from 'react';
-import { Card, CardBody, CardHeader, Col, DropdownItem, DropdownMenu, DropdownToggle, Row, UncontrolledDropdown } from 'reactstrap';
+import { Card, CardBody, CardHeader, Col, DropdownItem, DropdownToggle, Row, UncontrolledDropdown } from "reactstrap";
+import DropdownMenu from "../../Components/Common/DirectionalDropdownMenu";
 import { recentNFTsData } from "../../common/data/dashboardNFT";
 import { topCollectionData } from "../../common/data/dashboardNFT";
 import { popularCreatorsData } from "../../common/data/dashboardNFT";
@@ -12,7 +13,8 @@ import italyFlag from "../../assets/images/flags/italy.svg";
 import germanyFlag from "../../assets/images/flags/germany.svg";
 
 // Swiper
-import { Swiper, SwiperSlide } from "swiper/react";
+import { SwiperSlide } from "swiper/react";
+import Swiper from "../../Components/Common/DirectionalSwiper";
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";

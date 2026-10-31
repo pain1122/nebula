@@ -10,9 +10,7 @@ use App\Services\DoctorScheduleService;
 
 class ProfileController extends Controller
 {
-    public function __construct(private DoctorScheduleService $doctorScheduleService)
-    {
-    }
+    public function __construct(private DoctorScheduleService $doctorScheduleService) {}
 
     public function edit()
     {
@@ -20,7 +18,7 @@ class ProfileController extends Controller
         $profile = $user->doctorProfile ?: new DoctorProfile(['user_id' => $user->id]);
         $specialties = Specialty::with('children')->roots()->orderBy('name')->get();
 
-        return view('doctor.profile.edit', compact('profile','specialties'));
+        return view('doctor.profile.edit', compact('profile', 'specialties'));
     }
 
     public function update(UpdateProfileRequest $request)
@@ -30,11 +28,11 @@ class ProfileController extends Controller
 
         $profile = $user->doctorProfile ?: new DoctorProfile(['user_id' => $user->id]);
         $profile->fill([
-            'phone'            => $data['phone'] ?? null,
-            'specialty_id'     => $data['specialty_id'] ?? null,
+            'phone' => $data['phone'] ?? null,
+            'specialty_id' => $data['specialty_id'] ?? null,
             'experience_years' => $data['experience_years'] ?? 0,
-            'fee'              => $data['fee'] ?? 0,
-            'bio'              => $data['bio'] ?? null,
+            'fee' => $data['fee'] ?? 0,
+            'bio' => $data['bio'] ?? null,
         ])->save();
 
         if (! empty($data['specialty_id'])) {
@@ -52,7 +50,7 @@ class ProfileController extends Controller
                 ]);
             }
 
-            $this->doctorScheduleService->replaceFromLegacyInput($workplace, $data['availability'] ?? []);
+            $this->doctorScheduleService->replaceWeeklyRules($workplace, $data['availability'] ?? []);
         }
 
         return back()->with('status', 'پروفایل با موفقیت به‌روزرسانی شد.');

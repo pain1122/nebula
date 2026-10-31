@@ -14,11 +14,52 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Mockery\MockInterface;
 use RuntimeException;
+use Tests\Support\IsolatedProfileApplication;
 use Tests\TestCase;
 
 class ReservationOverrideServiceTest extends TestCase
 {
+    use IsolatedProfileApplication;
     use RefreshDatabase;
+
+    public function test_revoked_cached_root_authority_cannot_write_or_audit(): void
+    {
+        $root = User::factory()->rootAdmin()->create();
+        $root->load('roles');
+        User::query()->findOrFail($root->id)->syncRoles(['admin']);
+        $this->assertTrue($root->isRootAdmin());
+        $this->assertActorRejected($root);
+    }
+
+    public function test_suspended_and_closed_cached_root_actors_cannot_write_or_audit(): void
+    {
+        foreach (['suspended', 'closed'] as $state) {
+            $root = User::factory()->rootAdmin()->create();
+            $root->load('roles');
+            User::query()->whereKey($root->id)->update(['account_state' => $state]);
+            $this->assertTrue($root->permitsAuthentication());
+            $this->assertActorRejected($root);
+        }
+    }
+
+    private function assertActorRejected(User $actor): void
+    {
+        $reservation = Reservation::factory()->create(['status' => ReservationStatus::Pending]);
+        $before = $reservation->fresh()->getAttributes();
+        try {
+            app(ReservationOverrideService::class)->changeStatus(
+                Request::create('/api/admin/reservations/status', 'PUT'),
+                $actor,
+                $reservation,
+                ReservationStatus::Cancelled,
+                'Synthetic authority rejection.',
+            );
+            $this->fail('Changed actor authority must be rejected under lock.');
+        } catch (AuthorizationException) {
+            $this->assertSame($before, $reservation->fresh()->getAttributes());
+            $this->assertDatabaseCount('audit_events', 0);
+        }
+    }
 
     public function test_only_root_admin_can_apply_valid_reasoned_override_with_audit(): void
     {

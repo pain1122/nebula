@@ -1,0 +1,4 @@
+# Static UI rollback only. Keep backend privacy tightening and all business data.
+services:
+  admin:
+    image: checkupino-admin:questionnaire-editor-accepted-2026-10-13

@@ -10,7 +10,13 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "module": "ESNext",
-    "baseUrl": "./src",
+    "paths": {
+      "assets/*": ["./src/assets/*"],
+      "Components/*": ["./src/Components/*"],
+      "Layouts/*": ["./src/Layouts/*"],
+      "common/*": ["./src/common/*"],
+      "slices/*": ["./src/slices/*"]
+    },
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,

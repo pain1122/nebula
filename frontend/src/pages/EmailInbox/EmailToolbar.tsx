@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
 
-import { Col, DropdownItem, DropdownMenu, DropdownToggle, Nav, NavItem, NavLink, Row, UncontrolledDropdown, UncontrolledTooltip, UncontrolledCollapse, ButtonGroup, Button, UncontrolledButtonDropdown, Modal, ModalBody, ModalHeader, Input, Progress, Card, CardHeader, CardBody, Alert } from 'reactstrap';
+import { Col, DropdownItem, DropdownToggle, Nav, NavItem, NavLink, Row, UncontrolledDropdown, UncontrolledTooltip, UncontrolledCollapse, ButtonGroup, Button, UncontrolledButtonDropdown, Modal, ModalBody, ModalHeader, Input, Progress, Card, CardHeader, CardBody, Alert } from "reactstrap";
+import DropdownMenu from "../../Components/Common/DirectionalDropdownMenu";
 
 import classnames from "classnames";
 
-import { CKEditor } from "@ckeditor/ckeditor5-react";
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import ToolboxClassicEditor from '../../Components/Common/ToolboxClassicEditor';
 import FeatherIcon from 'feather-icons-react';
 import DeleteModal from '../../Components/Common/DeleteModal';
 //SimpleBar
@@ -1177,8 +1177,7 @@ const EmailToolbar = () => {
                             <Input type="text" className="form-control" placeholder="Subject" />
                         </div>
                         <div className="ck-editor-reverse">
-                            <CKEditor
-                                editor={ClassicEditor}
+                            <ToolboxClassicEditor
                                 onReady={(editor) => {
                                     // You can store the "editor" and use when it is needed.
 

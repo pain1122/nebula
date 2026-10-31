@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardBody, CardHeader, Col, Row } from 'reactstrap';
-import ReactApexChart from "react-apexcharts";
+import ReactApexChart from "Components/Common/LegacyApexChart";
 import getChartColorsArray from "../../../Components/Common/ChartsDynamicColor";
 
 const MarketGraph = ({dataColors}:any) => {

@@ -12,18 +12,19 @@ class DoctorWorkingWindow extends Model
 
     protected $fillable = [
         'doctor_workplace_id',
+        'checkup_id',
         'weekday',
         'starts_at',
         'ends_at',
-        'slot_duration_minutes',
-        'buffer_minutes',
+        'visit_duration_minutes',
+        'price_override',
+        'currency_override',
         'effective_from',
         'effective_until',
+        'is_active',
     ];
 
     protected $attributes = [
-        'slot_duration_minutes' => 30,
-        'buffer_minutes' => 0,
         'is_active' => true,
     ];
 
@@ -31,8 +32,8 @@ class DoctorWorkingWindow extends Model
     {
         return [
             'weekday' => 'integer',
-            'slot_duration_minutes' => 'integer',
-            'buffer_minutes' => 'integer',
+            'visit_duration_minutes' => 'integer',
+            'price_override' => 'integer',
             'effective_from' => 'date',
             'effective_until' => 'date',
             'is_active' => 'boolean',
@@ -42,5 +43,25 @@ class DoctorWorkingWindow extends Model
     public function uniqueIds(): array
     {
         return ['public_id'];
+    }
+
+    public function workplace()
+    {
+        return $this->belongsTo(DoctorWorkplace::class, 'doctor_workplace_id');
+    }
+
+    public function checkup()
+    {
+        return $this->belongsTo(Checkup::class);
+    }
+
+    public function breaks()
+    {
+        return $this->hasMany(DoctorWorkingWindowBreak::class);
+    }
+
+    public function visitSlots()
+    {
+        return $this->hasMany(DoctorVisitSlot::class);
     }
 }

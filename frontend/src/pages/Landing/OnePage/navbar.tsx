@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Collapse, Container, NavbarToggler, NavLink } from "reactstrap";
-import Scrollspy from "react-scrollspy";
+import Scrollspy from "../../../Components/Common/VelzonScrollspy";
 import { Link } from "react-router-dom";
 
 // Import Images

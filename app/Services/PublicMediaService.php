@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\PublicMediaAttachment;
 use App\Models\User;
+use App\Support\FileUploadPolicy;
 use DomainException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
@@ -30,7 +31,7 @@ class PublicMediaService
             'alt_text' => $altText,
             'sort_order' => $sortOrder,
         ], [
-            'file' => ['required', 'file', 'max:5120', 'mimetypes:image/jpeg,image/png,image/webp'],
+            'file' => app(UploadPolicySettings::class)->forSection('public_media')->fileRules(),
             'collection' => ['required', 'string', 'max:80', 'regex:/^[a-z0-9]+(?:[._-][a-z0-9]+)*$/'],
             'alt_text' => ['nullable', 'string', 'max:255'],
             'sort_order' => ['integer', 'min:0'],
@@ -41,12 +42,8 @@ class PublicMediaService
         }
 
         $mimeType = (string) $upload->getMimeType();
-        $extension = match ($mimeType) {
-            'image/jpeg' => 'jpg',
-            'image/png' => 'png',
-            'image/webp' => 'webp',
-            default => throw new DomainException('Unsupported public media MIME type.'),
-        };
+        $extension = FileUploadPolicy::extensionForMime($mimeType)
+            ?? throw new DomainException('Unsupported public media MIME type.');
         $publicId = (string) Str::ulid();
         $safeFilename = $publicId.'.'.$extension;
         $typeSegment = Str::slug(class_basename($attachable));

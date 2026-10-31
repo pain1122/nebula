@@ -1,5 +1,7 @@
 import React from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
+import { useTranslation } from "react-i18next";
+import { SwiperSlide } from "swiper/react";
+import Swiper from "./DirectionalSwiper";
 import { Card, CardBody } from "reactstrap";
 
 import companies1 from "../../assets/images/companies/img-1.png";
@@ -11,11 +13,13 @@ import "swiper/css";
 import "swiper/css/pagination";
 
 // import required modules
-// import { 
-//   // Autoplay, 
+// import {
+//   // Autoplay,
 //   Mousewheel } from "swiper";
 
 const ReviewSlider = () => {
+  const { t } = useTranslation();
+
   return (
     <Swiper
       direction={"vertical"}
@@ -28,8 +32,8 @@ const ReviewSlider = () => {
         disableOnInteraction: false,
       }}
       // modules={[
-        // Autoplay, 
-        // Mousewheel]}
+      // Autoplay,
+      // Mousewheel]}
       className="mySwiper vertical-swiper"
       style={{ height: "250px" }}
     >
@@ -45,7 +49,7 @@ const ReviewSlider = () => {
               <div className="flex-grow-1 ms-3">
                 <div>
                   <p className="text-muted mb-1 fst-italic text-truncate-two-lines">
-                    " Great product and looks great, lots of features. "
+                    {t("product.dashboard.review.first")}
                   </p>
                   <div className="fs-11 align-middle text-warning">
                     <i className="ri-star-fill"></i>
@@ -56,7 +60,8 @@ const ReviewSlider = () => {
                   </div>
                 </div>
                 <div className="text-end mb-0 text-muted">
-                  - by <cite title="Source Title">Force Medicines</cite>
+                  {t("product.dashboard.review.by")}{" "}
+                  <cite title={t("product.dashboard.review.sourceTitle")}>Force Medicines</cite>
                 </div>
               </div>
             </div>
@@ -73,8 +78,7 @@ const ReviewSlider = () => {
               <div className="flex-grow-1 ms-3">
                 <div>
                   <p className="text-muted mb-1 fst-italic text-truncate-two-lines">
-                    " Amazing template, very easy to understand and manipulate.
-                    "
+                    {t("product.dashboard.review.second")}
                   </p>
                   <div className="fs-11 align-middle text-warning">
                     <i className="ri-star-fill"></i>
@@ -85,7 +89,8 @@ const ReviewSlider = () => {
                   </div>
                 </div>
                 <div className="text-end mb-0 text-muted">
-                  - by <cite title="Source Title">Henry Baird</cite>
+                  {t("product.dashboard.review.by")}{" "}
+                  <cite title={t("product.dashboard.review.sourceTitle")}>Henry Baird</cite>
                 </div>
               </div>
             </div>
@@ -104,7 +109,7 @@ const ReviewSlider = () => {
               <div className="flex-grow-1 ms-3">
                 <div>
                   <p className="text-muted mb-1 fst-italic text-truncate-two-lines">
-                    "Very beautiful product and Very helpful customer service."
+                    {t("product.dashboard.review.third")}
                   </p>
                   <div className="fs-11 align-middle text-warning">
                     <i className="ri-star-fill"></i>
@@ -115,7 +120,8 @@ const ReviewSlider = () => {
                   </div>
                 </div>
                 <div className="text-end mb-0 text-muted">
-                  - by <cite title="Source Title">Zoetic Fashion</cite>
+                  {t("product.dashboard.review.by")}{" "}
+                  <cite title={t("product.dashboard.review.sourceTitle")}>Zoetic Fashion</cite>
                 </div>
               </div>
             </div>
@@ -132,7 +138,7 @@ const ReviewSlider = () => {
               <div className="flex-grow-1 ms-3">
                 <div>
                   <p className="text-muted mb-1 fst-italic text-truncate-two-lines">
-                    " The product is very beautiful. I like it. "
+                    {t("product.dashboard.review.fourth")}
                   </p>
                   <div className="fs-11 align-middle text-warning">
                     <i className="ri-star-fill"></i>
@@ -143,7 +149,8 @@ const ReviewSlider = () => {
                   </div>
                 </div>
                 <div className="text-end mb-0 text-muted">
-                  - by <cite title="Source Title">Nancy Martino</cite>
+                  {t("product.dashboard.review.by")}{" "}
+                  <cite title={t("product.dashboard.review.sourceTitle")}>Nancy Martino</cite>
                 </div>
               </div>
             </div>

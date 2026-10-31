@@ -1,6 +1,6 @@
 # API v1 Compatibility Contract
 
-Snapshot date: 2026-08-03
+Snapshot date: 2026-08-16
 
 The existing `/api/*` route space is API version 1. Existing paths remain in place while current first-party clients migrate to explicit public identifiers and resources. Every API response carries `X-API-Version: 1` and `X-Correlation-ID`; standard JSON envelopes include the same version and correlation identifier in `meta`.
 
@@ -10,4 +10,4 @@ Success envelopes contain `success`, `message`, `data`, and `meta`. Error envelo
 
 Pagination inputs are capped and sorting/filtering must be allowlisted. Resources and DTO/Form Request boundaries own external serialization; raw Eloquent models are not an acceptable new API contract. PII, medical answers, secret references, disk paths, and provider payloads are excluded unless an explicitly authorized private resource requires a reviewed subset.
 
-Phase 1C verification covers representative public, authenticated patient, doctor, admin, validation, pagination, authentication, public-ID, money, and PII-safe resource paths. It does not claim that every compatibility controller has removed every legacy numeric ID; those fields remain governed by the additive v1 migration rule above. Evidence: `docs/audits/phase-1c-verification-gate-2026-08-03.md`.
+Phase 1 verification covers representative public, authenticated patient, doctor, admin/root-admin, validation, pagination, authentication, public-ID, money, questionnaire, lifecycle, medical, and PII-safe resource paths across 68 current API routes. It does not claim that every compatibility controller has removed every legacy numeric ID; those fields remain governed by the additive v1 migration rule above. Evidence: `docs/audits/phase-1-verification-gate-2026-08-16.md`.

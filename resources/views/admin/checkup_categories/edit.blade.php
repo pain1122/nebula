@@ -6,6 +6,7 @@
         <form method="POST" action="{{ route('admin.checkup-categories.update', $item) }}"
             class="bg-white p-4 rounded shadow space-y-3">
             @csrf
+            @include('admin.catalog.guard', ['kind' => 'checkup-categories', 'catalogId' => $item->id, 'needsReason' => true])
             @method('PUT')
             <div>
                 <label class="block mb-1">نام</label>

@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { tasks } from "../../common/data";
-import { Card, CardBody, CardHeader, Col, DropdownItem, DropdownMenu, DropdownToggle, UncontrolledDropdown } from 'reactstrap';
+import { Card, CardBody, CardHeader, Col, DropdownItem, DropdownToggle, UncontrolledDropdown } from "reactstrap";
+import DropdownMenu from "../../Components/Common/DirectionalDropdownMenu";
 
 //SimpleBar
 import SimpleBar from "simplebar-react";

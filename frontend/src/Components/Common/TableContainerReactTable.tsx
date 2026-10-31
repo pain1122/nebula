@@ -3,17 +3,20 @@ import { CardBody, Col, Row, Table } from "reactstrap";
 import { Link } from "react-router-dom";
 
 import {
-  Column,
-  Table as ReactTable,
-  ColumnFiltersState,
-  FilterFn,
-  useReactTable,
+  flexRender,
+  type ColumnFiltersState,
+  type FilterFn,
+} from '@tanstack/react-table';
+import {
+  LegacyColumn as Column,
+  LegacyTable as ReactTable,
+  type LegacyFeatures,
+  useLegacyTable as useReactTable,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  flexRender
-} from '@tanstack/react-table';
+} from '@tanstack/react-table/legacy';
 
 import { rankItem } from '@tanstack/match-sorter-utils';
 
@@ -108,9 +111,9 @@ const TableContainer = ({
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
 
-  const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
+  const fuzzyFilter: FilterFn<LegacyFeatures, any> = (row, columnId, value, addMeta) => {
     const itemRank = rankItem(row.getValue(columnId), value);
-    addMeta({
+    addMeta?.({
       itemRank
     });
     return itemRank.passed;

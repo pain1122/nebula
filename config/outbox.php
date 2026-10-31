@@ -6,6 +6,8 @@ return [
     'processing_lease_seconds' => (int) env('OUTBOX_PROCESSING_LEASE_SECONDS', 300),
     'events' => [
         'reservation.created' => ['reservation_public_id', 'actor_public_id', 'occurred_at'],
+        'reservation.completed' => ['reservation_public_id', 'actor_public_id', 'occurred_at'],
+        'rating.requested' => ['reservation_public_id', 'patient_public_id', 'occurred_at'],
         'payment.attempt.requested' => [
             'reservation_public_id',
             'payment_attempt_public_id',

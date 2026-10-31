@@ -1,0 +1,39 @@
+# Disposable synthetic schedule contention only. No live network, port or volume.
+name: checkupino_schedule_acceptance
+services:
+  mysql-acceptance:
+    image: sha256:7dcddc01f13bab2f15cde676d44d01f61fc9f99fe7785e86196dfc07d358ae2b
+    pull_policy: never
+    user: "999:999"
+    read_only: true
+    init: true
+    restart: "no"
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 1g
+    memswap_limit: 1g
+    cpus: 1
+    pids_limit: 64
+    tmpfs:
+      - /var/lib/mysql:size=512m,mode=0700,uid=999,gid=999
+      - /var/run/mysqld:size=4m,mode=0755,uid=999,gid=999
+      - /tmp:size=32m,mode=1777
+    environment:
+      MYSQL_DATABASE: checkupino_schedule_acceptance
+      MYSQL_USER: schedule_acceptance
+      MYSQL_PASSWORD: ${CHECKUPINO_SCHEDULE_ACCEPTANCE_PASSWORD:?Use the guarded schedule acceptance startup script}
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+    command: [--innodb-buffer-pool-size=67108864, --innodb-redo-log-capacity=33554432, --skip-log-bin]
+    networks: [acceptance]
+    healthcheck:
+      test: [CMD-SHELL, 'MYSQL_PWD="$${MYSQL_PASSWORD}" mysql --protocol=tcp --host=127.0.0.1 --user=schedule_acceptance --database=checkupino_schedule_acceptance --batch --skip-column-names --execute="SELECT 1"']
+      start_period: 20s
+      interval: 5s
+      timeout: 5s
+      retries: 15
+    logging:
+      driver: json-file
+      options: {max-size: "2m", max-file: "1"}
+networks:
+  acceptance:
+    internal: true

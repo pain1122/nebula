@@ -1,0 +1,16 @@
+# Local synthetic demo only. Preserve the content-client overlay on recreation.
+# Main .env remains disabled; removing this overlay restores ordinary dispatch-off.
+services:
+  app:
+    image: sha256:18eb9257e28f6dc11d59abba7691fe37b1d334a2429ce2be3b5cfb7b1a09f746
+    pull_policy: never
+    environment:
+      MEDICAL_SCAN_ENABLED: "true"
+      MEDICAL_SCAN_SOCKET: /run/medical-scan/clamd.sock
+    volumes:
+      - medical_scan_socket:/run/medical-scan:ro
+
+volumes:
+  medical_scan_socket:
+    external: true
+    name: checkupino_scan_scan_socket

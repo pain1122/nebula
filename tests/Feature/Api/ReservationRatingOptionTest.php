@@ -5,7 +5,10 @@ namespace Tests\Feature\Api;
 use App\Enums\UserRole;
 use App\Models\ReservationRatingOption;
 use App\Models\User;
+use App\Services\AuditLogger;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Mockery\MockInterface;
+use RuntimeException;
 use Tests\TestCase;
 
 class ReservationRatingOptionTest extends TestCase
@@ -92,6 +95,64 @@ class ReservationRatingOptionTest extends TestCase
             ->assertOk();
 
         $this->assertSame([$active->id], array_column($response->json('data'), 'id'));
+    }
+
+    public function test_rating_option_mutations_roll_back_when_audit_fails(): void
+    {
+        $admin = $this->userWithRole(UserRole::Admin);
+        $existing = ReservationRatingOption::query()->create([
+            'type' => ReservationRatingOption::TYPE_PRO,
+            'label' => 'Existing option',
+            'slug' => 'existing-option',
+            'description' => null,
+            'active' => true,
+            'sort_order' => 1,
+        ]);
+
+        $this->mock(AuditLogger::class, function (MockInterface $mock): void {
+            $mock->shouldReceive('log')
+                ->times(3)
+                ->andThrow(new RuntimeException('audit failed'));
+        });
+
+        $this->statefulAdmin($admin)
+            ->postJson('/api/admin/reservation-rating-options', [
+                'type' => ReservationRatingOption::TYPE_CON,
+                'label' => 'Uncommitted option',
+                'slug' => 'uncommitted-option',
+                'description' => null,
+                'active' => true,
+                'sort_order' => 2,
+                'reason' => 'Test create rollback',
+            ])
+            ->assertStatus(500);
+
+        $this->statefulAdmin($admin)
+            ->putJson('/api/admin/reservation-rating-options/'.$existing->id, [
+                'type' => ReservationRatingOption::TYPE_CON,
+                'label' => 'Uncommitted update',
+                'slug' => 'uncommitted-update',
+                'description' => null,
+                'active' => false,
+                'sort_order' => 3,
+                'reason' => 'Test update rollback',
+            ])
+            ->assertStatus(500);
+
+        $this->statefulAdmin($admin)
+            ->deleteJson('/api/admin/reservation-rating-options/'.$existing->id, [
+                'reason' => 'Test archive rollback',
+            ])
+            ->assertStatus(500);
+
+        $this->assertDatabaseMissing('reservation_rating_options', ['slug' => 'uncommitted-option']);
+        $this->assertDatabaseHas('reservation_rating_options', [
+            'id' => $existing->id,
+            'slug' => 'existing-option',
+            'active' => true,
+            'deleted_at' => null,
+        ]);
+        $this->assertDatabaseCount('audit_events', 0);
     }
 
     private function userWithRole(UserRole $role): User

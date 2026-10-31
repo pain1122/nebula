@@ -1,17 +1,24 @@
 import React from 'react';
-import ReactApexChart from "react-apexcharts";
+import ReactApexChart from "Components/Common/LegacyApexChart";
 
 import getChartColorsArray from "../../Components/Common/ChartsDynamicColor";
 
-const SimpleDonutCharts = ({ dataColors }:any) => {
+const SimpleDonutCharts = ({ dataColors, values, labels, height = 330 }: {
+    dataColors: string;
+    values?: number[];
+    labels?: string[];
+    height?: number;
+    className?: string;
+    dir?: string;
+}) => {
     var chartDonutBasicColors = getChartColorsArray(dataColors);
-    const series = [27.01, 20.87, 33.54, 37.58]
+    const series = values ?? [27.01, 20.87, 33.54, 37.58]
     var options = {
         chart: {
-            height: 330,
+            height,
             type: 'donut',
         },
-        labels: ["Documents", "Media", "Others", "Free Space"],
+        labels: labels ?? ["Documents", "Media", "Others", "Free Space"],
         dataLabels: {
             dropShadow: {
                 enabled: false,
@@ -27,7 +34,7 @@ const SimpleDonutCharts = ({ dataColors }:any) => {
             series={series}
             options={options}
             type="donut"
-            height={330}
+            height={height}
             className="apex-charts mt-3"
         />
 

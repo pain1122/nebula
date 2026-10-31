@@ -2,8 +2,7 @@ import React from "react";
 import { Card, CardBody, Col, Row, CardHeader, Form, Container } from "reactstrap";
 import UiContent from "../../../Components/Common/UiContent";
 
-import { CKEditor } from "@ckeditor/ckeditor5-react";
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import ToolboxClassicEditor from "../../../Components/Common/ToolboxClassicEditor";
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
 
 import { useQuill } from "react-quilljs";
@@ -30,8 +29,7 @@ const FormEditor = () => {
                 </CardHeader>
                 <CardBody>
                   <Form method="post">
-                    <CKEditor
-                      editor={ClassicEditor}
+                    <ToolboxClassicEditor
                       data="<p>Hello from CKEditor 5!</p>"
                       onReady={(editor) => {
                         // You can store the "editor" and use when it is needed.

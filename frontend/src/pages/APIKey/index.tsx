@@ -1,22 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  Button,
-  Card,
-  CardBody,
-  CardHeader,
-  Col,
-  Container,
-  DropdownItem,
-  DropdownMenu,
-  DropdownToggle,
-  Input,
-  Label,
-  Modal,
-  ModalBody,
-  ModalHeader,
-  Row,
-  UncontrolledDropdown,
-} from "reactstrap";
+import { Button, Card, CardBody, CardHeader, Col, Container, DropdownItem, DropdownToggle, Input, Label, Modal, ModalBody, ModalHeader, Row, UncontrolledDropdown } from "reactstrap";
+import DropdownMenu from "../../Components/Common/DirectionalDropdownMenu";
 import DeleteModal from "../../Components/Common/DeleteModal";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
 import Widgets from "./Widgets";

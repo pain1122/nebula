@@ -1,20 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 
-import {
-  Container,
-  UncontrolledDropdown,
-  DropdownToggle,
-  DropdownItem,
-  DropdownMenu,
-  Nav,
-  NavItem,
-  NavLink,
-  UncontrolledCollapse,
-  Row,
-  Card,
-  CardHeader,
-  Col,
-} from "reactstrap";
+import { Container, UncontrolledDropdown, DropdownToggle, DropdownItem, Nav, NavItem, NavLink, UncontrolledCollapse, Row, Card, CardHeader, Col } from "reactstrap";
+import DropdownMenu from "../../../Components/Common/DirectionalDropdownMenu";
 import classnames from "classnames";
 
 // RangeSlider

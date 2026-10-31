@@ -1,0 +1,76 @@
+# Configurable Upload Policy
+
+October 7, 2026, Asia/Tehran. The user requests both deployment configuration and panel controls, with section/type defaults and attachment-field limits. Large videos, ZIP/package downloads and future SEO assets are requirements for the upload foundation; building public SEO pages remains outside the demo scope.
+
+October 8 settings/panel/live save-reset and attachment source/migration/rollback remain accepted. Ordinary cookie/CSRF doctor-create and exact 1 MiB patient-upload APIs now pass seven grouped checks; wrong MIME/bytes/role/reservation/forged clean reject. Retain one PDF-only request/quarantined file, audits 7/8, zero reports/jobs; protected/settings/booking/payment/outbox/earlier audits preserved. Backend recovered by user; nine services run, scanner/check stopped. No parser/engine/worker/UI/large capacity acceptance. [API acceptance and current verification](attachment-api-acceptance-2026-10-08.md).
+
+## Approved Upload And Scan Flow
+
+The user approves this baseline on October 7 after considering the latency/cost of inspection during transfer. Per-chunk antivirus scanning is outside the baseline. This decision adds implementation and acceptance work to the current medical/upload flow; it does not establish a delivered multipart upload or enable live scanning/storage.
+
+1. **Preflight:** authorize the owner and server-owned attachment purpose/field; resolve deployment and admin/form limits. Reject unauthorized or invalid declared size/type requests before granting upload permission. Client declarations do not replace actual-byte/type validation.
+2. **Transfer:** use resumable S3 multipart uploads for large files, retaining SeaweedFS/AWS compatibility. Bind the session, object key and restricted part permissions to owner/purpose; keep inexpensive byte/count/expiry bounds and account quotas. Verify resume/retry, cancellation, abort and abandoned-part cleanup, including transfers still in flight. Small uploads may retain the existing ordinary upload path.
+3. **Quarantine:** complete the object into private staging, verify whole-file size/checksum and bind later checks to the same immutable bytes. Upload completion must not grant file access or publication authority. No public URLs or medical eligibility based only on part-upload success.
+4. **Background checks:** run complete-file type/content validation and scanning asynchronously, with fresh definitions and existing provenance/integrity safeguards. Medical scans use the dedicated medical queue; future public-asset jobs require their own purpose-bound authority. Failed, unavailable, stale or exceeded-limit checks keep the file blocked. No general worker consumption, manual clean state or automatic live activation. Large-file scanner/spool/capacity acceptance remains required before enabling larger limits.
+5. **Presentation and release:** show separate upload progress and pending/checking results in the retained bilingual Velzon File Manager. The user can continue elsewhere while checks run. Medical review/download and public asset publication each require their appropriate completed checks and ownership authority; public-page construction remains deferred. Preserve original design/composition and role-specific panel access.
+
+Measure transfer time, interrupted-transfer recovery, queue wait and complete-file validation/scan duration separately using synthetic files. Background checks remove scanning from the upload's critical path, but do not eliminate the wait before file eligibility. No measured timing or latency guarantee is established. Keep deployed medical transport at 10 MiB files/12 MiB bodies until the user-run capacity activation and its separate checks pass.
+
+## Control Contract
+
+Subsequent October 8 isolation is deployed/accepted: Nine authorized main-env admission defaults preserve unrelated bytes. Source gate passes 222/1,121; pinned c4809fae image boundary/native checks, user-run parser/app socket attachment, actual controls and ordinary remote-validation/tamper checks pass. HTTP/MySQL/Redis/admission/protected/history rechecks pass. Ten services run; original app/check/worker/admin pins, scanning false/private local, one quarantined file and zero jobs/reports are preserved. No clinical write, migration, scanner retry or worker. Scanner-network metadata reports IR/FRA, public IP withheld; unchanged route/type unknown and exact CDN denial rule unestablished. Next supported upstream/network access resolution and actual engine/worker, then targeted reconciliation/capacity/metadata/multipart/UI work. Report: `docs/deployment/medical-content-isolation-2026-10-08.md`.
+
+Latest October 8 bounded medical admission adds configurable account/request count+byte quotas, user/IP throttling, owner-aware shared slots and transactional compensation. Isolated parser/regression acceptance passes 206/1,079; live synthetic shared-lock and readonly history checks pass. Parallel MySQL upload/load, scan/read capacity, durable recovery and parser runtime activation/isolation remain open. Operator quotas do not raise existing file/body/type ceilings. [Admission controls and evidence](medical-upload-admission-2026-10-08.md).
+
+October 8 content-validation source and isolated real-parser/regression acceptance are delivered: versioned PDF/JPEG/PNG rules and mandatory content checks before new clean transitions, using pinned qpdf 12.4.2/GD with bounded subprocesses and privacy-safe audit facts. The live app/worker images remain unchanged; processing activation, production isolation, previews, quotas, multipart and File Manager remain open. [Current validation scope/evidence](medical-content-validation-2026-10-08.md) supersedes content-pending statements in earlier checkpoints.
+
+| Control | Owner and purpose | Status |
+| --- | --- | --- |
+| Deployment capacity | Operator config: transport, storage, spool, scanner, deadlines and concurrency | Existing demo transport accepted at 10 MiB per file / 12 MiB request; configurable application ceiling implemented |
+| Section/type defaults | Root-admin audited settings, bounded by deployed capacity and registered section/type authority | Config foundation and root-admin setting backend source verified; live settings writes and panel controls not accepted |
+| Attachment field | Authorized server-owned form definition: allowed types and a smaller per-file size | Central narrowing rules implemented/tested; form schema, persistence and UI pending |
+
+Examples for future registered sections: a video attachment field at 50 MiB, a document field at 1 MiB, site videos at 256 MiB and downloadable ZIP packages at 512 MiB. These are examples, not activated defaults. Use explicit units in the panel and canonical whole-file byte counts in storage/API. A section/type limit can exceed the section's fallback size, but cannot exceed operator capacity. A field may narrow types and size; it cannot broaden the section's authority. Different purposes remain separate even if they allow the same MIME type.
+
+Reject a limit above capacity instead of silently clamping or saving an unusable setting. Operator capacity is a configured ceiling; its value alone is not evidence that the deployed pipeline can handle that size. PHP/Nginx body limits include multipart overhead and must remain separate from per-file policy. Future multipart uploads must validate the complete object, not just individual parts.
+
+## Delivered Source Slice
+
+`config/uploads.php` registers the current `medical` and `public_media` policies, format-to-extension mapping, operator file capacity and scanner stream capacity. `FileUploadPolicy` validates positive integer bytes without lossy casts, rejects unknown sections/types, resolves per-type limits, applies server-owned field narrowing and produces client-safe descriptors. Actual-byte validation is shared by the medical request and private/public upload services. Filename extensions derive from detected content types.
+
+`.env.example` documents these defaults; the live `.env` was not edited:
+
+```dotenv
+UPLOAD_CAPACITY_MAX_BYTES=10485760
+MEDICAL_UPLOAD_MAX_BYTES=10485760
+PUBLIC_MEDIA_UPLOAD_MAX_BYTES=5242880
+MEDICAL_SCAN_MAX_BYTES=10485760
+```
+
+Per-type overrides are configured in a registered section's `type_limits`, keyed by detected MIME type. The section fallback is `max_bytes`. The format catalog includes MP4/WebM/ZIP for policy planning, but does not allow them in the current medical/public sections. Medical remains PDF/JPEG/PNG at 10 MiB; public media remains JPEG/PNG/WebP at 5 MiB. No new upload endpoint or publication flow was added.
+
+`VerifiedPrivateFile` uses the operator safety ceiling for its bounded snapshot, not the current new-upload section limit. Lowering a business limit must not revoke historical clean files implicitly. Canonical path/disk/filename, exact size, SHA-256, ownership, retention, quarantine, provenance and private headers remain enforced. Changing operator capacity or removing a registered format can still affect historical reads and requires separate review. The scanner stream guard uses its configured ceiling; the deployed daemon remains capped at 10 MiB and real-engine acceptance is blocked by definition access.
+
+## Next Verified Slices
+
+1. Root-admin settings/panel source, user-run deployment, browser role/bilingual/negative checks and successful ordinary live save/reset/audit are accepted. Limits are restored to 10/5 MiB, retained audits 5/6/medical empty override/settings 4/4; protected/other fingerprints unchanged. Capacity/scanner security/type authority remain operator/service authority. See `upload-admin-controls-2026-10-08.md`.
+2. Attachment source, approved live migration/rollback and ordinary synthetic doctor-create/patient-upload API acceptance are complete. Issued PDF-only 1 MiB policy, MIME/byte/ownership/integrity/audit and quarantine checks pass; keep one request/file/audits 7/8 and zero jobs/reports. Current reread commands and historical-zero-mode boundaries: `attachment-api-acceptance-2026-10-08.md`. Subsequent content/admission source gates pass; parser runtime isolation/activation, upload/load and scan/read capacity plus targeted recovery remain before form wiring.
+3. Add bounded resumable multipart storage for large files while preserving SeaweedFS/AWS compatibility. Bind upload sessions and object keys to owner/purpose, cap total bytes/count and expiry, verify completion checksum, compensate abandoned parts, and keep private files quarantined until content/scan acceptance. AWS recommends multipart at roughly 100 MB and above; it supports part retries and completion/abort. [AWS multipart documentation](https://docs.aws.amazon.com/AmazonS3/latest/userguide/mpuoverview.html).
+4. Verify actual video/document/archive handling before enabling types. ZIP compressed size differs from extraction bytes, file count, nesting and encrypted content; these need separate limits. Public assets need a controlled publication flow rather than reuse of medical private storage or immediate publication of unvalidated new types. Accept transport/storage/spool/scanner capacity and quotas/throttling/concurrency with synthetic files before increasing deployed ceilings. No daemon/freshness bypass or manual clean state.
+
+## Upload-Time Rejection Feasibility
+
+The user asks whether multipart uploads and scanning can stop a bad upload before the whole file arrives. With the selected ClamAV 1.5.4 daemon, `INSTREAM` is a transfer protocol, not an incremental antivirus verdict: the daemon writes incoming chunks to a temporary file and dispatches the scan when the zero-length end marker arrives. The application adapter likewise sends the full verified snapshot before reading the verdict. [Version-pinned receive/dispatch source](https://raw.githubusercontent.com/Cisco-Talos/clamav/clamav-1.5.4/clamd/server-th.c), [protocol documentation](https://docs.clamav.net/manual/Usage/ClamdProtocol.html).
+
+Early rejection can check ownership/purpose/declared size before authorization and actual bytes/header compatibility as they become available. Client declarations remain untrusted; final type/content/size/integrity checks are mandatory. Optional inspection of parts/prefixes must never establish a clean full-file verdict: signatures may span parts, malicious content may arrive last, and archives/documents require complete structure for meaningful inspection. With direct-to-S3 uploads, server inspection requires an explicit staging/inspection path; Laravel does not automatically see the browser's part bytes. A gateway can inspect received bytes but brings bandwidth/spool/capacity costs.
+
+Recommended baseline remains bounded multipart staging in private quarantine, limited outstanding part permissions, abort on known rejection, cleanup verified against the selected provider, and full-object validation/scan before any authorized publication/download. This prevents unsafe release; it does not guarantee malware is detected before all bytes arrive or that no temporary bytes are stored. AWS notes in-flight parts may still finish after abort, so cleanup must account for that race. [AWS abort semantics](https://docs.aws.amazon.com/AmazonS3/latest/API/API_AbortMultipartUpload.html). No upload-time scanner, multipart flow or new release policy is implemented by this feasibility check.
+
+## Verification And Runtime
+
+- Focused policy, medical API, private service/integrity, public service and scanner-protocol tests pass **57 tests / 221 assertions**, 22.018 seconds, 56.50 MiB peak PHPUnit memory. Tests run as www-data with testing/SQLite `:memory:`, isolated temporary Laravel storage, array cache/session, synchronous test queue and scanning disabled. No live DB changes or general worker.
+- Coverage includes exact byte/one-byte-over limits, no storage/audit side effects on policy rejection, invalid size/field authority, large video/ZIP policy resolution without activation, unchanged medical types, and historical verified download after lowering the new-upload limit. These tests do not establish large-file transport, real content validation or actual ClamAV acceptance.
+- Pint passes ten touched PHP files. Diff whitespace passes. Read-only live Laravel checks confirm medical/public/scanner/operator limits at 10/5/10/10 MiB, scanning false/private local, MySQL/Redis access and zero file/request/report/database-job rows. Backend `/up` and static admin `/panel/` return 200.
+- Runtime still has only required Checkupino containers. Scanner remains exited 17; checker idle. Preserve cooldown through October 8 at 20:37:34 Tehran (17:07:34 UTC). No Compose/build/install, worker, live upload, credential change or other-project action occurred in this slice. Static panel controls and deployed transport configuration are unchanged.
+
+The earlier [transport acceptance](demo-upload-limits-2026-10-07.md), both controls/deployed panel/live setting audits, attachment source/live migration/rollback and ordinary synthetic attachment APIs remain accepted. Limits remain 10/5 MiB; the one issued PDF request is 1 MiB and its file stays quarantined. Content parsing, UI, large-file/multipart/capacity/scanner/worker and full medical flow remain open.

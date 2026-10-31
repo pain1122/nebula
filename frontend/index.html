@@ -1,15 +1,48 @@
 <!doctype html>
-<html lang="en">
+<html lang="fa" dir="rtl">
   <head>
     <meta charset="utf-8" />
+    <script>
+      (() => {
+        const root = document.documentElement;
+        let locale = "fa";
+        let colorPreference = "system";
+
+        try {
+          const storedLocale =
+            localStorage.getItem("checkupino.locale.v1") ||
+            localStorage.getItem("I18N_LANGUAGE");
+          if (storedLocale === "en") locale = "en";
+
+          const storedLayout = JSON.parse(localStorage.getItem("nebula.layout.settings") || "{}");
+          if (storedLayout.layoutModeType === "light" || storedLayout.layoutModeType === "dark") {
+            colorPreference = storedLayout.layoutModeType;
+          }
+        } catch {
+          // Storage failures keep the safe Persian/System defaults.
+        }
+
+        const colorMode =
+          colorPreference === "system"
+            ? matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light"
+            : colorPreference;
+        root.lang = locale;
+        root.dir = locale === "fa" ? "rtl" : "ltr";
+        root.dataset.language = locale;
+        root.dataset.bsTheme = colorMode;
+        root.style.colorScheme = colorMode;
+      })();
+    </script>
     <link rel="icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <meta name="description" content="Checkupino admin panel" />
-    <title>Checkupino Admin</title>
+    <title>چکاپینو | پنل مدیریت</title>
   </head>
   <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <noscript>برای استفاده از این برنامه باید جاوااسکریپت را فعال کنید.</noscript>
     <div id="root"></div>
     <script type="module" src="/src/index.tsx"></script>
   </body>

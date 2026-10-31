@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardBody, CardHeader, Col, Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Input, Nav, NavItem, NavLink, Offcanvas, OffcanvasBody, Pagination, PaginationItem, PaginationLink, Row, TabContent, TabPane } from 'reactstrap';
+import { Card, CardBody, CardHeader, Col, Dropdown, DropdownItem, DropdownToggle, Input, Nav, NavItem, NavLink, Offcanvas, OffcanvasBody, Pagination, PaginationItem, PaginationLink, Row, TabContent, TabPane } from "reactstrap";
+import DropdownMenu from "../../../Components/Common/DirectionalDropdownMenu";
 import BreadCrumb from '../../../Components/Common/BreadCrumb';
 import classnames from "classnames";
 
@@ -11,7 +12,8 @@ import smallImage4 from '../../../assets/images/small/img-4.jpg';
 import smallImage5 from '../../../assets/images/small/img-5.jpg';
 import { SearchGallery, news, video, swiper  } from '../../../common/data';
 
-import { Swiper, SwiperSlide } from "swiper/react";
+import { SwiperSlide } from "swiper/react";
+import Swiper from "../../../Components/Common/DirectionalSwiper";
 import { Autoplay } from "swiper/modules";
 
 const SearchResults = () => {

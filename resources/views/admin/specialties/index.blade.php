@@ -23,6 +23,7 @@
               <form action="{{ route('admin.specialties.destroy',$it) }}" method="POST" class="inline"
                     onsubmit="return confirm('حذف شود؟')">
                 @csrf @method('DELETE')
+                @include('admin.catalog.guard', ['kind' => 'specialties', 'catalogId' => $it->id])
                 <button class="text-red-600 ml-2">حذف</button>
               </form>
             </td>

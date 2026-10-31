@@ -1,10 +1,12 @@
 import React from 'react';
-import { Swiper, SwiperSlide } from "swiper/react";
+import { SwiperSlide } from "swiper/react";
+import Swiper from "../../../Components/Common/DirectionalSwiper";
 import "swiper/css";
 import "swiper/css/pagination";
 import { Autoplay, Mousewheel } from "swiper/modules";
 import { watchlist } from "../../../common/data";
-import { Card, CardBody, Col, DropdownItem, DropdownMenu, DropdownToggle, Row, UncontrolledDropdown } from 'reactstrap';
+import { Card, CardBody, Col, DropdownItem, DropdownToggle, Row, UncontrolledDropdown } from "reactstrap";
+import DropdownMenu from "../../../Components/Common/DirectionalDropdownMenu";
 import WatchListChart from './watchListChart';
 const Watchlist = () => {
     return (

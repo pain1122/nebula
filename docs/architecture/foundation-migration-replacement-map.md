@@ -2,7 +2,7 @@
 
 Snapshot date: 2026-07-12
 
-Status: Current Task item 5 planning artifact. No migration or runtime file has been changed by this map.
+Status: historical approved planning artifact. Its mapped replacement was implemented during Phase 1; do not read the future-tense steps below as current gaps. Current evidence is `docs/audits/phase-1-verification-gate-2026-08-16.md`.
 
 Inputs:
 
@@ -47,7 +47,7 @@ The exact timestamps are implementation details; the following stable group orde
 | M01 | Framework operations | `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` |
 | M02 | Spatie authorization | `permissions`, `roles`, `model_has_permissions`, `model_has_roles`, `role_has_permissions` |
 | M10 | Marketplace hospital directory | `marketplace_hospitals`, `hospital_listing_requests` |
-| M20 | Specialty, doctor, workplace, and service eligibility | `specialties`, `doctor_profiles`, `doctor_specialty`, `doctor_workplaces`, `doctor_workplace_checkup`, `doctor_working_windows` |
+| M20 | Specialty, doctor, workplace, service eligibility, and scheduling | `specialties`, `doctor_profiles`, `doctor_specialty`, `doctor_workplaces`, `doctor_workplace_checkup`, `doctor_working_windows`, `doctor_working_window_breaks`, `doctor_visit_slots` |
 | M30 | Checkup catalog | `checkup_categories`, `checkups` |
 | M40 | Reservation lifecycle | `reservations`, `reservation_schedule_changes`, `reservation_rating_options` |
 | M50 | Payment lifecycle | `reservation_payment_summaries`, `payment_attempts`, `payment_provider_events`, `payment_adjustments` |
@@ -140,7 +140,9 @@ Every existing migration is accounted for below.
 | `doctor_specialty` | Multiple doctor skills/specialties instead of one profile specialty |
 | `doctor_workplaces` | Correct parent for per-hospital marketplace services/schedules/reservations |
 | `doctor_workplace_checkup` | Service eligibility at a specific workplace |
-| `doctor_working_windows` | Queryable per-workplace schedules/reservation windows; replaces availability JSON |
+| `doctor_working_windows` | Queryable recurring workplace-service rules; replaces availability JSON |
+| `doctor_working_window_breaks` | Multiple contained break intervals for one recurring rule |
+| `doctor_visit_slots` | Persistent dated, public-ID occurrences selected by booking/rescheduling |
 | `reservation_schedule_changes` | Preserves reschedule actor/reason/before/after history |
 | `reservation_payment_summaries` | One canonical reservation payment state/result |
 | `payment_attempts` | Retriable provider attempts within the one-hour hold |

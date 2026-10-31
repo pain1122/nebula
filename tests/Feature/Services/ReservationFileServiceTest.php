@@ -6,6 +6,7 @@ use App\Enums\ReservationFileScanStatus;
 use App\Models\AuditEvent;
 use App\Models\Reservation;
 use App\Models\ReservationFile;
+use App\Models\ReservationMedicalRequest;
 use App\Models\User;
 use App\Services\AuditLogger;
 use App\Services\ReservationFileService;
@@ -33,7 +34,7 @@ class ReservationFileServiceTest extends TestCase
     public function test_private_upload_is_quarantined_guarded_checksummed_and_audited(): void
     {
         [$owner, $reservation] = $this->reservation();
-        $upload = UploadedFile::fake()->create('medical-report.pdf', 12, 'application/pdf');
+        $upload = UploadedFile::fake()->createWithContent('medical-report.pdf', "%PDF-1.4\n% synthetic fixture\n%%EOF\n");
         $file = app(ReservationFileService::class)->upload(
             Request::create('/api/reservations/'.$reservation->public_id.'/files', 'POST'),
             $owner,
@@ -73,6 +74,7 @@ class ReservationFileServiceTest extends TestCase
             Request::create('/internal/files/scan', 'POST'),
             $file,
             ReservationFileScanStatus::Clean,
+            $file->checksum_sha256,
         );
         $response = $service->download(Request::create('/file', 'GET'), $owner, $file);
 
@@ -87,10 +89,12 @@ class ReservationFileServiceTest extends TestCase
     {
         [$owner, $reservation] = $this->reservation();
         $service = app(ReservationFileService::class);
+        $infected = $this->upload($owner, $reservation);
         $infected = $service->recordScan(
             Request::create('/scan', 'POST'),
-            $this->upload($owner, $reservation),
+            $infected,
             ReservationFileScanStatus::Infected,
+            $infected->checksum_sha256,
         );
 
         try {
@@ -127,10 +131,12 @@ class ReservationFileServiceTest extends TestCase
             $this->assertTrue(true);
         }
 
+        $clean = $this->upload($owner, $reservation);
         $clean = $service->recordScan(
             Request::create('/scan', 'POST'),
-            $this->upload($owner, $reservation),
+            $clean,
             ReservationFileScanStatus::Clean,
+            $clean->checksum_sha256,
         );
         $service->archive(Request::create('/file', 'DELETE'), $owner, $clean, 'Replaced document');
 
@@ -170,6 +176,26 @@ class ReservationFileServiceTest extends TestCase
         $this->assertSame([], Storage::disk('private')->allFiles());
     }
 
+    public function test_configured_type_limit_is_enforced_before_private_storage_or_audit(): void
+    {
+        [$owner, $reservation] = $this->reservation();
+        config(['uploads.sections.medical.type_limits.application/pdf' => 32]);
+        $service = app(ReservationFileService::class);
+        try {
+            $service->upload(Request::create('/files', 'POST'), $owner, $reservation,
+                UploadedFile::fake()->createWithContent('synthetic.pdf', str_pad("%PDF-1.4\n", 33, ' ')));
+            $this->fail('The configured type limit must reject one byte over.');
+        } catch (ValidationException) {
+            $this->assertDatabaseCount('reservation_files', 0);
+            $this->assertDatabaseCount('audit_events', 0);
+            $this->assertSame([], Storage::disk('private')->allFiles());
+        }
+        $file = $service->upload(Request::create('/files', 'POST'), $owner, $reservation,
+            UploadedFile::fake()->createWithContent('synthetic.pdf', str_pad("%PDF-1.4\n", 32, ' ')));
+        $this->assertSame(32, $file->size_bytes);
+        $this->assertSame(ReservationFileScanStatus::Quarantined, $file->scan_status);
+    }
+
     public function test_replacement_archives_old_file_and_quarantines_new_file_atomically(): void
     {
         [$owner, $reservation] = $this->reservation();
@@ -194,6 +220,38 @@ class ReservationFileServiceTest extends TestCase
         );
     }
 
+    public function test_medical_request_replacement_preserves_server_owned_request_link(): void
+    {
+        [$owner, $reservation] = $this->reservation();
+        $medicalRequest = ReservationMedicalRequest::factory()->withAttachmentPolicy()->create([
+            'reservation_id' => $reservation->id,
+        ]);
+        $oldFile = app(ReservationFileService::class)->uploadForMedicalRequest(
+            Request::create('/files', 'POST'),
+            $owner,
+            $medicalRequest,
+            UploadedFile::fake()->create('old-result.pdf', 12, 'application/pdf'),
+        );
+
+        $replacement = app(ReservationFileService::class)->replace(
+            Request::create('/files/'.$oldFile->public_id.'/replacement', 'POST'),
+            $owner,
+            $oldFile,
+            UploadedFile::fake()->create('replacement-result.pdf', 8, 'application/pdf'),
+            'Incorrect result replaced',
+        );
+
+        $this->assertSame($reservation->id, $replacement->reservation_id);
+        $this->assertSame($medicalRequest->id, $replacement->medical_request_id);
+        $this->assertSame($medicalRequest->retention_until->toISOString(), $replacement->retention_until->toISOString());
+        $this->assertSoftDeleted('reservation_files', ['id' => $oldFile->id]);
+        $this->assertSame([
+            'reservation_medical_file.uploaded',
+            'reservation_medical_file.uploaded',
+            'reservation_medical_file.archived',
+        ], AuditEvent::query()->orderBy('id')->pluck('action')->all());
+    }
+
     /**
      * @return array{0: User, 1: Reservation}
      */
@@ -211,7 +269,7 @@ class ReservationFileServiceTest extends TestCase
             Request::create('/files', 'POST'),
             $owner,
             $reservation,
-            UploadedFile::fake()->create('medical-report.pdf', 12, 'application/pdf'),
+            UploadedFile::fake()->createWithContent('medical-report.pdf', \Tests\Fixtures\SyntheticMedicalFiles::pdf()),
             retentionUntil: now()->addYear(),
         );
     }

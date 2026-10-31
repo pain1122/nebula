@@ -1,0 +1,88 @@
+# Synthetic evaluation only. Run separately from the existing backend/admin stacks.
+name: checkupino_media
+
+x-seaweed: &seaweed
+  image: chrislusf/seaweedfs:4.48@sha256:aba492e2a4e4c90bff795745e8e660affa1f09e7650f5981bd7bccd1a06cd931
+  platform: linux/amd64
+  restart: unless-stopped
+  read_only: true
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  # Official entrypoint initializes only its new /data volume, then drops to seaweed.
+  cap_add:
+    - CHOWN
+    - DAC_OVERRIDE
+    - SETUID
+    - SETGID
+  tmpfs:
+    - /tmp:size=64m,mode=1777
+  logging:
+    driver: json-file
+    options:
+      max-size: "5m"
+      max-file: "2"
+
+services:
+  media-master:
+    <<: *seaweed
+    command: [master, -ip=media-master, -ip.bind=0.0.0.0, -telemetry=false, -volumeSizeLimitMB=128]
+    volumes:
+      - media_master:/data
+    networks: [medical_core]
+    mem_limit: 256m
+    cpus: 0.5
+
+  media-volume:
+    <<: *seaweed
+    command: [volume, -ip=media-volume, -ip.bind=0.0.0.0, -master=media-master:9333, -max=4, -fileSizeLimitMB=16]
+    volumes:
+      - media_volume:/data
+    networks: [medical_core]
+    depends_on: [media-master]
+    mem_limit: 512m
+    cpus: 1.0
+
+  media-filer:
+    <<: *seaweed
+    command: [filer, -ip=media-filer, -ip.bind=0.0.0.0, -master=media-master:9333, -defaultStoreDir=/data, -disableDirListing=true, -exposeDirectoryData=false]
+    volumes:
+      - media_filer:/data
+    networks: [medical_core]
+    depends_on: [media-volume]
+    mem_limit: 512m
+    cpus: 1.0
+
+  media-s3:
+    <<: *seaweed
+    command: [s3, -filer=media-filer:8888, -ip.bind=0.0.0.0, -port=8333, -config=/etc/seaweedfs/medical-s3.json, -iam=false, -port.iceberg=0, -port.lance=0, -autoCreateBucket=false, -allowDeleteBucketNotEmpty=false, -concurrentFileUploadLimit=2, -concurrentUploadLimitMB=20, -readerCacheSizeMB=64]
+    volumes:
+      - type: bind
+        source: ./.local/media-evaluation/s3.json
+        target: /etc/seaweedfs/medical-s3.json
+        read_only: true
+        bind:
+          create_host_path: false
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+      - /data:size=1m,mode=0755
+    networks:
+      medical_core:
+      backend:
+        aliases: [checkupino-media-s3]
+    depends_on: [media-filer]
+    mem_limit: 256m
+    cpus: 1.0
+
+networks:
+  medical_core:
+    internal: true
+  backend:
+    external: true
+    name: checkupino_checkupino_net
+
+volumes:
+  media_master:
+  media_volume:
+  media_filer:

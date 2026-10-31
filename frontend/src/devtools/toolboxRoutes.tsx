@@ -3,16 +3,24 @@ import { Navigate } from "react-router-dom";
 import { pageRoute } from "../Routes/routeHelpers";
 import type { AppRoute, LazyPageLoader } from "../Routes/routeTypes";
 import { rootAdminOnly } from "../Routes/routeTypes";
-
-const devToolboxPath = (path: string) => `/panel/dev${path === "/" ? "" : path}`;
+import {
+  DEV_TOOLBOX_BASE_PATH,
+  DEV_TOOLBOX_DEFAULT_PATH,
+  toDevToolboxPath,
+} from "./toolboxContract";
 
 const asDevToolboxRoute = (route: AppRoute): AppRoute => ({
   ...route,
-  path: devToolboxPath(route.path),
+  path: toDevToolboxPath(route.path),
   allowedRoles: rootAdminOnly,
 });
 
-const toolboxRoute = (path: string, load: LazyPageLoader): AppRoute => pageRoute(path, load);
+const toolboxRoute = (path: string, load: LazyPageLoader): AppRoute =>
+  pageRoute(path, async () => {
+    const { installDevtoolReducers } = await import("./installReducers");
+    installDevtoolReducers();
+    return load();
+  });
 
 const rootAdminToolboxSourceRoutes: AppRoute[] = [
   toolboxRoute("/dashboard-analytics", () => import("../pages/DashboardAnalytics")),
@@ -29,21 +37,36 @@ const rootAdminToolboxSourceRoutes: AppRoute[] = [
   toolboxRoute("/apps-calendar", () => import("../pages/Calendar")),
   toolboxRoute("/apps-calendar-month-grid", () => import("../pages/Calendar/monthGrid")),
   toolboxRoute("/apps-ecommerce-products", () => import("../pages/Ecommerce/EcommerceProducts")),
-  toolboxRoute("/apps-ecommerce-product-details", () => import("../pages/Ecommerce/EcommerceProducts/EcommerceProductDetail")),
-  toolboxRoute("/apps-ecommerce-add-product", () => import("../pages/Ecommerce/EcommerceProducts/EcommerceAddProduct")),
+  toolboxRoute(
+    "/apps-ecommerce-product-details",
+    () => import("../pages/Ecommerce/EcommerceProducts/EcommerceProductDetail"),
+  ),
+  toolboxRoute(
+    "/apps-ecommerce-add-product",
+    () => import("../pages/Ecommerce/EcommerceProducts/EcommerceAddProduct"),
+  ),
   toolboxRoute("/apps-ecommerce-orders", () => import("../pages/Ecommerce/EcommerceOrders")),
-  toolboxRoute("/apps-ecommerce-order-details", () => import("../pages/Ecommerce/EcommerceOrders/EcommerceOrderDetail")),
+  toolboxRoute(
+    "/apps-ecommerce-order-details",
+    () => import("../pages/Ecommerce/EcommerceOrders/EcommerceOrderDetail"),
+  ),
   toolboxRoute("/apps-ecommerce-customers", () => import("../pages/Ecommerce/EcommerceCustomers")),
   toolboxRoute("/apps-ecommerce-cart", () => import("../pages/Ecommerce/EcommerceCart")),
   toolboxRoute("/apps-ecommerce-checkout", () => import("../pages/Ecommerce/EcommerceCheckout")),
   toolboxRoute("/apps-ecommerce-sellers", () => import("../pages/Ecommerce/EcommerceSellers")),
-  toolboxRoute("/apps-ecommerce-seller-details", () => import("../pages/Ecommerce/EcommerceSellers/EcommerceSellerDetail")),
+  toolboxRoute(
+    "/apps-ecommerce-seller-details",
+    () => import("../pages/Ecommerce/EcommerceSellers/EcommerceSellerDetail"),
+  ),
   toolboxRoute("/apps-file-manager", () => import("../pages/FileManager")),
   toolboxRoute("/apps-todo", () => import("../pages/ToDo")),
   toolboxRoute("/apps-chat", () => import("../pages/Chat")),
   toolboxRoute("/apps-mailbox", () => import("../pages/EmailInbox")),
   toolboxRoute("/apps-email-basic", () => import("../pages/Email/EmailTemplates/BasicAction")),
-  toolboxRoute("/apps-email-ecommerce", () => import("../pages/Email/EmailTemplates/EcommerceAction")),
+  toolboxRoute(
+    "/apps-email-ecommerce",
+    () => import("../pages/Email/EmailTemplates/EcommerceAction"),
+  ),
   toolboxRoute("/apps-projects-list", () => import("../pages/Projects/ProjectList")),
   toolboxRoute("/apps-projects-overview", () => import("../pages/Projects/ProjectOverview")),
   toolboxRoute("/apps-projects-create", () => import("../pages/Projects/CreateProject")),
@@ -82,16 +105,25 @@ const rootAdminToolboxSourceRoutes: AppRoute[] = [
   toolboxRoute("/charts-apex-bar", () => import("../pages/Charts/ApexCharts/BarCharts")),
   toolboxRoute("/charts-apex-mixed", () => import("../pages/Charts/ApexCharts/MixedCharts")),
   toolboxRoute("/charts-apex-timeline", () => import("../pages/Charts/ApexCharts/TimelineCharts")),
-  toolboxRoute("/charts-apex-range-area", () => import("../pages/Charts/ApexCharts/RangeAreaCharts/Index")),
+  toolboxRoute(
+    "/charts-apex-range-area",
+    () => import("../pages/Charts/ApexCharts/RangeAreaCharts/Index"),
+  ),
   toolboxRoute("/charts-apex-funnel", () => import("../pages/Charts/ApexCharts/FunnelCharts")),
-  toolboxRoute("/charts-apex-candlestick", () => import("../pages/Charts/ApexCharts/CandlestickChart")),
+  toolboxRoute(
+    "/charts-apex-candlestick",
+    () => import("../pages/Charts/ApexCharts/CandlestickChart"),
+  ),
   toolboxRoute("/charts-apex-boxplot", () => import("../pages/Charts/ApexCharts/BoxplotCharts")),
   toolboxRoute("/charts-apex-bubble", () => import("../pages/Charts/ApexCharts/BubbleChart")),
   toolboxRoute("/charts-apex-scatter", () => import("../pages/Charts/ApexCharts/ScatterCharts")),
   toolboxRoute("/charts-apex-heatmap", () => import("../pages/Charts/ApexCharts/HeatmapCharts")),
   toolboxRoute("/charts-apex-treemap", () => import("../pages/Charts/ApexCharts/TreemapCharts")),
   toolboxRoute("/charts-apex-pie", () => import("../pages/Charts/ApexCharts/PieCharts")),
-  toolboxRoute("/charts-apex-radialbar", () => import("../pages/Charts/ApexCharts/RadialbarCharts")),
+  toolboxRoute(
+    "/charts-apex-radialbar",
+    () => import("../pages/Charts/ApexCharts/RadialbarCharts"),
+  ),
   toolboxRoute("/charts-apex-radar", () => import("../pages/Charts/ApexCharts/RadarCharts")),
   toolboxRoute("/charts-apex-polar", () => import("../pages/Charts/ApexCharts/PolarCharts")),
   toolboxRoute("/charts-apex-slope", () => import("../pages/Charts/ApexCharts/SlopeCharts")),
@@ -109,12 +141,18 @@ const rootAdminToolboxSourceRoutes: AppRoute[] = [
   toolboxRoute("/ui-grid", () => import("../pages/BaseUi/UiGrid/UiGrid")),
   toolboxRoute("/ui-images", () => import("../pages/BaseUi/UiImages/UiImages")),
   toolboxRoute("/ui-tabs", () => import("../pages/BaseUi/UiTabs/UiTabs")),
-  toolboxRoute("/ui-accordions", () => import("../pages/BaseUi/UiAccordion&Collapse/UiAccordion&Collapse")),
+  toolboxRoute(
+    "/ui-accordions",
+    () => import("../pages/BaseUi/UiAccordion&Collapse/UiAccordion&Collapse"),
+  ),
   toolboxRoute("/ui-modals", () => import("../pages/BaseUi/UiModals/UiModals")),
   toolboxRoute("/ui-offcanvas", () => import("../pages/BaseUi/UiOffcanvas/UiOffcanvas")),
   toolboxRoute("/ui-placeholders", () => import("../pages/BaseUi/UiPlaceholders/UiPlaceholders")),
   toolboxRoute("/ui-progress", () => import("../pages/BaseUi/UiProgress/UiProgress")),
-  toolboxRoute("/ui-notifications", () => import("../pages/BaseUi/UiNotifications/UiNotifications")),
+  toolboxRoute(
+    "/ui-notifications",
+    () => import("../pages/BaseUi/UiNotifications/UiNotifications"),
+  ),
   toolboxRoute("/ui-media", () => import("../pages/BaseUi/UiMediaobject/UiMediaobject")),
   toolboxRoute("/ui-embed-video", () => import("../pages/BaseUi/UiEmbedVideo/UiEmbedVideo")),
   toolboxRoute("/ui-typography", () => import("../pages/BaseUi/UiTypography/UiTypography")),
@@ -127,7 +165,10 @@ const rootAdminToolboxSourceRoutes: AppRoute[] = [
   // Advanced UI
   toolboxRoute("/advance-ui-scrollbar", () => import("../pages/AdvanceUi/UiScrollbar/UiScrollbar")),
   toolboxRoute("/advance-ui-animation", () => import("../pages/AdvanceUi/UiAnimation/UiAnimation")),
-  toolboxRoute("/advance-ui-swiper", () => import("../pages/AdvanceUi/UiSwiperSlider/UiSwiperSlider")),
+  toolboxRoute(
+    "/advance-ui-swiper",
+    () => import("../pages/AdvanceUi/UiSwiperSlider/UiSwiperSlider"),
+  ),
   toolboxRoute("/advance-ui-ratings", () => import("../pages/AdvanceUi/UiRatings/UiRatings")),
   toolboxRoute("/advance-ui-highlight", () => import("../pages/AdvanceUi/UiHighlight/UiHighlight")),
 
@@ -136,11 +177,17 @@ const rootAdminToolboxSourceRoutes: AppRoute[] = [
   toolboxRoute("/forms-elements", () => import("../pages/Forms/BasicElements/BasicElements")),
   toolboxRoute("/forms-select", () => import("../pages/Forms/FormSelect/FormSelect")),
   toolboxRoute("/forms-editors", () => import("../pages/Forms/FormEditor/FormEditor")),
-  toolboxRoute("/forms-checkboxes-radios", () => import("../pages/Forms/CheckboxAndRadio/CheckBoxAndRadio")),
+  toolboxRoute(
+    "/forms-checkboxes-radios",
+    () => import("../pages/Forms/CheckboxAndRadio/CheckBoxAndRadio"),
+  ),
   toolboxRoute("/forms-masks", () => import("../pages/Forms/Masks/Masks")),
   toolboxRoute("/forms-file-uploads", () => import("../pages/Forms/FileUpload/FileUpload")),
   toolboxRoute("/forms-pickers", () => import("../pages/Forms/FormPickers/FormPickers")),
-  toolboxRoute("/forms-range-sliders", () => import("../pages/Forms/FormRangeSlider/FormRangeSlider")),
+  toolboxRoute(
+    "/forms-range-sliders",
+    () => import("../pages/Forms/FormRangeSlider/FormRangeSlider"),
+  ),
   toolboxRoute("/forms-layouts", () => import("../pages/Forms/FormLayouts/Formlayouts")),
   toolboxRoute("/forms-validation", () => import("../pages/Forms/FormValidation/FormValidation")),
   toolboxRoute("/forms-wizard", () => import("../pages/Forms/FormWizard/FormWizard")),
@@ -150,9 +197,15 @@ const rootAdminToolboxSourceRoutes: AppRoute[] = [
   toolboxRoute("/tables-react", () => import("../pages/Tables/ReactTables")),
   toolboxRoute("/icons-remix", () => import("../pages/Icons/RemixIcons/RemixIcons")),
   toolboxRoute("/icons-boxicons", () => import("../pages/Icons/BoxIcons/BoxIcons")),
-  toolboxRoute("/icons-materialdesign", () => import("../pages/Icons/MaterialDesign/MaterialDesign")),
+  toolboxRoute(
+    "/icons-materialdesign",
+    () => import("../pages/Icons/MaterialDesign/MaterialDesign"),
+  ),
   toolboxRoute("/icons-feather", () => import("../pages/Icons/FeatherIcons/FeatherIcons")),
-  toolboxRoute("/icons-lineawesome", () => import("../pages/Icons/LineAwesomeIcons/LineAwesomeIcons")),
+  toolboxRoute(
+    "/icons-lineawesome",
+    () => import("../pages/Icons/LineAwesomeIcons/LineAwesomeIcons"),
+  ),
   toolboxRoute("/icons-crypto", () => import("../pages/Icons/CryptoIcons/CryptoIcons")),
   toolboxRoute("/maps-google", () => import("../pages/Maps/GoogleMaps/GoogleMaps")),
   toolboxRoute("/pages-starter", () => import("../pages/Pages/Starter/Starter")),
@@ -186,20 +239,62 @@ const rootAdminToolboxSourceRoutes: AppRoute[] = [
 ];
 
 const publicRootAdminToolboxSourceRoutes: AppRoute[] = [
-  toolboxRoute("/auth-signin-basic", () => import("../pages/AuthenticationInner/Login/BasicSignIn")),
-  toolboxRoute("/auth-signin-cover", () => import("../pages/AuthenticationInner/Login/CoverSignIn")),
-  toolboxRoute("/auth-signup-basic", () => import("../pages/AuthenticationInner/Register/BasicSignUp")),
-  toolboxRoute("/auth-signup-cover", () => import("../pages/AuthenticationInner/Register/CoverSignUp")),
-  toolboxRoute("/auth-pass-reset-basic", () => import("../pages/AuthenticationInner/PasswordReset/BasicPasswReset")),
-  toolboxRoute("/auth-pass-reset-cover", () => import("../pages/AuthenticationInner/PasswordReset/CoverPasswReset")),
-  toolboxRoute("/auth-lockscreen-basic", () => import("../pages/AuthenticationInner/LockScreen/BasicLockScr")),
-  toolboxRoute("/auth-lockscreen-cover", () => import("../pages/AuthenticationInner/LockScreen/CoverLockScr")),
-  toolboxRoute("/auth-logout-basic", () => import("../pages/AuthenticationInner/Logout/BasicLogout")),
-  toolboxRoute("/auth-logout-cover", () => import("../pages/AuthenticationInner/Logout/CoverLogout")),
-  toolboxRoute("/auth-success-msg-basic", () => import("../pages/AuthenticationInner/SuccessMessage/BasicSuccessMsg")),
-  toolboxRoute("/auth-success-msg-cover", () => import("../pages/AuthenticationInner/SuccessMessage/CoverSuccessMsg")),
-  toolboxRoute("/auth-twostep-basic", () => import("../pages/AuthenticationInner/TwoStepVerification/BasicTwosVerify")),
-  toolboxRoute("/auth-twostep-cover", () => import("../pages/AuthenticationInner/TwoStepVerification/CoverTwosVerify")),
+  toolboxRoute(
+    "/auth-signin-basic",
+    () => import("../pages/AuthenticationInner/Login/BasicSignIn"),
+  ),
+  toolboxRoute(
+    "/auth-signin-cover",
+    () => import("../pages/AuthenticationInner/Login/CoverSignIn"),
+  ),
+  toolboxRoute(
+    "/auth-signup-basic",
+    () => import("../pages/AuthenticationInner/Register/BasicSignUp"),
+  ),
+  toolboxRoute(
+    "/auth-signup-cover",
+    () => import("../pages/AuthenticationInner/Register/CoverSignUp"),
+  ),
+  toolboxRoute(
+    "/auth-pass-reset-basic",
+    () => import("../pages/AuthenticationInner/PasswordReset/BasicPasswReset"),
+  ),
+  toolboxRoute(
+    "/auth-pass-reset-cover",
+    () => import("../pages/AuthenticationInner/PasswordReset/CoverPasswReset"),
+  ),
+  toolboxRoute(
+    "/auth-lockscreen-basic",
+    () => import("../pages/AuthenticationInner/LockScreen/BasicLockScr"),
+  ),
+  toolboxRoute(
+    "/auth-lockscreen-cover",
+    () => import("../pages/AuthenticationInner/LockScreen/CoverLockScr"),
+  ),
+  toolboxRoute(
+    "/auth-logout-basic",
+    () => import("../pages/AuthenticationInner/Logout/BasicLogout"),
+  ),
+  toolboxRoute(
+    "/auth-logout-cover",
+    () => import("../pages/AuthenticationInner/Logout/CoverLogout"),
+  ),
+  toolboxRoute(
+    "/auth-success-msg-basic",
+    () => import("../pages/AuthenticationInner/SuccessMessage/BasicSuccessMsg"),
+  ),
+  toolboxRoute(
+    "/auth-success-msg-cover",
+    () => import("../pages/AuthenticationInner/SuccessMessage/CoverSuccessMsg"),
+  ),
+  toolboxRoute(
+    "/auth-twostep-basic",
+    () => import("../pages/AuthenticationInner/TwoStepVerification/BasicTwosVerify"),
+  ),
+  toolboxRoute(
+    "/auth-twostep-cover",
+    () => import("../pages/AuthenticationInner/TwoStepVerification/CoverTwosVerify"),
+  ),
   toolboxRoute("/auth-404-basic", () => import("../pages/AuthenticationInner/Errors/Basic404")),
   toolboxRoute("/auth-404-cover", () => import("../pages/AuthenticationInner/Errors/Cover404")),
   toolboxRoute("/auth-404-alt", () => import("../pages/AuthenticationInner/Errors/Alt404")),
@@ -209,15 +304,21 @@ const publicRootAdminToolboxSourceRoutes: AppRoute[] = [
   toolboxRoute("/landing", () => import("../pages/Landing/OnePage")),
   toolboxRoute("/nft-landing", () => import("../pages/Landing/NFTLanding")),
   toolboxRoute("/job-landing", () => import("../pages/Job_Landing/Job")),
-  toolboxRoute("/auth-pass-change-basic", () => import("../pages/AuthenticationInner/PasswordCreate/BasicPasswCreate")),
-  toolboxRoute("/auth-pass-change-cover", () => import("../pages/AuthenticationInner/PasswordCreate/CoverPasswCreate")),
+  toolboxRoute(
+    "/auth-pass-change-basic",
+    () => import("../pages/AuthenticationInner/PasswordCreate/BasicPasswCreate"),
+  ),
+  toolboxRoute(
+    "/auth-pass-change-cover",
+    () => import("../pages/AuthenticationInner/PasswordCreate/CoverPasswCreate"),
+  ),
   toolboxRoute("/auth-offline", () => import("../pages/AuthenticationInner/Errors/Offlinepage")),
 ];
 
 export const rootAdminToolboxRoutes: AppRoute[] = [
   {
-    path: "/panel/dev",
-    component: <Navigate to="/panel/dev/dashboard-analytics" />,
+    path: DEV_TOOLBOX_BASE_PATH,
+    component: <Navigate to={DEV_TOOLBOX_DEFAULT_PATH} />,
     allowedRoles: rootAdminOnly,
   },
   ...rootAdminToolboxSourceRoutes.map(asDevToolboxRoute),

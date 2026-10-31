@@ -9,25 +9,26 @@ import TwoColumnLayout from "./TwoColumnLayout";
 import { Container } from "reactstrap";
 import HorizontalLayout from "./HorizontalLayout";
 
-const Sidebar = ({ layoutType } : any) => {
-
+const Sidebar = ({ layoutType }: any) => {
   useEffect(() => {
-    var verticalOverlay = document.getElementsByClassName("vertical-overlay");
-    if (verticalOverlay) {
-      verticalOverlay[0].addEventListener("click", function () {
-        document.body.classList.remove("vertical-sidebar-enable");
-      });
-    }
-  });
+    if (typeof document === "undefined") return undefined;
+    const verticalOverlay = document.querySelector<HTMLElement>(".vertical-overlay");
+    if (!verticalOverlay) return undefined;
+
+    const closeSidebar = () => document.body.classList.remove("vertical-sidebar-enable");
+    verticalOverlay.addEventListener("click", closeSidebar);
+    return () => verticalOverlay.removeEventListener("click", closeSidebar);
+  }, []);
 
   const addEventListenerOnSmHoverMenu = () => {
+    if (typeof document === "undefined") return;
     // add listener Sidebar Hover icon on change layout from setting
-    if (document.documentElement.getAttribute('data-sidebar-size') === 'sm-hover') {
-      document.documentElement.setAttribute('data-sidebar-size', 'sm-hover-active');
-    } else if (document.documentElement.getAttribute('data-sidebar-size') === 'sm-hover-active') {
-      document.documentElement.setAttribute('data-sidebar-size', 'sm-hover');
+    if (document.documentElement.getAttribute("data-sidebar-size") === "sm-hover") {
+      document.documentElement.setAttribute("data-sidebar-size", "sm-hover-active");
+    } else if (document.documentElement.getAttribute("data-sidebar-size") === "sm-hover-active") {
+      document.documentElement.setAttribute("data-sidebar-size", "sm-hover");
     } else {
-      document.documentElement.setAttribute('data-sidebar-size', 'sm-hover');
+      document.documentElement.setAttribute("data-sidebar-size", "sm-hover");
     }
   };
 
@@ -70,7 +71,7 @@ const Sidebar = ({ layoutType } : any) => {
               </ul>
             </Container>
           </div>
-        ) : layoutType === 'twocolumn' ? (
+        ) : layoutType === "twocolumn" ? (
           <React.Fragment>
             <TwoColumnLayout layoutType={layoutType} />
             <div className="sidebar-background"></div>

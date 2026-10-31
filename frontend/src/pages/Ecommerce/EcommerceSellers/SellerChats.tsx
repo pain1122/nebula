@@ -1,5 +1,5 @@
 import React from "react";
-import ReactApexChart from "react-apexcharts";
+import ReactApexChart from "Components/Common/LegacyApexChart";
 
 const SellerChats = (props:any) => {
   const series = [

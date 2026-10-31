@@ -5,6 +5,7 @@ namespace Tests\Feature\Database;
 use App\Models\Checkup;
 use App\Models\CheckupCategory;
 use App\Models\DoctorProfile;
+use App\Models\DoctorVisitSlot;
 use App\Models\DoctorWorkingWindow;
 use App\Models\DoctorWorkplace;
 use App\Models\MarketplaceHospital;
@@ -31,14 +32,36 @@ class FoundationBookingPaymentSchemaTest extends TestCase
         $this->assertFalse(Schema::hasTable('payments'));
         $this->assertTrue(Schema::hasTable('doctor_workplace_checkup'));
         $this->assertTrue(Schema::hasTable('doctor_working_windows'));
+        $this->assertTrue(Schema::hasTable('doctor_working_window_breaks'));
+        $this->assertTrue(Schema::hasTable('doctor_visit_slots'));
         $this->assertTrue(Schema::hasTable('reservation_schedule_changes'));
         $this->assertTrue(Schema::hasTable('reservation_payment_summaries'));
         $this->assertTrue(Schema::hasTable('payment_attempts'));
         $this->assertTrue(Schema::hasTable('payment_provider_events'));
         $this->assertTrue(Schema::hasTable('payment_adjustments'));
 
+        $this->assertTrue(Schema::hasColumns('doctor_working_windows', [
+            'visit_duration_minutes',
+            'price_override',
+            'currency_override',
+            'effective_from',
+            'effective_until',
+        ]));
+        $this->assertTrue(Schema::hasColumns('doctor_visit_slots', [
+            'public_id',
+            'doctor_working_window_id',
+            'doctor_workplace_id',
+            'checkup_id',
+            'starts_at',
+            'ends_at',
+            'price',
+            'currency',
+            'is_active',
+        ]));
+
         $this->assertTrue(Schema::hasColumns('reservations', [
             'public_id',
+            'doctor_visit_slot_id',
             'doctor_workplace_id',
             'duration_minutes',
             'timezone',
@@ -52,20 +75,21 @@ class FoundationBookingPaymentSchemaTest extends TestCase
             'completed_at',
             'expired_at',
         ]));
+        $this->assertTrue(Schema::hasColumns('reservation_schedule_changes', [
+            'previous_doctor_visit_slot_id',
+            'new_doctor_visit_slot_id',
+            'previous_starts_at',
+            'new_starts_at',
+        ]));
     }
 
     public function test_booking_creates_a_live_hold_snapshot_and_one_payment_summary(): void
     {
-        [$patient, $doctor, $workplace, $checkup] = $this->bookableGraph();
-        $start = $this->futureMonday();
+        [$patient, $doctor, , $checkup, $slot] = $this->bookableGraph();
 
         [$reservation, $summary] = app(BookingService::class)->createReservation(
             user: $patient,
-            checkup: $checkup,
-            doctor: $doctor,
-            start: $start,
-            durationMinutes: 30,
-            workplace: $workplace,
+            slotPublicId: $slot->public_id,
             idempotencyKey: 'booking-foundation-test'
         );
 
@@ -88,10 +112,10 @@ class FoundationBookingPaymentSchemaTest extends TestCase
 
     public function test_only_live_pending_or_confirmed_reservations_block_a_slot(): void
     {
-        [$patient, $doctor, $workplace, $checkup] = $this->bookableGraph();
-        $start = $this->futureMonday();
+        [$patient, $doctor, $workplace, $checkup, $slot] = $this->bookableGraph();
+        $start = $slot->starts_at;
         $end = $start->copy()->addMinutes(30);
-        $base = $this->reservationAttributes($patient, $doctor, $workplace, $checkup, $start);
+        $base = $this->reservationAttributes($patient, $doctor, $workplace, $checkup, $slot);
 
         Reservation::query()->create(array_merge($base, [
             'status' => ReservationStatus::Pending,
@@ -111,14 +135,10 @@ class FoundationBookingPaymentSchemaTest extends TestCase
 
     public function test_payment_summary_allows_retries_but_rejects_duplicate_provider_idempotency(): void
     {
-        [$patient, $doctor, $workplace, $checkup] = $this->bookableGraph();
+        [$patient, , , , $slot] = $this->bookableGraph();
         [$reservation, $summary] = app(BookingService::class)->createReservation(
             $patient,
-            $checkup,
-            $doctor,
-            $this->futureMonday(),
-            30,
-            $workplace
+            $slot->public_id,
         );
 
         PaymentAttempt::query()->create([
@@ -154,7 +174,7 @@ class FoundationBookingPaymentSchemaTest extends TestCase
     }
 
     /**
-     * @return array{User, DoctorProfile, DoctorWorkplace, Checkup}
+     * @return array{User, DoctorProfile, DoctorWorkplace, Checkup, DoctorVisitSlot}
      */
     private function bookableGraph(): array
     {
@@ -188,14 +208,24 @@ class FoundationBookingPaymentSchemaTest extends TestCase
             'price' => 750_000,
         ]);
         $workplace->checkups()->attach($checkup->id);
-        DoctorWorkingWindow::query()->create([
+        $rule = DoctorWorkingWindow::query()->create([
             'doctor_workplace_id' => $workplace->id,
+            'checkup_id' => $checkup->id,
             'weekday' => Carbon::MONDAY,
-            'starts_at' => '09:00',
-            'ends_at' => '12:00',
+            'starts_at' => '10:00',
+            'ends_at' => '10:30',
+        ]);
+        $slot = DoctorVisitSlot::query()->create([
+            'doctor_working_window_id' => $rule->id,
+            'doctor_workplace_id' => $workplace->id,
+            'checkup_id' => $checkup->id,
+            'starts_at' => $this->futureMonday(),
+            'ends_at' => $this->futureMonday()->addMinutes(30),
+            'price' => $checkup->price,
+            'currency' => $checkup->currency,
         ]);
 
-        return [$patient, $doctor, $workplace, $checkup];
+        return [$patient, $doctor, $workplace, $checkup, $slot];
     }
 
     /**
@@ -206,15 +236,16 @@ class FoundationBookingPaymentSchemaTest extends TestCase
         DoctorProfile $doctor,
         DoctorWorkplace $workplace,
         Checkup $checkup,
-        Carbon $start
+        DoctorVisitSlot $slot
     ): array {
         return [
+            'doctor_visit_slot_id' => $slot->id,
             'user_id' => $patient->id,
             'doctor_profile_id' => $doctor->id,
             'doctor_workplace_id' => $workplace->id,
             'checkup_id' => $checkup->id,
-            'starts_at' => $start,
-            'ends_at' => $start->copy()->addMinutes(30),
+            'starts_at' => $slot->starts_at,
+            'ends_at' => $slot->ends_at,
             'duration_minutes' => 30,
             'timezone' => 'Asia/Tehran',
             'booking_idempotency_key' => 'first-hold',

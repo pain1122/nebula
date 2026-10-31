@@ -6,6 +6,8 @@ use App\Enums\UserRole;
 use App\Models\Checkup;
 use App\Models\CheckupCategory;
 use App\Models\DoctorProfile;
+use App\Models\DoctorVisitSlot;
+use App\Models\DoctorWorkingWindow;
 use App\Models\DoctorWorkplace;
 use App\Models\MarketplaceHospital;
 use App\Models\Payment;
@@ -149,11 +151,27 @@ class ListingFilterSortTest extends TestCase
     private function reservation(User $patient, DoctorProfile $doctor, Checkup $checkup, string $paymentStatus): Reservation
     {
         $start = Carbon::now()->addWeek()->setTime(10, 0);
+        $workplace = $doctor->workplaces()->firstOrFail();
+        $workplace->checkups()->syncWithoutDetaching([$checkup->id => ['is_active' => true]]);
+        $rule = DoctorWorkingWindow::factory()->create([
+            'doctor_workplace_id' => $workplace->id,
+            'checkup_id' => $checkup->id,
+        ]);
+        $slot = DoctorVisitSlot::query()->create([
+            'doctor_working_window_id' => $rule->id,
+            'doctor_workplace_id' => $workplace->id,
+            'checkup_id' => $checkup->id,
+            'starts_at' => $start,
+            'ends_at' => $start->copy()->addMinutes(30),
+            'price' => $checkup->price,
+            'currency' => $checkup->currency,
+        ]);
 
         $reservation = Reservation::query()->create([
+            'doctor_visit_slot_id' => $slot->id,
             'user_id' => $patient->id,
             'doctor_profile_id' => $doctor->id,
-            'doctor_workplace_id' => $doctor->workplaces()->value('id'),
+            'doctor_workplace_id' => $workplace->id,
             'checkup_id' => $checkup->id,
             'starts_at' => $start,
             'ends_at' => $start->copy()->addMinutes(30),

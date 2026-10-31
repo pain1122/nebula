@@ -18,7 +18,7 @@ const chatSlice = createSlice({
       state.loading = true
     });
     builder.addCase(getDirectContact.rejected, (state: any, action: any) => {
-      state.error = action.payload.error || null;
+      state.error = action.payload?.error ?? action.error?.message ?? null;
     });
 
     builder.addCase(getMessages.fulfilled, (state: any, action: any) => {
@@ -26,14 +26,14 @@ const chatSlice = createSlice({
       state.loading = true
     });
     builder.addCase(getMessages.rejected, (state: any, action: any) => {
-      state.error = action.payload.error || null;
+      state.error = action.payload?.error ?? action.error?.message ?? null;
     });
 
     builder.addCase(addMessage.fulfilled, (state: any, action: any) => {
       state.messages.map((data: any) => data.usermessages.push(action.payload));
     });
     builder.addCase(addMessage.rejected, (state: any, action: any) => {
-      state.error = action.payload.error || null;
+      state.error = action.payload?.error ?? action.error?.message ?? null;
     });
 
     builder.addCase(deleteMessage.fulfilled, (state: any, action: any) => {
@@ -44,7 +44,7 @@ const chatSlice = createSlice({
     });
     
     builder.addCase(deleteMessage.rejected, (state: any, action: any) => {
-      state.error = action.payload.error || null;
+      state.error = action.payload?.error ?? action.error?.message ?? null;
     });
 
   },

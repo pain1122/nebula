@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -43,6 +43,7 @@ class DoctorProfile extends Model
     {
         return $this->belongsTo(User::class);
     }
+
     public function specialty()
     {
         return $this->belongsTo(Specialty::class);
@@ -83,10 +84,25 @@ class DoctorProfile extends Model
                 ->groupBy('weekday')
                 ->map(fn ($windows, $weekday): array => [
                     'day' => $dayNames[(int) $weekday],
-                    'slots' => $windows
+                    'windows' => $windows
                         ->map(fn ($window): array => [
-                            substr((string) $window->starts_at, 0, 5),
-                            substr((string) $window->ends_at, 0, 5),
+                            'checkup_id' => $window->checkup_id,
+                            'start' => substr((string) $window->starts_at, 0, 5),
+                            'end' => substr((string) $window->ends_at, 0, 5),
+                            'duration_minutes' => $window->visit_duration_minutes,
+                            'price_override' => $window->price_override,
+                            'currency_override' => $window->currency_override,
+                            'effective_from' => $window->effective_from?->toDateString(),
+                            'effective_until' => $window->effective_until?->toDateString(),
+                            'breaks' => $window->breaks()
+                                ->orderBy('starts_at')
+                                ->get()
+                                ->map(fn ($break): array => [
+                                    'start' => substr((string) $break->starts_at, 0, 5),
+                                    'end' => substr((string) $break->ends_at, 0, 5),
+                                ])
+                                ->values()
+                                ->all(),
                         ])
                         ->values()
                         ->all(),
@@ -101,6 +117,7 @@ class DoctorProfile extends Model
     {
         return $q->where('verified', true);
     }
+
     public function reservations()
     {
         return $this->hasMany(\App\Models\Reservation::class, 'doctor_profile_id');
@@ -116,5 +133,4 @@ class DoctorProfile extends Model
                     ->where('doctor_workplace_checkup.is_active', true);
             });
     }
-
 }

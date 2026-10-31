@@ -1,0 +1,281 @@
+/*
+ * Velzon styles used only by retained root-admin Developer Toolbox routes.
+ * Keep this import order aligned with the original Interactive app.scss graph.
+ */
+
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables";
+@import "../assets/scss/config/Interactive/variables";
+@import "../assets/scss/config/Interactive/variables-custom";
+@import "../assets/scss/config/Interactive/variables-dark";
+@import "bootstrap/scss/mixins";
+
+// Retained vendor bases
+@import "../assets/scss/shepherd.css";
+@import "../assets/scss/mermaid.min.css";
+
+// Plugins
+@import "../assets/scss/plugins/prismjs";
+@import "../assets/scss/plugins/sweetalert2";
+@import "../assets/scss/plugins/dropzone";
+@import "../assets/scss/plugins/range-slider";
+@import "../assets/scss/plugins/sortablejs";
+@import "../assets/scss/plugins/tour";
+@import "../assets/scss/plugins/multijs";
+@import "../assets/scss/plugins/colorpicker";
+@import "../assets/scss/plugins/filepond";
+@import "../assets/scss/plugins/form-input-spin";
+@import "../assets/scss/plugins/ckeditor";
+@import "../assets/scss/plugins/quilljs";
+@import "../assets/scss/plugins/gridjs";
+@import "../assets/scss/plugins/listjs";
+@import "../assets/scss/plugins/chartjs";
+@import "../assets/scss/plugins/google-map";
+@import "../assets/scss/plugins/autocomplete";
+@import "../assets/scss/plugins/leaflet-maps";
+@import "../assets/scss/plugins/fullcalendar";
+@import "../assets/scss/plugins/emoji-picker";
+@import "../assets/scss/plugins/datatables";
+@import "../assets/scss/plugins/select2";
+@import "../assets/scss/plugins/flag-input";
+
+// Pages
+@import "../assets/scss/pages/blog";
+@import "../assets/scss/pages/timeline";
+@import "../assets/scss/pages/gallery";
+@import "../assets/scss/pages/errors";
+@import "../assets/scss/pages/profile";
+@import "../assets/scss/pages/sitemap";
+@import "../assets/scss/pages/team";
+@import "../assets/scss/pages/coming-soon";
+@import "../assets/scss/pages/search-results";
+@import "../assets/scss/pages/invoice";
+@import "../assets/scss/pages/chat";
+@import "../assets/scss/pages/email";
+@import "../assets/scss/pages/kanban";
+@import "../assets/scss/pages/landing";
+@import "../assets/scss/pages/nft-landing";
+@import "../assets/scss/pages/file-manager";
+@import "../assets/scss/pages/to-do";
+@import "../assets/scss/pages/jobs";
+@import "../assets/scss/pages/job-landing";
+
+// Retained Velzon overrides, kept after plugin/page styles as in themes.scss.
+.noUi-horizontal .noUi-handle {
+  height: 16px !important;
+  width: 16px !important;
+  border-radius: 50% !important;
+  right: -10px !important;
+  top: -7px !important;
+}
+
+.noUi-connect,
+.noUi-horizontal {
+  height: 2px !important;
+}
+
+.noUi-handle {
+  background: #0ab39c !important;
+  border: 2px solid var(--vz-card-bg) !important;
+  box-shadow: none !important;
+}
+
+.noUi-target {
+  background: #fafafa !important;
+  border-radius: 4px !important;
+  border: 1px solid #d3d3d3 !important;
+  background-color: var(--vz-light) !important;
+  border-color: var(--vz-light) !important;
+  box-shadow: none !important;
+  height: 4px !important;
+}
+
+.dropzone .dz-message {
+  text-align: center;
+}
+
+.fc-direction-ltr .fc-daygrid-event.fc-event-end,
+.fc-direction-rtl .fc-daygrid-event.fc-event-start {
+  padding: 5px !important;
+  font-size: 12px !important;
+  margin-right: 2px;
+}
+
+.fc-event {
+  border: none !important;
+}
+
+@include media-breakpoint-down(sm) {
+  .fc-toolbar {
+    display: block !important;
+    text-align: center;
+
+    .fc-left,
+    .fc-right,
+    .fc-center {
+      float: none;
+      display: block;
+      clear: both;
+      margin: 10px 0;
+    }
+  }
+
+  .fc {
+    .fc-toolbar {
+      > * {
+        > * {
+          float: none;
+        }
+      }
+    }
+  }
+
+  .fc-today-button {
+    display: none;
+  }
+}
+
+.ql-container.ql-snow {
+  height: 250px;
+}
+
+.rangeslider-horizontal .rangeslider__fill {
+  background-color: #405189 !important;
+}
+
+.chat-conversation .chat-list .message-box-drop {
+  .nav-btn {
+    font-size: 18px;
+    padding: 4px;
+    color: $gray-600;
+  }
+}
+
+.chatwidgets {
+  height: 250px !important;
+}
+
+[data-layout="horizontal"] .chat-conversation {
+  &.chatwidgets {
+    height: 250px !important;
+  }
+}
+
+#tsparticles canvas {
+  position: absolute !important;
+}
+
+.alert-msg-show {
+  right: 24px;
+  top: 40px;
+  z-index: 1005;
+}
+
+aside.EmojiPickerReact.epr-main {
+  position: absolute !important;
+  bottom: 0;
+  z-index: 2;
+  left: 23px;
+}
+
+[dir="rtl"] .EmojiPickerReact.epr-main {
+  right: 23px !important;
+  left: unset !important;
+}
+
+.rdl-filter,
+.rdl-control {
+  background-color: $input-bg;
+  border: 1px solid $input-border-color !important;
+  color: $input-color !important;
+}
+
+.rdl-move {
+  background: var(--#{$prefix}light) !important;
+  border: 1px solid var(--#{$prefix}light) !important;
+  color: var(--#{$prefix}body-color) !important;
+}
+
+.react-dual-listbox {
+  input:disabled,
+  select:disabled {
+    background-color: $input-disabled-bg !important;
+    border: 1px solid $input-border-color !important;
+  }
+}
+
+.css-26l3qy-menu {
+  background-color: var(--#{$prefix}gray-200) !important;
+  border-color: var(--#{$prefix}border-color) !important;
+}
+
+.css-1n7v3ny-option {
+  background-color: var(--#{$prefix}gray-300) !important;
+  border-color: var(--#{$prefix}border-color) !important;
+}
+
+.css-b62m3t-container {
+  .css-13cymwt-control {
+    background-color: var(--#{$prefix}secondary-bg);
+    color: var(--#{$prefix}body-color);
+    border-color: var(--#{$prefix}border-color);
+
+    &:hover,
+    &:focus {
+      border-color: var(--#{$prefix}primary);
+    }
+
+    .css-1p3m7a8-multiValue {
+      color: var(--#{$prefix}white);
+      background-color: var(--#{$prefix}primary);
+
+      .css-wsp0cs-MultiValueGeneric {
+        color: var(--#{$prefix}white);
+      }
+
+      .css-1u9des2-indicatorSeparator {
+        border-color: var(--#{$prefix}border-color);
+      }
+    }
+  }
+
+  :is(.css-qbdosj-Input, .css-1dimb5e-singleValue) {
+    color: var(--#{$prefix}body-color);
+  }
+
+  .css-t3ipsp-control {
+    background-color: var(--#{$prefix}secondary-bg);
+    color: var(--#{$prefix}body-color);
+    border-color: var(--#{$prefix}border-color);
+
+    .css-1p3m7a8-multiValue {
+      color: var(--#{$prefix}white);
+      background-color: var(--#{$prefix}primary);
+
+      .css-wsp0cs-MultiValueGeneric {
+        color: var(--#{$prefix}white);
+      }
+
+      .css-1u9des2-indicatorSeparator {
+        border-color: var(--#{$prefix}border-color);
+      }
+    }
+  }
+
+  .css-1nmdiq5-menu {
+    background-color: var(--#{$prefix}secondary-bg);
+    color: var(--#{$prefix}body-color);
+    border-color: var(--#{$prefix}border-color);
+
+    .css-d7l1ni-option {
+      color: var(--#{$prefix}body-color);
+      background-color: var(--#{$prefix}light);
+
+      &:hover,
+      &:active,
+      &:focus {
+        background-color: var(--#{$prefix}light);
+      }
+    }
+  }
+}

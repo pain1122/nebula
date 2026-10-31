@@ -1,8 +1,8 @@
 # Foundation Shared Primitives Contract
 
-Snapshot date: 2026-07-12
+Snapshot date: 2026-08-16
 
-Status: target engineering contract for migration mapping and baseline implementation.
+Status: implemented and verified Phase 1 marketplace/minimal-tenant contract. Complete tenant product workflows remain intentionally deferred to Phase 7.
 
 Depends on: `docs/architecture/foundation-target-domain-and-ownership-contract.md`.
 
@@ -45,8 +45,10 @@ Marketplace-only records:
 - `marketplace_hospitals`: public ID, name, slug, location/contact/public profile, media, active/archive state, filter metadata, timestamps
 - `hospital_listing_requests`: requesting doctor, proposed hospital data, evidence/notes, review status, reviewer/reason/timestamps
 - `doctor_workplaces`: doctor profile, marketplace hospital, state, display/booking metadata, timestamps
-- `doctor_workplace_services`: workplace, service/checkup, local price/duration override if allowed, active state
-- `doctor_working_windows`: workplace, weekday/date rules, start/end, slot/duration/buffer policy, effective window, active state
+- `doctor_workplace_services`: workplace, service/checkup, local base price/currency override if allowed, active state
+- `doctor_working_windows`: recurring workplace-service rule with weekday, working hours, doctor-selected duration, optional day money, effective range, and active state
+- `doctor_working_window_breaks`: one or more contained non-overlapping breaks owned by a recurring rule
+- `doctor_visit_slots`: persistent dated public-ID occurrences with immutable time/ownership/currency, resolved price, active state, and reservation history
 
 Rules:
 
@@ -213,7 +215,7 @@ Blocking statuses are `pending` while the unpaid one-hour hold is live and `conf
 
 Schedule history stores previous/new start, end, duration, doctor, and—on marketplace only—workplace, plus actor/reason/time.
 
-Marketplace working windows belong to doctor workplaces. Tenant working windows belong directly to local doctors. The same marketplace doctor can define different schedules per marketplace hospital without any tenant-database query.
+Marketplace declared visit ranges belong to a service at a doctor workplace. Tenant schedules belong directly to local doctors. The same marketplace doctor can define different service ranges and prices per marketplace hospital without any tenant-database query.
 
 An idempotent job expires overdue holds, while booking/payment callback paths also check expiry synchronously.
 

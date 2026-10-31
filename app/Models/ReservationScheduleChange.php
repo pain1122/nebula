@@ -14,6 +14,8 @@ class ReservationScheduleChange extends Model
     protected $fillable = [
         'reservation_id',
         'actor_id',
+        'previous_doctor_visit_slot_id',
+        'new_doctor_visit_slot_id',
         'previous_doctor_workplace_id',
         'new_doctor_workplace_id',
         'previous_starts_at',

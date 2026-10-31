@@ -2,7 +2,8 @@ import React from 'react';
 import { Col, Container, Row } from 'reactstrap';
 
 // Swiper
-import { Swiper, SwiperSlide } from "swiper/react";
+import { SwiperSlide } from "swiper/react";
+import Swiper from "../../../Components/Common/DirectionalSwiper";
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";

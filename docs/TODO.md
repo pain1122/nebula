@@ -1,8 +1,29 @@
 # TODO - Foundation-to-Product Roadmap
 
-Snapshot date: 2026-08-03
+October18 requested form-action alignment is deployed on healthy2f7bc492/70 assets, retaining clinical onboarding and all prior privacy safeguards. Hospital/profile/doctor-location/practice/shared-administration/reservation forms group Save and Cancel/Close in one Bootstrap action row; disabled/stale/uncertain and reservation abort semantics remain. Existing focused source115/guards44, typecheck/lint/format/ratchets and36 native ENFA1440/390 action-row/cancel checks pass; current/protected/catalog/finance hashes and two pending jobs preserved. Nine services run; scanner/parser/worker stay stopped. No live save, new URL/dependency/schema/backend Compose or credential change. Read deployment/form-action-row-2026-10-18.md and its immutable acceptance; previous c1173c97 is the static rollback. Existing live-save and current scanner/media gates remain separate.
+
+Snapshot date: 2026-10-24 (Asia/Tehran)
+
+October18 approved clinical onboarding/location slice is deployed on healthy c1173c97/70 assets, retained checkupino-admin:clinical-onboarding-accepted-2026-10-18; c3458981 is the static rollback. Admin/root get role-fixed doctors/new, patients/new and hospitals list/new/public-ULID detail pages, entered from existing directories/grouped People navigation; Staff stays root-only. Labels say Hospitals/Clinics, with numeric filters explicitly identifying doctor-location associations. Manual doctor creation now creates a real profile/specialty and pending verification unless the creating admin/root explicitly verifies it. Identity/password inputs are never returned or available for support editing. Doctors select active hospitals/clinics and personally offered services/prices on their existing profile, then maintain separate days/shifts/rest per location. Organization records have no price; new-slot fallback is doctor shift/service price then profile fee. Existing slots/bookings/money stay unchanged. Ownership/revision/reason/confirmation/password/atomic audit, exact price before-after snapshots and uncertain/session guards remain. Full UI76/790 plus final transport-related179/PHP18/164+legacy31/385+audit9/75 pass. Same-image20-cohort ENFA1440/390 acceptance combines eight passed admin groups with the13-group doctor/patient delta:293 tracked requests/56 captures; all current/protected hashes/two jobs preserved. Prior helper query-path bug and harness failures are retained and superseded. Nine services run; helpers/scanner remain stopped. No live onboarding/profile/schedule save, credential replacement, dependency/schema/env change or backend Compose. Read deployment/clinical-onboarding-locations-2026-10-18.md and immutable clinical-onboarding acceptance. Live positive saves, new-writer MySQL concurrency/lifecycle and current scanner/media gates remain separate.
+
+October18 working-hours correction is deployed on healthy c3458981/66 assets, retained checkupino-admin:working-hours-accepted-2026-10-18. The own-profile editor now follows day -> full shift -> rest periods -> sequential service sessions with separate appointment durations and recurring capacity/start-time preview. New enabled days draft08:00-16:00/lunch12:00-13:00; existing short stored rules remain faithful until an ordinary reviewed save. Optional prices/dates and all existing revision/ownership/password/reason/confirmation/audit/cancel/uncertain-delivery guards remain. Adjacent compatible rules reconstruct a shift; no independent shift schema or parallel capacity is added. Full frontend75/777, source29/final layout34 and isolated PHP9/92 plus final real-materialization1/5 pass. Both synthetic doctors ENFA desktop/mobile pass nine final native groups/60 requests/24 captures after wide desktop/stacked mobile clock corrections; all current/protected hashes and two medical-scan jobs stay unchanged. Nine services run; helpers/scanner stopped. No live schedule/profile save, backend Compose, dependency/schema/URL/env/credential change or job consumption. Read deployment/doctor-working-hours-2026-10-18.md and its immutable acceptance. This supersedes only the previous service-window editor; other accepted doctor/booking features remain.
+
+October18 doctor/booking usability follow-up is deployed on healthy b1fae6ee/66 assets, retained checkupino-admin:doctor-panel-accepted-2026-10-18. Doctors get the retained calendar for their own CONFIRMED canonical-paid appointments only (explicit user choice; completed/pending/cancelled/expired excluded), plus visible own professional/weekly-workplace controls on existing /panel/profile and its care submenu. Active specialties/experience/bio/profile fee and day/service/window/break/effective-date/price rules use current ownership/revision/password/reason/confirmation/atomic-audit safeguards; booked slots/money and verification decisions are preserved. Existing /panel/book is a four-stage service/description -> real doctor cards -> locations -> times wizard, with filters, Back/Next/breadcrumbs/summary and unchanged idempotent booking. Active menus have an obvious primary background. Customizer introduction is once per account/browser, then manual knob (mobile/keyboard too); cross-device persistence remains separate. Photo initials/unavailable ratings are honest placeholders, with avatar/rating publication deferred. Full source74/759 and final affected80/PHP8/83 plus targeted canonical/calendar/privacy deltas, 20-cohort functional matrix and eight-cohort visual delta pass. Current/protected hashes and two pending medical-scan jobs are unchanged; nine services run and helpers/scanner remain stopped. No live business save, password confirmation, download, backend Compose, dependency/schema/credential change or completed replay. Read deployment/doctor-panel-booking-wizard-2026-10-18.md and its immutable acceptance for the corrected registry adapter, retained failures, validation and rollback.
+
+October18 user-requested patient questionnaire history and grouped navigation are deployed on healthy a3f0286a/65 assets, retained checkupino-admin:questionnaire-history-accepted-2026-10-18. Existing /panel/my/questionnaire uses Available/My submissions tabs and public-ULID query-selected saved answers/version/score/result; owner-only fresh-authority GET readers exclude contacts/tokens/other accounts, preserve snapshots after definition changes/archive and enforce answer retention/no-store/current-session identity. Existing Velzon submenus group related appointments/questionnaires/people/catalog/root settings; active detail/query leaves, mobile controls and root-only Staff/settings boundaries remain. Full frontend72/746, final affected23, isolated PHP7/78/Pint3 and four-role16-cohort native matrix plus final patient direction delta pass. All current business/finance/schedule/catalog/protected/audit/outbox hashes stay unchanged, including two pending medical-scan jobs. Nine services run; scanner/parser/checker/worker stay stopped. No new panel URL/dependency/schema/backend Compose or business save. Live profile/admin saves, current engine/continuous processing and thumbnail publication remain separate. Read deployment/questionnaire-history-navigation-2026-10-18.md and its immutable acceptance binding.
+
+Latest requested experience follow-up is deployed/accepted on4eba1012/65 assets: own patient/doctor home, booking widgets, published questionnaire grid/placeholder thumbnails and selected forms, modal name editing, server-owned multi-category document/image requests without doctor size controls, and corrected Farsi attachment requirements. Source72/740+83 current behavior+19 layout/PHP37/242 and four-role/final-patient ENFA desktop-mobile checks pass. [Before/after and rollback](deployment/clinical-experience-2026-10-17.md). User manual testing added records, including2 pending medical-scan jobs; current data is preserved and old zero-job checkpoints are historical.
+
+- [x] Deliver and accept the requested role dashboards, booking/questionnaire presentation, modal profile editor and medical category/RTL fixes using existing URLs/dependencies.
+- [ ] Future hardening: current scanner/parser recovery and continuous dedicated medical processing with exact authorized file/job delivery; pending jobs remain untouched.
+- [ ] Future hardening: archive/audio/video validation and large-media transport/publication before enabling those category options.
+- [ ] Future hardening: secure questionnaire thumbnail upload/selection/processing/publication and preview; keep current grid placeholders inert.
+
+Earlier October17 checkpoint: Phase 3 administration after the accepted golden flow. The combined panel/release rehearsal is accepted on healthyc6fdcf14/64 assets: source71/733 and current5/quality gates,304-page full UI matrix, final24 access/25 smoke groups across16 ENFA/role/width cohorts,31 UID33 reads/11 guest refusals and unchanged business/protected data. Narrow Farsi calendar labels, File Manager report overflow/content direction and cached private screens after logout are corrected. Root-only Staff, dedicated clinical directories and metadata-only support remain; content-manager permissions stay reserved separately. [CURRENT_TASK.md](../CURRENT_TASK.md) retains separate successful live saves/download audit/current scanner and personally deferred profile save. No full real-patient or production-readiness claim.
 
 ## How This Roadmap Works
+
+Latest bounded verification: [combined release rehearsal](deployment/panel-release-rehearsal-2026-10-17.md). Complete UI matrix and final-image access/history/normal-bootstrap checks pass; actual persisted medical Back is hidden before fresh login/401. Final c6fdcf14 retained,100 captures and all protected/business fingerprints preserved; nine services run, helpers remain stopped. Existing [doctor slot recovery](deployment/doctor-slot-recovery-2026-10-17.md) remains accepted32/261 plus eleven real MySQL cases, with operator cleanup verified. Earlier failures and intermediate artifacts stay immutable. Do not replay accepted writers or treat older pre-guard images as session-history privacy acceptance.
 
 - Work from top to bottom. A later phase starts only when the preceding phase gate is satisfied or `CURRENT_TASK.md` records an approved exception.
 - `docs/TODO.md` is the authoritative roadmap and dependency order.
@@ -21,8 +42,8 @@ Snapshot date: 2026-08-03
 ## Locked Decisions
 
 - [x] Backend: Laravel 12 with Docker for local development.
-- [x] Admin panel: React + TypeScript + Vite + Bootstrap, RTL-first.
-- [x] Public/client UI: React + Tailwind when that phase begins.
+- [x] Admin panel: React + TypeScript + Vite + Bootstrap, multilingual with language-owned RTL/LTR and the original Velzon visual baseline retained.
+- [x] Authenticated patient/doctor/admin demo UI: existing Velzon React + Bootstrap, per October 4 user direction. Public SEO/subscription UI remains deferred React + Tailwind work.
 - [x] Browser SPA auth: Sanctum session cookies; no browser-stored bearer tokens.
 - [x] Mobile/external auth: scoped bearer tokens with expiry, rotation, and revocation.
 - [x] Authorization authority: Spatie roles and permissions only.
@@ -37,24 +58,72 @@ Snapshot date: 2026-08-03
 - [x] Reservation status `pending` is a one-hour unpaid slot hold; it permits repeated payment attempts after errors and at most one canonical successful payment.
 - [x] Appointment time/duration changes use an explicit conflict-checked, audited history-preserving workflow.
 - [x] Account states are `active`, `suspended`, and `closed`; suspension/closure revoke sessions and bearer tokens while preserving records. Reservation and hospital-listing-request pending states are separate domain states.
-- [x] The databases are currently disposable/empty, so historical migrations may be consolidated into a clean baseline after the target schema is inventoried and protected by fresh/rollback tests.
+- [x] The August foundation used disposable databases for the approved baseline consolidation and isolated fresh/rollback tests. Current live databases contain accepted demo/protected/history records and are not disposable: no reset, reseed, consolidation or live migration is authorized by this historical decision.
 - [x] Blogs, products, and mobile settings are later feature phases, but their shared ownership, media, settings, money, and API foundations are designed early.
 
 ## Current Position
+
+October31 runtime recovery and Git publication checkpoint: existing backend/admin/four storage services/parser recovered; scanner was operator-started after automatic approval review blocked assistant startup, with Germany egress verified. Eleven services run; ClamAV healthy/current28170 and real synthetic clean/EICAR/checksum/freshness plus isolated parser corruption/recovery pass. HTTP/MySQL/Redis and all five Compose configurations/frontend typecheck pass. Checker/worker remain stopped, both jobs and30 business/protected hashes match October25. No migration/reset/build/credential/business write or job consumption. User explicitly confirms origin pain1122/nebula main for publication; source/tests/runbooks are included in the checkpoint; local credentials/cache/REPL/runtime evidence remain untracked. Patient-library routes/order are unchanged. [Recovery/publication](deployment/container-recovery-git-checkpoint-2026-10-31.md).
+
+October25 user-requested File Manager correction: the original developer page and article modal now share the actual Velzon three-pane frame and original chart, with real local article-image data, responsive EN/Farsi layout and no demo CRUD imported into the product. The earlier separate picker did not fulfill full Velzon reuse. Current accepted66828d4d/47 assets retains direct actions and unchanged server safeguards. Focused UI81 and quality gates pass; eight full modal cohorts and exact read-only toolbox-return/access completion pass on b1af96fe. Final footer-only acceptance passes another eight EN/Farsi desktop/mobile cohorts on6fb2ff48, including adjacent Select/Cancel and real selection/cancel. Current/protected/content hashes are unchanged. The requested whole-row list selection follow-up is accepted on66828d4d: all23 media tests, type/lint/format and four served EN/Farsi desktop/mobile size-cell/native-Enter/selection/cancel cohorts pass. The next task is the patient published-article library proposal/readers (CURRENT_TASK section4). Current baseline2 articles/6versions/2assets/12references/49audits/2jobs and zero health rows is preserved; additional pre-existing rows are not attributed. Eleven services run; backend/scanner/parser runtime and stopped checker/worker remain unchanged. No business write, dependency/schema change or job consumption. [Current correction](deployment/velzon-file-manager-embedded-2026-10-25.md).
+
+October24 real editorial media acceptance is complete on unchanged c31f5451/44 assets: operator-started healthy scanner/parser, official daily28148->28163 (October24 06:26:10UTC), real clean PNG/EICAR/checksum/freshness and isolated GD/corrupt-CRC/recovery pass. One real synthetic150-byte image automatically validates and serves privately, supplies thumbnail/ENFA inline content, and follows direct Publish v1 -> direct Save v2 -> ordinary guarded recovery v3 with v1 still published and12 immutable references. Five successful mutations produce exactly8 new metadata audits; original articles/versions/taxonomies/audits and29 other business/protected hashes, zero health rows and both medical jobs are preserved. Totals2 articles/6versions/1asset/12references/47audits/2jobs. Eleven intended services run, checker/worker stopped and worker idle command retained. Media/presentation flags are enabled; scheduling/publisher disabled. Runtime test-only-config and browser locale/keep-editor-open harness mistakes were corrected; failed receipts retained and persisted admission/publication/save never replayed. Closed empty-media/runtime/authoring runners now refuse populated state; do not rerun or weaken the older combined readiness guard. Next is patient published-article library/detail proposal and reader contract, followed by retained Velzon ENFA discovery. Folder ACL, broader formats, S3 lifecycle, contention/orphans, continuous medical delivery and automatic scheduling remain later work. Read docs/deployment/article-media-real-acceptance-2026-10-24.md; existing approvals are retained.
+
+October23 protected article/taxonomy reader source is accepted: seven GET endpoints, fresh admin/root authority, bounded public-ID filters/paging/version history, distinct working/published resources, retained taxonomy labels/current eligibility and signed revisions. Reader35/405 plus foundation35/121 and health11/126 pass (81/652); eight affected PHP style files/syntax checks pass. All seven running anonymous routes refuse401/private/no-store. Article flag stays false, six tables/migration absent live; health c99b19e9 stays enabled,30 prior/protected fingerprints/two jobs/all service images/states unchanged, nine normal services/six stopped helpers. Only new content routes carry the privacy priority wrapper; no general auth rule changed. Two existing health test clocks now use explicit Tehran noon after UTC-hour midnight brittleness; application health logic unchanged and old receipts retained. Next guarded taxonomy writers, then article writers/editorial transitions, approved UI and separate MySQL/activation. No live migration/save, environment/build/dependency/Compose/worker/scanner operation. Read docs/deployment/article-readers-2026-10-23.md; prior source-only notes below are historical.
+
+October22 article administration source/design is approved: six additive content tables and four admin/root URLs in docs/deployment/article-taxonomy-proposal-2026-10-22.md; do not request these approvals again. First bounded foundation passes35 tests/121 assertions (8 schema/integrity/rollback plus27 content/sanitizer/reference/Unicode/hash cases), PHP style/syntax and strict isolated UID33/network-none/memory-SQLite guards. Medical terms remain fixed catalog1, no patient-health reads/edits. All30 prior business/protected fingerprints/two jobs and accepted health runtime c99b19e9 remain unchanged; article tables/migration are absent live. No route/UI wiring, live migration/save, environment/build/dependency, backend Compose or scanner/worker operation. Next implement protected admin/root taxonomy/article readers and paged version history, then guarded writers/editorial transitions and the approved screens; MySQL/activation acceptance stays separate. Read docs/deployment/article-content-foundation-2026-10-22.md and its immutable receipt.
+
+October22 health development activation is accepted on healthy c99b19e9, retained checkupino-admin:patient-health-accepted-2026-10-22; rollback2f7bc492 remains retained. The user clarified Checkupino data is disposable if design requires recreation; no reset/backup claim was needed. All20 accepted implementation bindings match. Exact additive two-table migration ran as UID33, migrated/disabled state verified, then only main .env PATIENT_HEALTH_ENABLED=true and delegated static-admin build/recreation. Effective runtime/schema checks,32 affected served/container assets and16 role/ENFA1440-390 cohorts (19 groups/eight captures) pass. Patient taxonomy multi-selection/search, empty/history/draft/cancel/reload/keyboard/action rows and doctor/admin/root own/support no-fetch/direct403 pass; guest/logout re-entry401. Thirty current business/protected fingerprints and both queued jobs preserved; zero health rows/saves. Nine normal services run, helpers stopped, backend image/runtime unchanged. No key/credential change, backend Compose or job consumption. Prior8 MySQL/6-61 contract/UI41 proof remains. Next stage3 blog/article/taxonomy contract; managed catalog lifecycle/backward readers precede term edits. Attended positive health save and personally deferred name save remain separate. Read docs/deployment/patient-health-activation-2026-10-22.md; earlier source-only checkpoints below are historical.
+
+October22: patient health source is approved/tested (PHP11/126, UI41 and quality gates), and development activation/schema/runtime/served acceptance is complete on c99b19e9. Positive health save remains separate. The19-case clinical creation/location/pricing/working-hour MySQL slice is closed with exact disposable absence verified. Current executable order is [CURRENT_TASK.md](../CURRENT_TASK.md); its October22 plan supersedes the old rehearsal-first/October18 next-session lists. Prior expanded details are preserved byte-for-byte in the linked pre-reorder snapshot; historical acceptance receipts are unchanged.
+
+| Order | Next work | Exit gate |
+| --- | --- | --- |
+| 1 | Health-specific MySQL and contract/restore acceptance | Closed:8 MySQL cases,6/61 isolated contract/restore and verified cleanup; fixed catalog1 only. |
+| 2 | Health development activation/served ENFA acceptance | Complete: exact migration/one flag/static deployment,32 assets and16 cohorts/19 groups. Positive health save and personally deferred name save remain separate. |
+| 3 | Approved blog/article/taxonomy source implementation | Editorial/recovery/history42/366, draft44/344, taxonomy37/310, readers35/405 and foundation35/121 complete; health11/126 passes (204/1672). Next four approved UI pages -> focused disposable MySQL -> separate activation/ordinary writes. Medical terms stay fixed. |
+| 4 | Published patient article library/detail | ENFA/role/desktop/mobile acceptance; works without health data and uses safe cover placeholders. |
+| 5 | Shared reviewed recommendation rules and owner-only explanations | Actual reviewer/version/freshness/missing-data/content checks; unreviewed rules stay inactive. |
+| 6 | Integrated four-role demo regression, walkthroughs and freeze | One candidate, current availability, truthful accepted/pending gates, no replay of completed writers. |
+
+Independent media lane: supported official-definition recovery/current real probe -> parser acceptance -> exact authorized file/job delivery -> separately accepted continuous processing. This only gates fresh uploads/media publication; it does not delay health source/content work or recorded medical-history rehearsal. Two existing medical jobs remain untouched.
+
+Deferred hardening includes larger/archive/audio/video and multipart, covers/thumbnails/avatars/ratings, durable reconciliation/capacity/updater aging, content-manager permissions, cross-device theme preferences, refund policy/provider execution and real-patient release controls. The full bounded checklist and approval/operation ownership are in CURRENT_TASK; a newly observed safety defect can still become a release gate.
+
+Historical checkpoints below describe their original candidates; old next-action wording is not current execution authority.
 
 The project already has a useful verified base:
 
 - Laravel/Docker runtime, a production Compose skeleton, health route, and core seeders.
 - Spatie-only roles, separate root-admin authority, Sanctum browser sessions, and external bearer-token lifecycle support.
-- A Vite-powered Velzon React/TypeScript workspace with Persian/RTL support and root-admin developer routes isolated under `/panel/dev/*`.
-- First fail-closed audit and recent-password step-up coverage for admin-user mutations.
-- Shared booking logic for API/Blade creation, doctor/checkup pivot enforcement, generated/future slot validation, and locked conflict rechecks.
-- Payment guards that block casual unpaid-to-paid and premature done transitions.
+- A Vite-powered Velzon React/TypeScript workspace with Persian/English language-owned RTL/LTR support and root-admin developer routes isolated under `/panel/dev/*`; the original Velzon visual design remains the approved baseline.
+- Verified policy, recent-password, reason, transactional fail-closed audit, session/account-state, and privileged-route boundaries for the named high-authority families.
+- Shared booking logic for API/Blade creation, workplace-service eligibility, persistent public-ID slots, recurring rules/breaks, immutable snapshots, rescheduling, controls, and deterministic MySQL conflict locks.
+- Provider-neutral payment attempts/callbacks with signature/idempotency checks, canonical-success locking/reconciliation, adjustment-request boundaries, hold expiry, and guarded reservation lifecycle transitions.
 - Checkup/category safe archives that preserve checkups, reservations, payments, notes, files, and doctor assignments.
 
-Phase 1C closed on 2026-08-03. The final checkout passes 186 tests/950 assertions on SQLite with one expected MySQL-only skip, and 187 tests/961 assertions on disposable MySQL including deterministic concurrent payment success. Touched Pint, 104-route discovery, marketplace/tenant lifecycles, isolation, settings, entitlement, file, audit/step-up, API, production outbox integration, payment, and hold regressions pass. Phase 1D is also closed as a contract-only architecture gate. Phase 1E remains open, so Phase 1 and the Vite-admin prerequisite gate are not complete. Evidence: `docs/audits/phase-1c-verification-gate-2026-08-03.md` and `docs/architecture/phase-1d-future-feature-extension-contract.md`.
+Phase 1A-1E and the documentation/Working Mode review closed on 2026-08-16. That historical checkpoint records SQLite304/1,796 with three intentional MySQL-only skips, user-confirmed disposable-MySQL307/1,816,121 non-vendor/68 API routes and a clean Composer audit. Those counts/audit are not a current October dependency or route inventory. Evidence: `docs/audits/phase-1-verification-gate-2026-08-16.md`.
 
-## Phase 1 - Foundation and Future-Safe Baselines (Active)
+### Historical delivery checkpoints - October 17
+
+| Order | Work | Position |
+| --- | --- | --- |
+| 1 | Minimum booking/sandbox payment → medical request/upload/real scan/review/published history; fixed questionnaire and ordinary appointment completion | Accepted on synthetic records; repeat read-only rehearsal without replaying completed writers. |
+| 2 | Reservation administration/controls, medical/questionnaire management, profiles, clinical directories, Staff and Activity | Accepted source/deployed/read-only scope. Latest `/panel/users` is root-only staff/admin scope; content-manager role reserved separately, dedicated clinical directories/support retained. Full70-728/PHP32-341/31 UID33/11 native/two mirrors/four captures; no live admin save. [Staff acceptance](deployment/staff-directory-2026-10-16.md). |
+| 3 | Checkups/categories, then specialties | **Accepted for source/deployed controls and read-only scope.** Shared guarded writes/soft archives and specialty hierarchy/reference protection pass53/644; deployed43f3/54 assets/full63/591/23 native groups preserve all history. Live positive saves remain separate. |
+| 4 | Schedule administration | Bounded admin source/deployed controls/read-only scope accepted. Original nine-case proof retained; approved doctor contention fix passes source32/261/Pint6/guard31/ratchets and eleven real MySQL cases. Operator cleanup/absence verified. Positive live saves remain separate. [Hardening](deployment/doctor-slot-recovery-2026-10-17.md). |
+| 5 | Payment administration | Acceptedfa9c/57 assets/full67-667/final34/25 native ENFA groups/four mirrors. Exact list/card/history and root refund/whole-remaining void-request controls reuse locked revision/authority/canonical/audit guards. No live request/provider execution; those gates remain separate. [Evidence](deployment/admin-payment-controls-2026-10-16.md). |
+| 6 | General marketplace settings | **Accepted for source/deployed controls and read-only scope.** Explicit root page/sidebar/card/scope/save-reset approval fulfilled on40e032de/58 assets/full68-702/15 native groups/two mirrors/eight captures/11 retained groups/21 UID33 checks/eight guest401. Backend113-1092/Pint15, explicit/history/operator fallback and all fingerprints retained. Live saves/reset/concurrent MySQL remain separate. [Evidence/rollback](deployment/general-settings-panel-2026-10-16.md). |
+| 7 | Real product dashboard/reports | **Accepted source/served/read-only scope.** Real summaries/rankings/status/latest links retained; user explicitly replaces trend/location row with existing FullCalendar month/week appointments, Tehran time, ENFA/arrows and reservation links. No search/filter form; Recent Activity reserved. Retained dashboard checkpointeadb79df/64 assets (medical glyph fixed: focused17/six native/five captures) adds approved cyan hover/focus plus neutral labeled Today (focused24/16 native/two mirrors/eleven captures); prior full70-726/PHP32-515/all quality/25 UID33 reads/ten guest401 preserve all data. [Medical icon](deployment/medical-card-icon-2026-10-16.md); [day hover](deployment/calendar-hover-2026-10-16.md); [Today clarity](deployment/calendar-today-2026-10-16.md); [calendar acceptance](deployment/dashboard-calendar-2026-10-16.md); [prior proof](deployment/admin-dashboard-2026-10-16.md). |
+| 8 | Combined acceptance/release rehearsal | **Accepted for delivered source/served/read-only scope.** Three observed presentation/privacy defects fixed;304 full UI page checks and final49 access/smoke groups pass, source71/733/current5,64 assets/31 UID33/11 guest refusals, all data preserved. Fresh live writes, download audit and scanner proof remain separate. [Final report](deployment/panel-release-rehearsal-2026-10-17.md). |
+
+Refund follow-up remains separate: patient initiation, eligibility/time windows, deductions/exceptions, review authority and provider execution need explicit policy. Current cancellation does not refund; root-only pending requests have no automatic cut. [Logged decision](deployment/refund-policy-follow-up-2026-10-16.md).
+
+Parallel release gates remain open: official scanner access/current definitions and real synthetic probe before any fresh upload/exact encrypted-job delivery; successful live admin saves and verified-download audit. The user will personally attend the deferred profile-save rehearsal. Bounded nine-case atomicity and the approved eleven-case doctor recovery follow-up are accepted, with cleanup verified. These gates do not grant worker/scanner activation or permission to replay completed records.
+
+Latest accepted static panel is55f10d0b/64 assets/full frontend70 files/728 tests; root-only Staff/clinical directory/support compatibility and dashboard/calendar are accepted. [Staff acceptance](deployment/staff-directory-2026-10-16.md), [current calendar](deployment/calendar-hover-2026-10-16.md). Five original static-admin/media services run; backend/parser/scanner/checker/worker remain stopped. Wider media/public SEO/CI/portability/production and broad Phase 3/8 gates remain open.
+
+## Phase 1 - Foundation and Future-Safe Baselines (Complete)
 
 Purpose: settle the contracts that every later feature would otherwise force us to redesign.
 
@@ -160,97 +229,160 @@ Phase 1D closed on 2026-08-03. The six reserved baselines are defined in `docs/a
 
 ### 1E. Close current correctness and security gaps
 
-16. [ ] Finish booking correctness.
-    - Enforce default and actual duration rules, audited history-preserving rescheduling, enum-safe centralized policies, doctor availability, generated slots, past rejection, one-hour hold expiration, and concurrent overlap protection.
+Phase 1E was reconciled against the backend on 2026-08-03 and corrected items 16-20 were implemented and verified by 2026-08-16. The closed execution blueprint is archived at `docs/audits/phase-1e-implementation-blueprint-closeout-2026-08-16.md`; gap evidence is `docs/audits/phase-1e-gap-audit-2026-08-03.md`, item-20 evidence is `docs/audits/phase-1e-high-authority-closeout-2026-08-16.md`, and the final gate is `docs/audits/phase-1-verification-gate-2026-08-16.md`.
 
-17. [ ] Finish payment and reservation lifecycle integrity.
-    - Verified callbacks, explicit override policy, allowed status transitions, completion endpoint, rating-request trigger, audit, step-up, and regression tests.
+16. [x] Finish booking correctness.
+    - [x] Store recurring workplace-service rules with doctor-selected working hours, visit duration, effective dates, daily price, and multiple validated break intervals.
+    - [x] Materialize persistent dated visit slots with public ULIDs, immutable time/ownership/currency, resolved price, active state, hospital-local calendar interpretation, and rolling scheduled replenishment.
+    - [x] Make API and Blade availability expose public slot IDs and make booking accept only `slot_id`; derive all ownership, time, duration, price, currency, and payment snapshots on the server.
+    - [x] Add reasoned, policy-authorized, fail-closed audited rescheduling by replacement slot ULID for the same doctor/workplace/checkup while preserving the original price/currency/payment facts and slot/time history.
+    - [x] Add audited doctor controls for price and active state at individual-slot, concrete local-day, and concrete ISO-calendar-week scope. Bulk operations lock targets and exclude past or ever-reserved slots.
+    - [x] Prove create/create and create/reschedule overlap exclusion with deterministic disposable-MySQL concurrency coverage using the persistent target-slot public-ID lock plus the final locking conflict read.
 
-18. [ ] Finish questionnaire integrity.
-    - Exactly one valid answer per required question, duplicate/missing answer rejection, throttling plus a CAPTCHA/anti-automation decision, deterministic scoring, and stored-HTML sanitization/rendering policy.
+17. [x] Finish payment and reservation lifecycle integrity.
+    - [x] Verified/idempotent callbacks, canonical-success locks, late-success reconciliation, root-only reasoned stepped-up override, adjustment request service, and hold expiry are implemented and tested.
+    - [x] Move ordinary patient cancellation and assigned-doctor completion from controllers into one policy-authorized, locked, audited lifecycle service.
+    - [x] Require confirmed reservation plus paid summary and canonical successful attempt for completion; publish exactly-once `reservation.completed` and `rating.requested` intent.
+    - [x] Expose the existing payment-adjustment request through a root-only, reasoned, recent-password API boundary and add product-facing lifecycle regressions.
+    - Boundary: provider webhook/SDK selection, provider-executed refund/void, rating submission, and live notification delivery remain later work.
 
-19. [ ] Finish medical record/file safety needed by the demo.
-    - Deliver the minimum medical vertical slice: doctor requests a test/result, patient uploads it, doctor reviews and writes a note/report, and patient views the outcome.
-    - Require private storage, MIME/extension/size validation, malware/quarantine policy, authorized downloads, retention/deletion rules, and audit events.
+18. [x] Finish questionnaire integrity.
+    - [x] The server requires the submitted question set to match the questionnaire, rejects duplicates/foreign choices, hides public score rules, and computes/snapshots scores and results from stored choices.
+    - [x] Move validation/scoring into a Form Request/service and cover missing, foreign, mismatched, tampered, boundary, and questionnaire-version cases.
+    - [x] Sanitize stored questionnaire/recommendation HTML through a reviewed allowlist; the approved Symfony LTS sanitizer dependency and updated lock pass Composer audit with no advisories.
+    - [x] Add a named user/phone-hash/IP limiter. Provider CAPTCHA is intentionally deferred until a canonical frontend/provider decision.
+    - [x] Reject invalid/ambiguous recommendation ranges and unsupported non-empty conditions so scoring remains deterministic.
 
-20. [ ] Close remaining high-authority paths.
-    - Admin-to-admin authority, doctor verification, catalog pricing/update, questionnaire administration, tenant settings, reservation/payment override, and future bulk-operation policy.
+19. [x] Finish medical record/file safety needed by the demo.
+    - [x] Private storage, MIME/extension/size/checksum validation, quarantine/scan states, authorized clean download, retention/archive, replacement, audit, and failure compensation exist at the file-service layer.
+    - [x] Add minimal requested-test/result and immutable published-report aggregates, linking files to requests without treating a file or internal note as the report.
+    - [x] Deliver the backend vertical slice: assigned doctor requests, reservation patient uploads, scan result is recorded, assigned doctor reviews/publishes, and reservation patient views the authorized outcome.
+    - [x] Default-deny generic admin access to medical bodies/files; add IDOR, quarantine/infection/retention, report immutability/amendment, audit-redaction, and API-resource tests.
+    - Boundary: no medical UI, antivirus vendor, public scan callback, or tenant-local medical product in Phase 1E.
+
+20. [x] Close remaining high-authority paths.
+    - [x] Account state, doctor verification, questionnaire administration, marketplace tenant controls/settings, and reservation override have their existing policy/authority, step-up, reason, transaction, audit, and regression foundations. Payment adjustment separately has a root-only reasoned locked/audited service foundation.
+    - [x] Require an explicit reason/policy boundary for admin identity create/update and remove the known optional `TempPass123!` fallback through an approved root-controlled passphrase rule.
+    - [x] Close catalog create/pricing/currency/default-duration policy, step-up, reason, audit, and rollback coverage.
+    - [x] Run a final named high-authority route/mutation audit; the payment-adjustment HTTP boundary was completed under item 17.
+    - [x] Record that bulk role upgrades are forbidden and future approved bulk archives require soft deletion plus per-subject audit rows sharing one batch ID; no speculative bulk endpoint was added.
 
 ### Phase 1 gate
 
 - [x] Fresh migration, seed, rollback, and re-apply pass on disposable SQLite and MySQL databases.
 - [x] The minimal tenant-foundation migration path independently verifies its single-hospital profile, local authority, entitlement, audit/outbox, and marketplace-separation constraints without full tenant features.
-- [ ] Backend tests and formatting checks pass against the completed Phase 1 baseline.
-  - Phase 1C status: the final checkout passes SQLite 186 tests/950 assertions with one expected MySQL-only skip and disposable MySQL 187 tests/961 assertions including concurrency; touched Phase 1C files pass Pint. Phase 1D is documentation-only. The overall checkbox remains open for Phase 1E and the repository-wide formatting decision.
-- [ ] Schema constraints, policies, enums, services, seeders, and docs agree.
-  - Phase 1C schema/runtime/docs agree and the Phase 1D extension contract is reconciled; this remains open for unfinished Phase 1E work.
-- [ ] Ownership/IDOR, tenant mass-assignment, PII-safe resources/audit, session invalidation, and CSRF/CORS regression coverage is complete.
-  - Phase 1C adds the settings, monitoring, file, API-resource, outbox, payment, and concurrency cases; the overall gate remains open for Phase 1E product workflows.
+- [x] Backend tests and formatting checks pass against the completed Phase 1 baseline.
+  - Phase 1E status: SQLite passes 304 tests/1,796 assertions with three intentional MySQL-only concurrency skips; the user-confirmed clean MySQL rerun passes 307 tests/1,816 assertions. The first MySQL attempt's five test-side JSON object key-order assumptions were corrected and independently rerun at 25 tests/194 assertions. The 20 item-20 PHP files and four portability-fix test files pass Pint, 68 API/121 total non-vendor routes load, and `git diff --check` passes.
+- [x] Schema constraints, policies, enums, services, seeders, and docs agree.
+  - Phase 1C/1D contracts and corrected Phase 1E items 16-20 are reconciled; `CURRENT_TASK.md` now contains the Phase 2 planning handoff.
+- [x] Ownership/IDOR, tenant mass-assignment, PII-safe resources/audit, session invalidation, and CSRF/CORS regression coverage is complete.
+  - The complete SQLite and disposable-MySQL suites cover these boundaries after Phase 1E.
 - [x] No current behavior is silently lost during migration consolidation.
-- [ ] Review and intentionally update the `AI_BOOT.md` Working Mode after the foundation gate, as previously deferred.
+- [x] Review and intentionally update the `AI_BOOT.md` Working Mode after the foundation gate; it now records the verified Phase 1 baseline and the planning-first, human-approved Phase 2 boundary.
 
-## Phase 2 - Reusable Vite Admin Platform
+## Phase 2 - Reusable Vite Admin Platform (Demo Essentials Active; Platform Gates Deferred)
 
-Purpose: make the admin shell useful in Checkupino and portable to another Laravel/API project before building domain-heavy pages.
+Purpose: stabilize the existing admin for the demo, then finish broader reuse/adoption work separately. The user recalibrated items 1, 2, 4, 5 and 8 on 2026-10-02. Completed technical foundations remain protected; CI, extraction and destructive toolbox cleanup are not prerequisites for the local presentation.
 
-1. [ ] Make `frontend/` type-clean and build-clean.
-   - Fix the missing `ForgetPassword.tsx` reducer/import and all TypeScript errors.
-   - Add `npm run typecheck`, production build, lint/format policy, and CI gates.
+Status convention: a parent checkbox covers its full written scope. Completed subitems and evidence distinguish delivered work from deferred acceptance. Demo release acceptance is listed separately below; it does not declare all Phase 2 gates closed.
 
-2. [ ] Declare canonical ownership and routing.
-   - `/panel/*` is the product admin namespace.
-   - Keep root-admin developer utilities isolated and lazy under `/panel/dev/*` or a clearly equivalent namespace.
-   - Remove route/auth path drift and document deployment base-path behavior.
+1. [x] Make `frontend/` type-clean and build-clean, with repeatable local demo quality gates.
+   - [x] Local strict typecheck, tests, governed lint, fixtures, formatting and approved debt/boundary ratchets are implemented and pass at the latest source checkpoint.
+   - [x] Production build with the actual demo API origin passes; the deployed immutable artifact has been checked separately from container health.
+   - [x] October 2 local quality/build rerun and exact environment/lock/artifact evidence are recorded. Bounded jsdom concurrency fixes the observed editor timeout without weakening assertions or deadlines.
+   - Approved CI policy/provider execution (F32A/F32) is excluded from this demo-local item and remains unchecked in the full Phase 2 gate. Recheck affected gates after later source changes.
+   - Evidence: `docs/deployment/demo-readiness-2026-10-02.md`, latest 47 files/237 tests and 5.40-second production build after login/GET fixes and directory-only debounce tuning. Earlier deployed functional acceptance remains in `docs/deployment/demo-user-mutations-acceptance-2026-10-01.md`.
 
-3. [ ] Separate reusable admin core from Checkupino modules.
-   - Core: layout, theme, i18n/RTL, auth boundary, API client, navigation, permissions, forms, tables, feedback, errors, and route registry.
-   - Domain modules: users, doctors, reservations, payments, questionnaires, content, commerce, and settings.
-   - The core must not import Checkupino domain pages or hard-code Checkupino API routes.
+2. [x] Declare canonical ownership/routing and verify the deployed demo.
+   - One `/panel` basename; manifest-relative product paths; lazy root-only `/panel/dev/*`; controlled JSON POST logout with no SPA logout route.
+   - F25/F29 delivery is exercised in the actual Nginx artifact: origin-preserving base redirects, deep-link refresh, assets, missing-asset/outside-path 404s and localhost session behavior.
+   - Evidence: `docs/deployment/demo-runtime-acceptance-2026-10-01.md` and `docs/deployment/demo-user-mutations-acceptance-2026-10-01.md`.
+   - Recheck only affected routes after changes and the selected walkthrough on the final candidate. Deferred F27I disposition remains an item 8/platform task rather than blocking the already-verified routing contract.
 
-4. [ ] Consolidate a typed API/auth client.
-   - One environment-driven base URL and one normalized error/envelope layer.
-   - Session-cookie adapter for browser admin; a replaceable auth adapter boundary for reuse.
-   - Request cancellation/deduplication, CSRF bootstrapping, pagination/filter/sort helpers, and typed query/mutation hooks.
+3. [ ] Finish reusable-core versus Checkupino ownership and adoption proof.
+   - [x] Core/module/devtool contracts and manifest boundaries are implemented (F09/F14); preserve them during demo work.
+   - [ ] Full minimal-manifest/external-consumer proof and extraction decisions remain deferred with item 9 (F30/F31/F31A).
+   - No new package/workspace architecture is needed merely to deliver this demo.
 
-5. [ ] Build a shared route/menu/permission registry.
-   - One definition drives routing, navigation, breadcrumbs, titles, lazy imports, and role/permission visibility.
-   - Backend remains the authority; frontend gates improve UX but never replace policies.
+4. [x] Consolidate the typed API/auth boundary used by the demo.
+   - One environment-driven credentialed Sanctum transport, normalized errors, CSRF bootstrapping, reactive auth authority and capability boundary (F10-F13).
+   - Typed endpoint-specific list/query adapters, cancellation, server query/cache ownership and real user write consumers are delivered. Credential-bearing writes stay outside Redux query arguments/storage.
+   - Actual login/me/logout, root/admin boundaries, validation, 423 confirmation/cancellation/retry and identity/role cache clearing are verified in the delivered users flow.
+   - New business screens reuse these contracts; their API integration is Phase 3 work. Do not introduce another client/auth/store or rewrite working adapters for speculative reuse.
+   - Evidence: the two October demo acceptance reports; broader replaceable-adapter adoption remains item 9.
 
-6. [ ] Build reusable admin primitives.
-   - Data table, server pagination/filter/sort/search, form fields/validation, modal/drawer, archive confirmation, password step-up, file picker, status badge, audit history, empty/loading/error states, and toast/notification handling.
-   - Ensure Persian/RTL behavior is part of component acceptance, not a later patch.
+5. [x] Build and exercise the shared route/menu/permission registry.
+   - F14/F28 provide canonical manifest-driven route/nav access, titles, breadcrumbs and lazy loaders; Product Admin comes first, the root System slot remains inert, Developer Toolbox remains root-only and last.
+   - The users route/menu is integrated and tested for guest, normal admin and root-admin. Backend remains authoritative.
+   - Future walkthrough screens must register once and introduce no dead links or optional dashboard/system features.
 
-7. [ ] Make root-admin platform navigation first-class.
-   - Separate marketplace product/directory pages from root-admin system pages.
-   - Preserve extension slots for future tenant monitoring, feature entitlements, settings, audit events, health, jobs, and mobile configuration without building tenant pages in this phase.
+6. [ ] Finish reusable-primitives acceptance.
+   - [x] Tables, fields/schema validation, feedback, status, file/audit presentation and shell lifecycle contracts are implemented (F15-F17/F19-F21).
+   - [x] Dialog and recent-password presentation have real create/edit consumers and deployed validation/locale/confirmation evidence.
+   - [ ] Remaining F18 archive/drawer acceptance waits for a genuine required operation; do not add a harness or feature merely to close this checkbox.
+   - English/Farsi correctness stays mandatory during implementation; final visual stabilization remains limited to the approved presentation surfaces and the original Velzon design.
 
-8. [ ] Remove or quarantine Velzon demo dependencies.
-   - Delete fake/demo data helpers only after no reusable core or product route depends on them.
-   - Keep selected developer reference pages only when they are clearly root-admin tools and remain lazy-loaded.
-   - Reduce the shared shell chunk and prevent toolbox assets from entering normal-admin startup bundles.
+7. [x] Make root-admin platform navigation first-class.
+   - F28 Product Admin/System/Developer Toolbox ordering, role visibility and inert extension-slot behavior are accepted.
+   - Preserve future extension points; tenant monitoring and optional host/system/queue/health dashboards stay deferred. The later explicitly approved product Activity and feature-reporting dashboard are Phase 3 administration work.
+
+8. [x] Verify demo startup isolation and measured presentation performance.
+   - [x] JavaScript routes/menus/reducers are root-only and lazy (F24B1); retained toolbox styles, WOFF2 fonts and en/fa locale ownership are delivered (F27A-F27H).
+   - [x] Measure the deployed presentation startup/request graph and cold/warm route/API timings; record byte/latency budgets before changes. Evidence: `docs/deployment/demo-readiness-2026-10-02.md` and its linked raw samples.
+   - [x] Actual users flows have no fake fallback, external template backend or toolbox startup. Existing ecommerce home fixtures remain reference content and never evidence of product reporting.
+   - [x] Deploy/verify gzip with encoding-aware caching: initial linked JS/CSS transfer falls 78.4%, main CSS 84.2%; body equality/delivery pass. A discovered login/session-bootstrap race is fixed and covered by two regressions; full quality/build pass.
+   - [x] User-run admin-only rebuild and deployed source/delivery/session/header verification pass. Search now meets its unchanged budget (461.3 ms median/1,718 maximum); other UI, payload, directory startup and idle-read limits pass.
+   - [x] User explicitly accepts the local-demo warm-me exception (1,551.3 ms versus the unchanged 1,500 target) and login/users warm-up requirement at closeout. The target miss and about 12.4-second cold login remain documented; no strict-target or production guarantee is claimed. No rebuild is pending.
+   - Full F27I allowlisting/quarantine/deletion and optional reference-page removal are excluded from this demo item and remain deferred, recoverable and separately approved. Broad optimization, whole-template rewrites and dependency/asset cleanup remain deferred.
 
 9. [ ] Document and verify portability.
-   - Environment contract, required packages, auth/API adapter points, theme tokens, module registration, build commands, and extraction/copy checklist.
-   - Prove the admin core can boot with a minimal module manifest without Checkupino domain routes.
+   - Minimal-manifest fixture (F30), adoption documentation (F31), external consumer proof (F31A) and extraction decisions remain post-demo work.
+   - Existing module contracts stay intact; no second project or package publication is required for this local presentation.
 
-### Phase 2 gate
+### Full Phase 2 Gate (Still Open)
 
-- [ ] `npm run typecheck` and `npm run build` pass in CI.
-- [ ] Root-admin and normal-admin route/menu authority is browser-tested.
-- [ ] The normal-admin initial bundle excludes developer-toolbox pages.
-- [ ] A second project can adopt the admin core through documented configuration rather than copying Checkupino business code.
+- [ ] `npm run typecheck` and `npm run build` pass in approved CI.
+- [x] Root-admin and normal-admin route/menu authority is browser-tested.
+- [x] The normal-admin initial JavaScript excludes developer-toolbox pages, route/menu inventories and demo reducers.
+- [ ] A second project adopts the core through documented configuration without copying Checkupino business code.
+- F33 full closeout remains open. Demo acceptance below is a bounded delivery gate, not a substitute for CI, portability or deferred primitive/quarantine acceptance.
 
 ## Phase 3 - Functional Checkupino Demo
 
 Purpose: deliver one end-to-end usable product slice on the stable backend and reusable admin platform.
 
+### Release Scope, Immediate Work, And Deferred Decisions
+
+- Delivered minimum story: role-specific booking/sandbox payment, one ordinary private synthetic upload/exact encrypted medical-scan delivery/real scanner-parser checks/review/publication-amendment/patient history, one fixed questionnaire and ordinary assigned-doctor appointment completion are accepted. Existing recorded history remains demonstrable; new uploads require current scanner recovery/probe. [Medical flow](deployment/demo-medical-flow-2026-10-11.md), [completion/rehearsal](deployment/demo-recovery-rehearsal-2026-10-11.md). Public SEO/subscription pages stay deferred.
+- Full Phase 3 requirements remain open below. Complete feature administration is now authorized and follows the current delivery sequence above; its approved screens and accepted foundation work are distinguished from pending live saves. The fixture-based home remains reference content and does not count as Checkupino reporting.
+- The approved minimum golden flow used preconfigured doctor/catalog/schedule records and one fixed questionnaire as a separate branch. Its recorded acceptance does not establish full catalog administration, fresh-clone reproducibility, real-provider payment or real-patient readiness. Do not replay its completed writers or reset/reseed its fixtures.
+- Current implementation: ordered administration through catalog/specialty/schedule/payment/settings controls, real dashboard/calendar, root-only Staff, approved doctor contention recovery and combined panel/release rehearsal are accepted for their bounded source/deployed/read-only scopes. Final c6fdcf14 includes mobile/medical/cache-history corrections; all original/protected data preserved. Positive live saves and fresh scanner proof remain separate; named dependency/schema/URL boundaries persist.
+- Park until after demo delivery and specific approval: F27I quarantine/deletion, portability/extraction, CI and optional system dashboards. Measured startup/API/interaction performance and leak fixes on the selected presentation path are now in scope; broad performance refactors remain deferred. September 21 is historical, not deletion permission or a new deadline.
+- Runtime acceptance is reported separately as static serving, Laravel/DB/Redis health, compiled artifact freshness/origin, and functional cookie-auth/browser behavior. The read-only directory does not need workers/scheduler; reservation hold expiry and future asynchronous flows must verify their workers/scheduler before acceptance.
+
+### Demo Readiness Gate (Phase 2 Items 1/2/4/5/8)
+
+The historical October2 presentation gate is accepted for delivered surfaces with the recorded warm-me exception; [CURRENT_TASK.md](../CURRENT_TASK.md) and the current delivery sequence govern subsequent work. Current static serving, role/session/read-only controls, bilingual mirrors and source tests are documented per slice. This bounded acceptance does not close expanded administration, fresh-scanner/live-save gates, CI/portability or the full Phase 2/3 gates.
+
+- [x] Establish the current presentation runtime/request/bundle/performance baseline and prioritize observed blockers.
+- [x] Existing local quality/build gates pass for the current source candidate; no new unaccepted debt or dependency changes. Recheck affected gates after later changes.
+- [x] Verify deployed origin/assets/redirects/refresh/404s, session lifecycle and role/refusal/error behavior on delivered presentation paths; ordinary golden-flow runtime writes have their own accepted evidence. New administration screens require the same checks.
+- [x] Selected users flows use real APIs; deployed startup excludes toolbox payload and no external template backend/fake fallback enters this product path. Fixture home remains reference content.
+- [x] Set measured startup/API/interaction budgets, fix demonstrated causes and verify the candidate. User accepts the documented local-demo warm-me exception and login/users warm-up requirement; the original target miss stays visible.
+- [x] Select the minimum business walkthrough: preconfigured booking/sandbox payment/medical outcome plus one fixed questionnaire, approved October 4.
+- [x] Accept the ordinary synthetic minimum story and repeat read-only history rehearsal. Preserve closed request/upload/payment/report/appointment writers; fresh-upload readiness remains the separate gate above.
+- [x] Accept delivered English/Farsi/keyboard and approved LTR-derived RTL mirrors/grids/editor controls. [Mirror scope and remaining vendor gaps](deployment/panel-mirror-acceptance-2026-10-13.md); new feature screens and the final combined visual matrix remain open.
+- [x] Deploy the tested static artifact through the scoped user/delegated admin-only sequence and retain rollback/evidence. Current catalog0748b736 supersedes789 Activity; no rebuild is pending for the accepted read panels.
+
 ### 3A. Root-admin and admin
 
-1. [ ] Complete root-admin platform capabilities for the demo scope.
-   - Manage marketplace admins/authority, account suspension/session revocation, hospital directory, marketplace settings, doctor verification, audit events, and system/queue/health visibility.
+Phase 3A was authorized September11; complete feature administration was approved October11. The ordered panel slices through catalog/specialties, schedule/payment/settings controls and real dashboard/calendar are delivered for their bounded source/read-only scopes. Doctor contention recovery and combined panel/release rehearsal are accepted in CURRENT_TASK stage8. Wider product coverage and separate live acceptance gates remain open below. The user-owned live profile-save rehearsal stays deferred.
+
+1. [ ] Complete remaining root-admin product capabilities.
+   - Marketplace admin/account authority, hospital directory and doctor verification remain governed by their existing policies. Authorized Activity and general setting controls/runtime integration are delivered for bounded source/read-only scopes; wider administration and positive live acceptance remain open. Optional system/queue/health dashboards stay deferred.
    - Every privileged mutation is policy-checked, step-up protected where required, and audited. Tenant-instance management/monitoring UI remains Phase 7.
 
-2. [ ] Complete normal-admin capabilities for the demo scope.
+2. [ ] Complete remaining normal-admin feature administration.
    - Manage permitted marketplace users/patients, hospital directory profiles, doctors/workplaces, specialties, checkup categories/checkups, schedules, reservations, payments, questionnaires, ratings, and reports without root-admin escalation paths.
 
 ### 3B. Doctor and catalog
@@ -259,30 +391,37 @@ Purpose: deliver one end-to-end usable product slice on the stable backend and r
    - Profile, specialty, verification state, offered checkups, availability, reservation queue, allowed status actions, requested tests/results, notes, private files, and reports.
 
 4. [ ] Complete the checkup catalog workflow.
-   - Categories, checkups, pricing, duration, doctor eligibility, safe archive/detach/reassignment, search/filter/sort, and historical snapshot behavior.
+   - Categories/checkups/specialties, guarded edits/soft archives/hierarchy and historical-reference protection are delivered for bounded source/deployed/read-only scopes. Positive live mutations and complete catalog/doctor-eligibility workflow acceptance remain separate.
 
 ### 3C. Reservation, payment, and questionnaire
 
 5. [ ] Complete the reservation workflow.
-   - Availability search, booking, conflict safety, cancellation, admin/doctor transitions, completion, rating request, ownership policies, and history.
+   - Availability/booking/sandbox paid visibility and ordinary completion are accepted for the selected story; admin reschedule/root-override controls pass source and deployed read-only checks. Positive live admin actions, wider cancellation/rating/follow-up and complete workflow acceptance remain open.
 
 6. [ ] Complete the payment workflow.
-   - A deterministic sandbox/fake provider adapter for the demo, verified/idempotent callback path, payment status history, refund/void-ready contract, and audited root-admin override.
+   - Deterministic sandbox failure/success, canonical paid history and payment administration/root adjustment-request controls are accepted for their documented scopes. Positive live adjustment requests, refund policy/provider execution and complete lifecycle acceptance remain open.
 
 7. [ ] Complete the questionnaire workflow.
-   - Admin CRUD, safe rich content, public/patient submission, lead linkage, validation/throttling/anti-automation, scoring, recommendations, results, and audit/history behavior.
+   - The fixed patient submission/server score/recommendation, admin definition/submission controls and existing visual rich-text editor are accepted for their documented scopes. Positive live admin mutations, broader public/lead/anti-automation and complete workflow acceptance remain open.
 
 ### 3D. Demo delivery
 
-8. [ ] Complete the booking-to-medical-outcome vertical slice.
-   - Doctor requests a result/test, patient uploads a private file, doctor reviews it and publishes a report/outcome, patient views the authorized outcome, and admins see only policy-permitted records.
+8. [x] Accept the minimum synthetic booking-to-medical-outcome vertical slice.
+   - Ordinary request/upload/exact single encrypted-job delivery/real checks/review/download/draft/edit/immutable publication-amendment/patient history pass; policy-scoped admin medical read/controls are deployed. Fresh scanning and positive live admin/download-audit gates remain separate. [Accepted flow](deployment/demo-medical-flow-2026-10-11.md).
 
 9. [ ] Create a deterministic demo seed and walkthrough.
    - Root-admin, admin, doctor, and patient accounts; tenant/site; feature entitlements; checkups; schedules; questionnaire; sample reservation/payment states; and safe local-only credentials.
-   - Document the golden flow and capture repeatable screenshots/video only after the seeded flow is stable.
+   - Existing synthetic fixtures, ordinary completed story, read-only walkthrough and screenshots are accepted. Fresh-clone/complete seed reproducibility and optional video remain unaccepted; this task authorizes no reset/reseed of current records.
 
 10. [ ] Add end-to-end acceptance coverage for the golden path.
-   - Fresh database to login, configure catalog/doctor, book, pay through sandbox, complete reservation, upload/review/view a medical outcome, request rating, submit questionnaire, and review audit events.
+   - Existing-state browser golden story, isolated failure/ownership/transaction tests and read-only rehearsal are accepted. Full fresh-database setup/configure-catalog/doctor/rating acceptance remains open; no completed-demo replay or unrelated queue consumption.
+
+11. [ ] Perform final multilingual and RTL visual stabilization after the functional demo is complete.
+   - The September11/October12 observed Persian defects led to the explicitly approved LTR-derived mirror and questionnaire/reservation grids, accepted October13 using existing dependencies. Delivered surfaces pass documented ENFA/desktop-mobile/native controls; vendor gaps remain logged and new catalog/administration screens require their own acceptance.
+   - Keep Persian/English translation keys and language-owned `dir` mandatory throughout development; this item is visual stabilization, not postponed localization.
+   - Correct labels on every screen as it is implemented in items 1-10; item 11 owns the comprehensive residual catalog audit and cross-surface consistency pass.
+   - Inventory and correct physical margin/padding/float/alignment/position classes and custom selectors across the approved active demo surfaces without redesigning Velzon.
+   - The bounded mirror strategy is already approved/implemented; do not repeat its approval or add build dependencies. Verify English/LTR and Persian/RTL on each newly delivered surface, then the final combined matrix at supported widths.
 
 ### Phase 3 gate
 
@@ -291,6 +430,7 @@ Purpose: deliver one end-to-end usable product slice on the stable backend and r
 - [ ] The admin panel exposes every demo workflow through real APIs with no fake business data.
 - [ ] Booking, payment, questionnaire, archive, private-file, and privileged-action regressions are covered.
 - [ ] Ownership boundaries, PII-safe responses, account/session revocation, and browser CSRF/CORS behavior are acceptance-tested.
+- [ ] Approved active demo surfaces pass final English/LTR and Persian/RTL visual regression with no unresolved recorded geometry defect.
 
 ## Phase 4 - Blogs and Content
 
@@ -318,7 +458,7 @@ Purpose: deliver one end-to-end usable product slice on the stable backend and r
 
 ## Phase 7 - Public/Patient and Tenant-Site Expansion
 
-1. [ ] Build the React + Tailwind public/patient application on the stable APIs.
+1. [ ] Build the React + Tailwind public SEO/subscription application on the stable APIs; authenticated patient/doctor demo workflows use Velzon and remain in Phase 3.
 2. [ ] Build the isolated single-hospital tenant application/profile against its own configured database; no dynamic cross-tenant query path.
 3. [ ] Add hospital/clinic branding, locale, navigation, entitled local feature surfaces, and controlled content syndication.
 4. [ ] Add tenant-local admins, doctors, patients, booking, payment, questionnaires, results, files, ratings, and notifications.
@@ -332,7 +472,8 @@ Purpose: deliver one end-to-end usable product slice on the stable backend and r
 3. [ ] Add production Compose smoke tests, environment validation, React-admin deployment, and a release-time migration policy.
 4. [ ] Define database/upload backup, restore, retention, and disaster-recovery procedures.
 5. [ ] Finalize TLS, reverse proxy, secret management, observability, queue/scheduler supervision, and alerting.
-6. [ ] Add operational dashboards, exports, analytics/reporting, and privacy-aware audit retention.
+6. [ ] Add operational dashboards, exports, analytics/reporting and privacy-aware audit retention.
+   - The explicitly approved product dashboard/activity previews now belong to Phase 3 administration. Wider host/system operations, exports and production reporting remain Phase 8; this item does not defer the active product dashboard.
 7. [ ] Add PR/release checklists that enforce tests, migration safety, API compatibility, tenant isolation, and documentation updates.
 
 ## Roadmap Guardrails

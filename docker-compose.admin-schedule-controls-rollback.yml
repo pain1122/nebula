@@ -1,0 +1,3 @@
+services:
+  admin:
+    image: checkupino-admin:schedule-read-accepted-2026-10-15

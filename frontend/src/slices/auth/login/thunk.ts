@@ -1,5 +1,4 @@
-//Include Both Helper File with needed methods
-import { loginWithSession, logoutSession } from "../../../helpers/session_api";
+import { adminAuthAuthority } from "../../../modules/checkupino/auth/authority";
 import type { LoginCredentials } from "../../../types/auth";
 import type { AppDispatch } from "../../../store";
 
@@ -24,14 +23,14 @@ export const loginUser =
     (user: LoginCredentials, history: Navigate) =>
     async (dispatch: AppDispatch) => {
         try {
-            const authUser = await loginWithSession({
+            const authUser = await adminAuthAuthority.login({
                 email: user.email,
                 password: user.password,
                 remember: user.remember,
             });
 
             dispatch(loginSuccess(authUser));
-            history("/dashboard");
+            history(adminAuthAuthority.consumeRedirectIntent());
         } catch (error: unknown) {
             dispatch(apiError(getErrorMessage(error)));
         }
@@ -39,10 +38,11 @@ export const loginUser =
 
 export const logoutUser = () => async (dispatch: AppDispatch) => {
     try {
-        await logoutSession();
-        dispatch(logoutUserSuccess(true));
+        await adminAuthAuthority.logout();
     } catch (error: unknown) {
         dispatch(apiError(getErrorMessage(error)));
+    } finally {
+        dispatch(logoutUserSuccess(true));
     }
 };
 export const resetLoginFlag = () => async (dispatch: any) => {

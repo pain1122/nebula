@@ -1,0 +1,21 @@
+[
+  {"name":"doctor_create_replay","leader":"doctor_create","follower":"doctor_create","expected":["committed","conflict"]},
+  {"name":"patient_create_replay","leader":"patient_create","follower":"patient_create","expected":["committed","conflict"]},
+  {"name":"hospital_create_replay","leader":"hospital_create","follower":"hospital_create","expected":["committed","conflict"]},
+  {"name":"doctor_create_audit_rollback","leader":"doctor_create","follower":"doctor_create","audit_failure":true,"expected":["audit_rolled_back","committed"]},
+  {"name":"hospital_create_audit_rollback","leader":"hospital_create","follower":"hospital_create","audit_failure":true,"expected":["audit_rolled_back","committed"]},
+  {"name":"different_admin_duplicate_doctor","leader":"doctor_create","follower":"doctor_create","different_admin":true,"expected":["committed","duplicate_constraint_refused"]},
+  {"name":"different_admin_duplicate_hospital","leader":"hospital_create","follower":"hospital_create","different_admin":true,"expected":["committed","duplicate_constraint_refused"]},
+  {"name":"same_hospital_attachment_replay","leader":"attach","follower":"attach","expected":["committed","conflict"]},
+  {"name":"service_price_replay","leader":"prices","follower":"prices","expected":["committed","conflict"]},
+  {"name":"service_price_before_hours","leader":"prices","follower":"weekly","expected":["committed","conflict"]},
+  {"name":"hours_before_service_price","leader":"weekly","follower":"prices","expected":["committed","conflict"]},
+  {"name":"two_locations_share_practice_revision","leader":"weekly","follower":"weekly","other_location":true,"expected":["committed","conflict"]},
+  {"name":"price_audit_rollback_releases_hours","leader":"prices","follower":"weekly","audit_failure":true,"expected":["audit_rolled_back","committed"]},
+  {"name":"hours_audit_rollback_releases_price","leader":"weekly","follower":"prices","audit_failure":true,"expected":["audit_rolled_back","committed"]},
+  {"name":"booking_before_service_price","leader":"book","follower":"prices","expected":["committed","committed"]},
+  {"name":"service_price_before_booking","leader":"prices","follower":"book","expected":["committed","committed"]},
+  {"name":"booking_before_hours","leader":"book","follower":"weekly","expected":["committed","committed"]},
+  {"name":"hours_before_booking","leader":"weekly","follower":"book","expected":["committed","slot_unavailable"]},
+  {"name":"hospital_deactivation_before_attach","leader":"hospital_deactivate","follower":"attach","expected":["committed","hospital_unavailable"]}
+]

@@ -5,6 +5,7 @@
     <div class="max-w-xl mx-auto p-4">
         <form method="POST" action="{{ route('admin.checkups.store') }}" class="bg-white p-4 rounded shadow space-y-3">
             @csrf
+            @include('admin.catalog.guard', ['kind' => 'checkups', 'catalogId' => null, 'needsReason' => false])
             <div>
                 <label class="block mb-1">دسته</label>
                 <select name="checkup_category_id" class="w-full border rounded p-2">
@@ -25,14 +26,29 @@
                 @error('slug') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
             </div>
             <div>
-                <label class="block mb-1">قیمت (ریال)</label>
+                <label class="block mb-1">قیمت</label>
                 <input name="price" type="number" min="0" value="{{ old('price', 0) }}" class="w-full border rounded p-2" />
                 @error('price') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
+            </div>
+            <div>
+                <label class="block mb-1">کد ارز</label>
+                <input name="currency" maxlength="3" value="{{ old('currency', 'IRR') }}" class="w-full border rounded p-2 uppercase" />
+                @error('currency') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
+            </div>
+            <div>
+                <label class="block mb-1">مدت پیش‌فرض ویزیت (دقیقه)</label>
+                <input name="default_duration_minutes" type="number" min="5" max="720" value="{{ old('default_duration_minutes', 30) }}" class="w-full border rounded p-2" />
+                @error('default_duration_minutes') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
             </div>
             <div>
                 <label class="block mb-1">توضیحات</label>
                 <textarea name="description" rows="3" class="w-full border rounded p-2">{{ old('description') }}</textarea>
                 @error('description') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
+            </div>
+            <div>
+                <label class="block mb-1">دلیل ایجاد</label>
+                <textarea name="reason" rows="2" class="w-full border rounded p-2">{{ old('reason') }}</textarea>
+                @error('reason') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
             </div>
             @foreach ($errors->all() as $e) <div class="text-red-600 text-sm">{{ $e }}</div> @endforeach
             <div class="flex justify-end"><button class="px-4 py-2 bg-blue-600 text-white rounded">ثبت</button></div>

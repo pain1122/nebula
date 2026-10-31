@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardBody, Col, DropdownItem, DropdownMenu, DropdownToggle, Input, Modal, Row, UncontrolledDropdown, ModalBody, ModalHeader } from 'reactstrap';
+import { Card, CardBody, Col, DropdownItem, DropdownToggle, Input, Modal, Row, UncontrolledDropdown, ModalBody, ModalHeader } from "reactstrap";
+import DropdownMenu from "../../../Components/Common/DirectionalDropdownMenu";
 
 //SimpleBar
 import SimpleBar from "simplebar-react";

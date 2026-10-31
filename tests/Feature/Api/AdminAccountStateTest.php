@@ -12,6 +12,16 @@ use Tests\TestCase;
 class AdminAccountStateTest extends TestCase
 {
     use RefreshDatabase;
+    use \Tests\Support\IsolatedProfileApplication;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        if (getenv('CHECKUPINO_PROFILE_REHEARSAL') === 'true') {
+            // Exercise real revocation against this test's isolated SQLite sessions table.
+            config(['session.driver' => 'database']);
+        }
+    }
 
     public function test_root_admin_can_suspend_an_account_with_recent_password_confirmation(): void
     {

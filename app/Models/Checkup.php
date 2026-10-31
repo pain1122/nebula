@@ -59,7 +59,6 @@ class Checkup extends Model
             ->withPivot([
                 'price_override',
                 'currency_override',
-                'duration_override_minutes',
                 'is_active',
             ])
             ->withTimestamps();

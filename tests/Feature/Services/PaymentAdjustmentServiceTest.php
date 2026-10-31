@@ -25,6 +25,7 @@ use Tests\TestCase;
 class PaymentAdjustmentServiceTest extends TestCase
 {
     use RefreshDatabase;
+    use \Tests\Support\IsolatedProfileApplication;
 
     public function test_root_admin_reserves_refund_and_void_amounts_with_server_owned_money(): void
     {

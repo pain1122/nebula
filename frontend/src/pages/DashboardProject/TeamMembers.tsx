@@ -1,5 +1,6 @@
 import React from 'react';
-import { Card, CardHeader, Col, DropdownItem, DropdownMenu, DropdownToggle, UncontrolledDropdown } from 'reactstrap';
+import { Card, CardHeader, Col, DropdownItem, DropdownToggle, UncontrolledDropdown } from "reactstrap";
+import DropdownMenu from "../../Components/Common/DirectionalDropdownMenu";
 import { teamMembers } from '../../common/data';
 import { TeamMembersCharts } from './DashboardProjectCharts';
 

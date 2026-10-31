@@ -26,7 +26,8 @@ import product8 from "../../../assets/images/products/img-8.png";
 
 import { productDetailsWidgets, reviews } from "../../../common/data/ecommerce";
 
-import { Swiper, SwiperSlide } from "swiper/react";
+import { SwiperSlide } from "swiper/react";
+import Swiper from "../../../Components/Common/DirectionalSwiper";
 import classnames from "classnames";
 
 // Import Swiper styles

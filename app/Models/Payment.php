@@ -50,6 +50,11 @@ class Payment extends Model
         return $this->hasMany(PaymentAttempt::class, 'payment_summary_id');
     }
 
+    public function successfulAttempt()
+    {
+        return $this->belongsTo(PaymentAttempt::class, 'successful_attempt_id');
+    }
+
     public function adjustments()
     {
         return $this->hasMany(PaymentAdjustment::class, 'payment_summary_id');

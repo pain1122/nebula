@@ -4,6 +4,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -15,6 +16,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Only routes carrying this middleware change: wrap auth refusals with private/no-store.
+        $middleware->prependToPriorityList(
+            \Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests::class,
+            \App\Http\Middleware\ArticleReadPrivacy::class,
+        );
         $middleware->appendToGroup('api', \App\Http\Middleware\AttachApiContractContext::class);
         // ⬇️ alias ها
         $middleware->statefulApi();
@@ -61,5 +67,22 @@ return Application::configure(basePath: dirname(__DIR__))
                     'correlation_id' => $request->attributes->get('correlation_id'),
                 ],
             ], 403);
+        });
+
+        $exceptions->render(function (ThrottleRequestsException $exception, Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Too many requests.',
+                'code' => 'rate_limited',
+                'errors' => null,
+                'meta' => [
+                    'api_version' => '1',
+                    'correlation_id' => $request->attributes->get('correlation_id'),
+                ],
+            ], 429, $exception->getHeaders());
         });
     })->create();

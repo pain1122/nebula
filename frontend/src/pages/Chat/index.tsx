@@ -1,25 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
-import {
-  Container,
-  Button,
-  UncontrolledTooltip,
-  Input,
-  DropdownToggle,
-  DropdownMenu,
-  Dropdown,
-  DropdownItem,
-  Row,
-  Col,
-  Card,
-  CardBody,
-  UncontrolledDropdown,
-  Nav,
-  NavItem,
-  NavLink,
-  TabContent,
-  TabPane,
-  Alert
-} from "reactstrap";
+import { Container, Button, UncontrolledTooltip, Input, DropdownToggle, Dropdown, DropdownItem, Row, Col, Card, CardBody, UncontrolledDropdown, Nav, NavItem, NavLink, TabContent, TabPane, Alert } from "reactstrap";
+import DropdownMenu from "../../Components/Common/DirectionalDropdownMenu";
 import { Link } from "react-router-dom";
 import SimpleBar from "simplebar-react";
 import classnames from "classnames";
@@ -30,7 +11,7 @@ import EmojiPicker from 'emoji-picker-react';
 import FeatherIcon from "feather-icons-react";
 import PersonalInfo from "./PersonalInfo";
 
-import { chatContactData } from "../../common/data";
+import { chatContactData } from "../../common/data/chat";
 
 //redux
 import { useSelector, useDispatch } from "react-redux";
@@ -40,7 +21,7 @@ import {
   // getChannels as onGetChannels,
   addMessage as onAddMessage,
   deleteMessage as onDeleteMessage
-} from "../../slices/thunks";
+} from "../../slices/chat/thunk";
 
 import avatar2 from "../../assets/images/users/avatar-2.jpg";
 import userDummayImage from "../../assets/images/users/user-dummy-img.jpg";
@@ -163,7 +144,6 @@ const Chat = () => {
     setCurrentRoomId(chats.roomId);
     setChat_Box_Image(chats.image);
     setUser_Status(chats.status)
-    dispatch(getMessages(chats.roomId));
     if (window.innerWidth < 892) {
       userChatShow.current.classList.add("user-chat-show");
     }
@@ -778,7 +758,7 @@ const Chat = () => {
                         }
                       </div>
                       {/* copy msg */}
-                      <Alert color="warning" className="copyclipboard-alert px-4 fade" id="copyClipBoard" role="alert">Message copied</Alert>
+                      <Alert color="warning" className="copyclipboard-alert px-4 fade" id="copyClipBoard" role="alert" transition={{ timeout: 150 }}>Message copied</Alert>
                       {/* emoji picker */}
                       {emojiPicker && <EmojiPicker onEmojiClick={onEmojiClick} width={250} height={382} />}
                     </div>

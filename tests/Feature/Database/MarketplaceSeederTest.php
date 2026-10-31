@@ -33,7 +33,7 @@ class MarketplaceSeederTest extends TestCase
         $this->assertSame(3, MarketplaceHospital::count());
         $this->assertSame(2, DoctorProfile::count());
         $this->assertSame(3, DoctorWorkplace::count());
-        $this->assertSame(5, DoctorWorkingWindow::count());
+        $this->assertSame(8, DoctorWorkingWindow::count());
         $this->assertSame(6, Reservation::count());
         $this->assertSame(6, Payment::count());
         $this->assertSame(3, PaymentAttempt::count());

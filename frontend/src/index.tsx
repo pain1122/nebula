@@ -1,10 +1,21 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import './i18n';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./store";
+import { runtimeConfig } from "./core/runtime/config";
+import { applyColorPreference, normalizeColorPreference } from "./core";
+import { initialState as initialLayoutState } from "./slices/layouts/reducer";
+import { installSessionHistoryGuard } from "./modules/checkupino/auth/history";
+
+installSessionHistoryGuard();
+
+const initialColorPreference = normalizeColorPreference(initialLayoutState.layoutModeType);
+const initiallyPrefersDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
+applyColorPreference(document.documentElement, initialColorPreference, initiallyPrefersDark);
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -12,7 +23,7 @@ const root = ReactDOM.createRoot(
 root.render(
   <Provider store={store}>
     <React.Fragment>
-      <BrowserRouter basename={import.meta.env.BASE_URL}>
+      <BrowserRouter basename={runtimeConfig.routerBase}>
         <App />
       </BrowserRouter>
     </React.Fragment>

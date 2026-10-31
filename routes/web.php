@@ -33,11 +33,3 @@ require __DIR__.'/auth.php';
 
 require __DIR__.'/admin.php';
 require __DIR__.'/doctor.php';
-
-if(app()->environment('local')) {
-    Route::get('/debug/res-last', function (){
-        return \App\Models\Reservation::with('user','doctor.user','checkup')
-            ->latest()
-            ->first();
-    });
-}

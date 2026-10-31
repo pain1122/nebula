@@ -1,6 +1,6 @@
 import { changeHTMLAttribute } from './utils';
+import { applyColorPreference, normalizeColorPreference } from '../../core';
 import {
-    changeLayoutDirectionAction,
     changeLayoutAction,
     changeLayoutModeAction,
     changeSidebarThemeAction,
@@ -13,19 +13,6 @@ import {
     changePreLoaderAction,
     changeSidebarVisibilityAction
 } from './reducer';
-
-/**
- * Changes the layout type
- * @param {*} param0
- */
-
-export const changeLayoutDirection = (direction: any) => async (dispatch: any) => {
-    try {
-        changeHTMLAttribute("dir", direction);
-        dispatch(changeLayoutDirectionAction(direction));
-    } catch (error) { }
-};
-
 
 export const changeLayout = (layout:any) => async (dispatch:any) => {
     try {
@@ -48,8 +35,10 @@ export const changeLayout = (layout:any) => async (dispatch:any) => {
  */
 export const changeLayoutMode = (layoutMode:any) => async (dispatch:any) => {
     try {
-        changeHTMLAttribute("data-bs-theme", layoutMode);
-        dispatch(changeLayoutModeAction(layoutMode));
+        const preference = normalizeColorPreference(layoutMode);
+        const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
+        applyColorPreference(document.documentElement, preference, prefersDark);
+        dispatch(changeLayoutModeAction(preference));
     } catch (error) { }
 };
 

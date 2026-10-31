@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Col, Dropdown, DropdownMenu, DropdownToggle, Nav, NavItem, NavLink, Row, TabContent, TabPane } from 'reactstrap';
+import { Col, Dropdown, DropdownToggle, Nav, NavItem, NavLink, Row, TabContent, TabPane } from "reactstrap";
+import DropdownMenu from "./DirectionalDropdownMenu";
 import { Link } from 'react-router-dom';
 import classnames from 'classnames';
 

@@ -1,0 +1,9 @@
+.checkupino-appointment-calendar .fc-daygrid-day:focus-within > .fc-daygrid-day-frame {
+  background-color: rgba(var(--vz-info-rgb), 0.12);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .checkupino-appointment-calendar .fc-daygrid-day:hover > .fc-daygrid-day-frame {
+    background-color: rgba(var(--vz-info-rgb), 0.12);
+  }
+}

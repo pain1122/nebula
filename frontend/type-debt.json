@@ -1,0 +1,109 @@
+{
+  "snapshotDate": "2026-08-26",
+  "scope": "frontend/src/**/*.{ts,tsx}",
+  "baselines": {
+    "anyTokenCount": 2527,
+    "ambientModuleCount": 10,
+    "legacyApexImportCount": 40,
+    "legacyApexUnsafeCastCount": 1
+  },
+  "ratchets": {
+    "allowNewAmbientModules": false,
+    "maximumAnyTokenCount": 2527,
+    "maximumLegacyApexImportCount": 40,
+    "maximumLegacyApexUnsafeCastCount": 1
+  },
+  "ambientModules": [
+    {
+      "module": "aos",
+      "classification": "legacy-template compatibility shim",
+      "owner": "F24/F27I"
+    },
+    {
+      "module": "react-rating",
+      "classification": "legacy-template compatibility shim",
+      "owner": "F24/F27I"
+    },
+    {
+      "module": "cleave.js/react",
+      "classification": "legacy-template compatibility shim",
+      "owner": "F24/F27I"
+    },
+    {
+      "module": "@vtaits/react-color-picker",
+      "classification": "legacy-template compatibility shim",
+      "owner": "F24/F27I"
+    },
+    {
+      "module": "react-color",
+      "classification": "legacy-template compatibility shim",
+      "owner": "F24/F27I"
+    },
+    {
+      "module": "react-dual-listbox",
+      "classification": "legacy-template compatibility shim",
+      "owner": "F24/F27I"
+    },
+    {
+      "module": "feather-icons-react",
+      "classification": "legacy-template compatibility shim",
+      "owner": "F24/F27I"
+    },
+    {
+      "module": "react-select",
+      "classification": "legacy declaration masking package types",
+      "owner": "F24/F27I"
+    },
+    {
+      "module": "react-dragula",
+      "classification": "legacy-template compatibility shim",
+      "owner": "F24/F27I"
+    },
+    {
+      "module": "swiper/css*",
+      "classification": "stylesheet-only package subpath declaration",
+      "owner": "F26"
+    }
+  ],
+  "compatibilityBoundaries": [
+    {
+      "module": "Components/Common/LegacyApexChart",
+      "classification": "retained Velzon chart-options adapter; product code must use react-apexcharts directly",
+      "owner": "F24/F27I"
+    }
+  ],
+  "lintExclusions": [
+    {
+      "file": "src/devtools/toolboxMenu.tsx",
+      "reason": "retained Velzon menu synchronously updates state inside an effect",
+      "rule": "react/set-state-in-effect",
+      "owner": "F21/F24",
+      "changedWhileExcluded": false
+    }
+  ],
+  "undeclaredImports": [],
+  "boundaryExceptions": [
+    {
+      "source": "src/Layouts/LayoutMenuData.tsx",
+      "target": "../devtools/ToolboxNavigationData",
+      "reason": "approved F24B1 dynamic boundary loads retained toolbox menu data only for root administrators",
+      "owner": "F24B1",
+      "changedWhileExcepted": false
+    },
+    {
+      "source": "src/Routes/allRoutes.tsx",
+      "target": "../devtools/ToolboxRouter",
+      "reason": "approved F24B1 dynamic boundary loads retained toolbox route inventory only after the root-only wildcard matches",
+      "owner": "F24B1/F25",
+      "changedWhileExcepted": false
+    }
+  ],
+  "legacyHttpExceptions": [
+    {
+      "file": "src/helpers/api_helper.ts",
+      "reason": "retained Velzon fake client mutates global Axios state until normal startup is cleaned",
+      "owner": "F23",
+      "changedWhileExcepted": false
+    }
+  ]
+}

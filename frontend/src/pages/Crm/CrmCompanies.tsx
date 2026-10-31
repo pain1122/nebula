@@ -4,27 +4,8 @@ import { Link } from "react-router-dom";
 // Import Images
 import multiUser from '../../assets/images/users/multi-user.jpg';
 
-import {
-  Col,
-  Container,
-  Row,
-  Card,
-  CardHeader,
-  CardBody,
-  ModalBody,
-  Label,
-  Input,
-  Modal,
-  ModalHeader,
-  Form,
-  ModalFooter,
-  Button,
-  UncontrolledDropdown,
-  DropdownToggle,
-  DropdownMenu,
-  DropdownItem,
-  FormFeedback
-} from "reactstrap";
+import { Col, Container, Row, Card, CardHeader, CardBody, ModalBody, Label, Input, Modal, ModalHeader, Form, ModalFooter, Button, UncontrolledDropdown, DropdownToggle, DropdownItem, FormFeedback } from "reactstrap";
+import DropdownMenu from "../../Components/Common/DirectionalDropdownMenu";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
 import DeleteModal from "../../Components/Common/DeleteModal";
 import { isEmpty } from "lodash";

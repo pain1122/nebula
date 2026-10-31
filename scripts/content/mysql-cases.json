@@ -1,0 +1,13 @@
+[
+  {"name":"concurrent_creates","leader":"create","follower":"create","expected":["committed","conflict"]},
+  {"name":"concurrent_edits","leader":"draft","follower":"draft","expected":["committed","conflict"]},
+  {"name":"rename_before_publication","leader":"term_update","follower":"publish","reviewed":true,"expected":["committed","conflict"]},
+  {"name":"retirement_before_publication","leader":"term_retire","follower":"publish","reviewed":true,"expected":["committed","conflict"]},
+  {"name":"publication_before_retirement","leader":"publish","follower":"term_retire","reviewed":true,"expected":["committed","conflict"]},
+  {"name":"recovery_before_edit","leader":"copy_version","follower":"draft","published_draft":true,"expected":["committed","conflict"]},
+  {"name":"archive_before_publication","leader":"archive","follower":"publish","reviewed":true,"expected":["committed","conflict"]},
+  {"name":"draft_audit_rollback","leader":"draft","follower":"draft","audit_failure":true,"expected":["audit_rolled_back","committed"]},
+  {"name":"taxonomy_audit_rollback","leader":"term_update","follower":"term_update","audit_failure":true,"expected":["audit_rolled_back","committed"]},
+  {"name":"publication_audit_rollback","leader":"publish","follower":"publish","reviewed":true,"audit_failure":true,"expected":["audit_rolled_back","committed"]},
+  {"name":"role_revocation_before_save","leader":"revoke_role","follower":"draft","expected":["authority_changed","forbidden"]}
+]

@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactApexChart from "react-apexcharts";
+import ReactApexChart from "Components/Common/LegacyApexChart";
 import { seriesData } from "../series";
 import logoSm from "../../../../assets/images/logo-sm.png";
 

@@ -1,0 +1,7 @@
+# Staging overlay: no job runs on startup. A guarded single delivery is separate.
+services:
+  scan-worker:
+    restart: "no"
+    memswap_limit: 256m
+    pids_limit: 32
+    command: [/bin/sh, -c, "mkdir -p /tmp/checkupino-scan-runtime/framework/cache /tmp/checkupino-scan-runtime/framework/sessions /tmp/checkupino-scan-runtime/framework/views /tmp/checkupino-scan-runtime/logs && exec sleep infinity"]

@@ -1,5 +1,5 @@
 import React from "react";
-import ReactEcharts from "echarts-for-react";
+import ReactEcharts from "../../../Components/Common/VelzonEChart";
 import * as echarts from 'echarts/core';
 
 import getChartColorsArray from "../../../Components/Common/ChartsDynamicColor";
@@ -633,6 +633,7 @@ const BarLabelChart = ({ dataColors }:any) => {
         }
     };
     var option = {
+        richInheritPlainLabel: false,
         grid: {
             left: '0%',
             right: '0%',

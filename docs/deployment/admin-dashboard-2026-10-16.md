@@ -1,0 +1,45 @@
+# Retained dashboard with real Checkupino reports
+
+October16 authorized dashboard slice is deployed and accepted for source/served/read-only behavior. The existing `/panel/` route remains admin/root-only and now loads `ProductDashboard`; the original template remains recoverable. No dashboard filters/search, new URL, dependency, stylesheet or schema.
+
+| Before | After |
+| --- | --- |
+| Ecommerce fixtures populated the product home. | One fresh metadata-only GET `/api/admin/dashboard` supplies real reports, fixed period/freshness and latest records. |
+| Nice existing gadgets were at risk of becoming a smaller list dashboard. | Retain four cards, the8/4 trend/map row,6/6 ranking tables,4/8 status-chart/latest-table row and toggleable side column. Each operational section links to its actual full page. |
+| Recent Activity showed template events. | Preserve the gadget and reserve it for later blogs/panel updates/personalized notifications. It is not an audit feed; no notification/content implementation is activated. |
+
+Shared Revenue/StoreVisits chart adapters accept optional real categories/count-only tooltips/distribution data and preserve their original default behavior. Eleven original dashboard source/test files, including the template index, sections, tables, map and activity component, retain their exact pre-work hashes. No template is deleted. The product view reuses the existing layout/card/table/side-column classes, installed charts/map and Bootstrap colors. Screenshot review corrected low icon contrast with the existing subtle-background classes and moved the financial explanation to the reporting-period area, keeping summary cards compact.
+
+Metric contract:
+
+- The report covers thirty Asia/Tehran calendar dates, from the start of the day29 days ago to the current UTC second, with an exclusive upper boundary. Card counts, rankings, latest reservations and status distribution use records created in that period. Latest and ranking lists each stop at five, with deterministic ties.
+- Trends use each event's date: reservation creation, currently completed appointments' `completed_at`, questionnaire creation. Completion totals can include appointments booked before this creation cohort. Current upcoming reservations and patient/doctor/verified-profile counts are separately labelled as current totals; they are not online-presence claims.
+- Medical requests and questionnaire submissions exclude soft archives. Clinical instructions, files, report bodies, questionnaire answers/scores and private identity fields are never selected into this dashboard. Counts are not claims that a file is safe, scanning is active or a medical outcome is good.
+- Payment amounts represent **currently paid, canonically consistent payment summaries created in the period**, not cash flow, booked revenue or executed refunds. Canonical attempts must match summary/reservation/amount/currency and succeeded status. Inconsistent paid records are counted separately. Pending adjustments remain requests. SQL aggregate totals stay exact decimal strings, grouped by currency; no JavaScript numeric money conversion or combined-currency total. The API caps currency groups at20 with explicit continuation; cards show up to three and link to Payments for the rest.
+- Doctor appointment volume/checkup rankings count created reservations across all statuses; this is workload/booking volume, not clinical quality. Archived resource references remain identifiable through existing authorized pages.
+- The map stays visible with an unavailable-state message until a geographic-report contract is established. No fabricated countries/percentages or website attribution. The reserved feed has a truthful empty state instead of synthetic purchases/comments.
+
+The reader reloads active admin/root authority and current roles, uses the existing payment-reader privacy rule for patient/doctor identities, and applies it throughout related reports/rankings/previews. Other privileged identities remain excluded except the current actor. Both snapshots use the same clock cutoff; changed results fail409. Authority is checked again before response. Responses are private/no-store; all dashboard query/filter/paging/scope overrides fail422. Reads do not reconcile payments, change lifecycle state, materialize schedules, emit audit/outbox/notification rows or consume jobs.
+
+The client validates all required metadata/keys/types, exact monetary strings, thirty date buckets, count/period/currency consistency and row limits. It escapes labels, aborts on unmount/identity remount and clears old reports before a manual refresh so a refused read cannot retain stale cards. Role-specific landing behavior remains. Current periods/freshness are visible, and full lists keep their existing filters/search.
+
+Verification: **27 isolated tests/454 assertions/Pint4**, including11 new dashboard contracts and16 retained payment-reader cases, with UID33/network-none/read-only project/private masking/project environment-cache bypass/SQLite memory guards. Tests cover Tehran boundaries, exact money beyond JavaScript's safe range, currencies, canonical mismatch, role/identity privacy, archive/body exclusions, fixed limits, mid-read data/authority changes and no mutation. An initial ambiguous joined `reservation_id` was qualified before the passing gate; no live mutation occurred.
+
+Frontend: full **69 files/719 tests** and all quality gates/unchanged ratchets `2515/10/40/undeclared0`; final **18 focused checks**, TypeScript and supplemental product-page lint/format pass after the compact-card/icon refinement. The existing template Revenue test remains intact and passes. No governance or dependency lock changes.
+
+Healthy final artifact **cfeefc53** passes **63 served-container byte hashes**, cache/compression/lazy assets/deep links/404 checks, **23 UID33 read-only MySQL/default/refusal checks**, nine actual guest401 refusals and Redis/HTTP health. All original clinical/payment/provider-event/adjustment/catalog/schedule/protected fingerprints remain. Only static admin was built/recreated under existing delegation; nine services run, and parser/checker/worker/scanner remain stopped. Current real scanner proof is still absent.
+
+Final native acceptance passes **25 groups/64 requests/four desktop-mobile mirror cases/eight viewport captures**, including all retained sections, actual charts/map, ten full-page links, record navigation, refresh/reserved-feed toggle and admin/root ENFA with patient/doctor refusal. The retained clinical/reservation/role suite passes **11 groups/163 requests**. No browser exceptions, external requests or blocked operations occurred. Final Farsi desktop/mobile captures were visually reviewed. Initial native attempts exposed two harness assumptions, not a data mutation: home has no breadcrumb, and a mobile side drawer can cover the backdrop centre. The helper now accepts the absent home breadcrumb and uses a visible, hit-tested exposed point. Failed proofs/captures and the intermediate8054 candidate proofs remain immutable; the final polished candidate has separate evidence paths.
+
+Evidence: [final static](evidence/admin-dashboard-static-final-2026-10-16.json), [final runtime](evidence/admin-dashboard-runtime-final-2026-10-16.json), [native pointer/mirror](evidence/admin-dashboard-pointer-final-2026-10-16.json), [retained browser](evidence/admin-dashboard-browser-2026-10-16.json), [original template preservation](evidence/admin-dashboard-template-preservation-2026-10-16.json) and [immutable final binding](evidence/admin-dashboard-acceptance-2026-10-16.json).
+
+Current image: `sha256:cfeefc5331a353f329ecd30acb2f66d384bfa156f5b0fd46f831560d6569e78e`, retained as `checkupino-admin:dashboard-accepted-2026-10-16`. Preserve prior `checkupino-admin:general-settings-accepted-2026-10-16` (40e032de). The [static-only rollback override](../../docker-compose.admin-dashboard-rollback.yml) is quiet-valid and unexecuted:
+
+```powershell
+docker compose --project-name checkupino_prod --env-file .env.production --file docker-compose.prod.yml --file docker-compose.admin-dashboard-rollback.yml config --quiet
+if ($LASTEXITCODE -ne 0) { throw 'Dashboard rollback configuration failed.' }
+docker compose --project-name checkupino_prod --env-file .env.production --file docker-compose.prod.yml --file docker-compose.admin-dashboard-rollback.yml up -d --no-deps --no-build --pull never admin
+if ($LASTEXITCODE -ne 0) { throw 'Static dashboard rollback failed.' }
+```
+
+No setting save/reset/password confirmation, live reservation/clinical/questionnaire/payment mutation, provider execution, backend/scanner/worker Compose, migration/reseed/reset, environment/credential edit or queue operation occurred. Positive live admin writes/concurrent MySQL writes, user-owned profile rehearsal, current scanner recovery and deferred large-media/refund-policy work remain separate. Future geographic and blog/update/personal-notification data are not implemented by reserving their gadgets.

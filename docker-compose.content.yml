@@ -1,0 +1,44 @@
+# Isolated, synthetic-only native content parser. No application mount or network.
+name: checkupino_content
+
+services:
+  content-init:
+    image: sha256:c4809fae4ab094ce353a28995fac698355ada6eab92f10e18ad874da2d2bbf4c
+    pull_policy: never
+    entrypoint: [/bin/sh, -c]
+    command: ["chown 33:33 /run/medical-content && chmod 700 /run/medical-content"]
+    user: "0:0"
+    read_only: true
+    network_mode: none
+    cap_drop: [ALL]
+    cap_add: [CHOWN, FOWNER]
+    security_opt: [no-new-privileges:true]
+    volumes: ["content_socket:/run/medical-content"]
+    mem_limit: 32m
+    pids_limit: 8
+
+  content-parser:
+    image: sha256:c4809fae4ab094ce353a28995fac698355ada6eab92f10e18ad874da2d2bbf4c
+    pull_policy: never
+    user: "33:33"
+    init: true
+    restart: "no"
+    read_only: true
+    network_mode: none
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: ["/tmp:rw,noexec,nosuid,nodev,size=128m,mode=1777"]
+    volumes: ["content_socket:/run/medical-content"]
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 1.0
+    pids_limit: 16
+    depends_on:
+      content-init: {condition: service_completed_successfully}
+    logging:
+      driver: json-file
+      options: {max-size: "5m", max-file: "2"}
+
+volumes:
+  content_socket:
+    name: checkupino_content_socket

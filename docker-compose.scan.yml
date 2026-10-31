@@ -1,0 +1,108 @@
+# Local synthetic scanner evaluation. Existing backend/media/admin stacks stay intact.
+name: checkupino_scan
+
+x-php-scan: &php-scan
+  # Exact already-installed development image; no backend rebuild or mutable tag.
+  image: sha256:18eb9257e28f6dc11d59abba7691fe37b1d334a2429ce2be3b5cfb7b1a09f746
+  pull_policy: never
+  user: "33:33"
+  working_dir: /var/www
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  tmpfs: ["/tmp:size=128m,mode=1777"]
+  volumes:
+    - ./:/var/www:ro
+    - scan_socket:/run/medical-scan:ro
+    - content_socket:/run/medical-content:ro
+  networks: [backend]
+  environment:
+    LARAVEL_STORAGE_PATH: /tmp/checkupino-scan-runtime
+    MEDICAL_SCAN_ENABLED: "true"
+    MEDICAL_SCAN_SOCKET: /run/medical-scan/clamd.sock
+    # Preserve file reads while isolating framework/log temporary paths.
+    MEDICAL_LOCAL_STORAGE_ROOT: /var/www/storage/app/private
+  mem_limit: 256m
+  cpus: 0.5
+  init: true
+  logging:
+    driver: json-file
+    options: {max-size: "5m", max-file: "2"}
+
+services:
+  scan-init:
+    image: clamav/clamav:1.5.4@sha256:7659dcb0db47941d3cf8336af84bbb63c7e70b76fc00601774358412b42ed186
+    platform: linux/amd64
+    entrypoint: [/bin/sh, -c]
+    command: ["chown 100:100 /var/lib/clamav /run/medical-scan && chmod 755 /run/medical-scan"]
+    read_only: true
+    cap_drop: [ALL]
+    cap_add: [CHOWN, DAC_OVERRIDE, FOWNER]
+    security_opt: [no-new-privileges:true]
+    network_mode: none
+    volumes:
+      - scan_definitions:/var/lib/clamav
+      - scan_socket:/run/medical-scan
+    healthcheck: {disable: true}
+    mem_limit: 64m
+
+  scanner:
+    image: clamav/clamav:1.5.4@sha256:7659dcb0db47941d3cf8336af84bbb63c7e70b76fc00601774358412b42ed186
+    platform: linux/amd64
+    user: "100:100"
+    entrypoint: [/bin/sh, /opt/medical-scan/start.sh]
+    init: true
+    # Evaluation recovery is explicit: CDN cooldown/stale definitions must not loop.
+    restart: "no"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: ["/tmp:size=128m,mode=1777"]
+    volumes:
+      - scan_definitions:/var/lib/clamav
+      - scan_socket:/run/medical-scan
+      - ./docker/medical-scan/start.sh:/opt/medical-scan/start.sh:ro
+      - ./docker/medical-scan/clamd.conf:/etc/clamav/clamd.conf:ro
+      - ./docker/medical-scan/freshclam.conf:/etc/clamav/freshclam.conf:ro
+    networks: [definition_updates]
+    depends_on:
+      scan-init: {condition: service_completed_successfully}
+    healthcheck:
+      test: [CMD, clamdscan, --config-file=/etc/clamav/clamd.conf, --ping=1]
+      start_period: 10m
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    mem_limit: 4g
+    cpus: 1.0
+    logging:
+      driver: json-file
+      options: {max-size: "5m", max-file: "2"}
+
+  scan-check:
+    <<: *php-scan
+    command: [/bin/sh, -c, "mkdir -p /tmp/checkupino-scan-runtime/framework/cache /tmp/checkupino-scan-runtime/framework/sessions /tmp/checkupino-scan-runtime/framework/views /tmp/checkupino-scan-runtime/logs && exec sleep infinity"]
+    depends_on:
+      scanner: {condition: service_started}
+
+  scan-worker:
+    <<: *php-scan
+    # Start explicitly after actual scanner acceptance; no default queue consumption.
+    profiles: [worker]
+    restart: unless-stopped
+    command: [/bin/sh, -c, "mkdir -p /tmp/checkupino-scan-runtime/framework/cache /tmp/checkupino-scan-runtime/framework/sessions /tmp/checkupino-scan-runtime/framework/views /tmp/checkupino-scan-runtime/logs && exec php artisan queue:work medical-scan --queue=medical-scan --sleep=2 --tries=3 --timeout=120 --max-jobs=100 --max-time=3600 --memory=128"]
+    depends_on:
+      scanner: {condition: service_healthy}
+
+networks:
+  definition_updates:
+  backend:
+    external: true
+    name: checkupino_checkupino_net
+
+volumes:
+  scan_definitions:
+  scan_socket:
+  content_socket:
+    external: true
+    name: checkupino_content_socket

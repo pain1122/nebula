@@ -50,7 +50,6 @@ class DoctorWorkplace extends Model
             ->withPivot([
                 'price_override',
                 'currency_override',
-                'duration_override_minutes',
                 'is_active',
             ])
             ->withTimestamps();
@@ -59,5 +58,10 @@ class DoctorWorkplace extends Model
     public function workingWindows()
     {
         return $this->hasMany(DoctorWorkingWindow::class);
+    }
+
+    public function visitSlots()
+    {
+        return $this->hasMany(DoctorVisitSlot::class);
     }
 }

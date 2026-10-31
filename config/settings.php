@@ -7,6 +7,24 @@ return [
         'tenant_hospital' => 'hospital',
     ],
     'marketplace' => [
+        'uploads.medical' => [
+            'group' => 'uploads',
+            'value_type' => 'array',
+            'default' => [], // No override: use the operator-configured section policy.
+            'validation_rules' => ['array'],
+            'sensitivity' => 'internal',
+            'allowed_scopes' => ['platform'],
+            'description' => 'Medical section and MIME size overrides within operator/scanner capacity.',
+        ],
+        'uploads.public_media' => [
+            'group' => 'uploads',
+            'value_type' => 'array',
+            'default' => [],
+            'validation_rules' => ['array'],
+            'sensitivity' => 'internal',
+            'allowed_scopes' => ['platform'],
+            'description' => 'Public media section and MIME size overrides within operator capacity.',
+        ],
         'booking.pending_hold_minutes' => [
             'group' => 'booking',
             'value_type' => 'integer',

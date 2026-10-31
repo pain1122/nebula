@@ -2,7 +2,7 @@
 
 Snapshot date: 2026-07-12
 
-Status: living implementation review for `CURRENT_TASK.md` item 6. Update this file after each verified migration group.
+Status: closed historical implementation review for former Current Task item 6. Use `docs/audits/phase-1-verification-gate-2026-08-16.md` for the current verified baseline.
 
 ## Review Method
 

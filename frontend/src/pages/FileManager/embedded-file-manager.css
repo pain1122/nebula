@@ -1,0 +1,70 @@
+/* Embedded geometry only; the shared Velzon page keeps its original offsets and panes. */
+[data-overlay="dialog"]:has([data-article-file-manager]) .modal-dialog {
+  width: calc(100% - 48px);
+  max-width: 1480px;
+  margin: 24px auto;
+}
+[data-overlay="dialog"]:has([data-article-file-manager]) .modal-body {
+  padding: 0;
+}
+.file-manager-embedded.chat-wrapper {
+  display: grid !important;
+  grid-template-columns: 220px minmax(0, 1fr) 280px;
+  height: min(72vh, 780px);
+  gap: 4px;
+  background: var(--vz-body-bg);
+  overflow: hidden;
+}
+.file-manager-embedded > .file-manager-sidebar,
+.file-manager-embedded > .file-manager-detail-content {
+  display: block;
+  position: static;
+  min-width: 0;
+  max-width: none;
+  width: auto;
+  height: 100%;
+  transform: none;
+  visibility: visible;
+  box-shadow: none;
+  z-index: auto;
+}
+.file-manager-embedded > .file-manager-content {
+  min-width: 0;
+  height: 100%;
+}
+.file-manager-embedded .file-manager-content-scroll,
+.file-manager-embedded .file-detail-content-scroll {
+  height: 100%;
+}
+.file-manager-embedded .file-manager-menu {
+  height: auto;
+  max-height: none;
+}
+@media (max-width: 991.98px) {
+  [data-overlay="dialog"]:has([data-article-file-manager]) .modal-dialog {
+    width: calc(100% - 16px);
+    margin: 8px auto;
+  }
+  .file-manager-embedded.chat-wrapper {
+    display: block !important;
+    height: 68vh;
+    overflow-y: auto;
+  }
+  .file-manager-embedded > .file-manager-sidebar {
+    display: none;
+    height: auto;
+  }
+  .file-manager-embedded[data-sidebar-open="true"] > .file-manager-sidebar {
+    display: block;
+  }
+  .file-manager-embedded > .file-manager-content,
+  .file-manager-embedded > .file-manager-detail-content {
+    height: auto;
+  }
+  .file-manager-embedded .file-manager-content-scroll,
+  .file-manager-embedded .file-detail-content-scroll {
+    height: auto;
+    overflow: visible !important;
+    padding-bottom: 16px;
+  }
+}

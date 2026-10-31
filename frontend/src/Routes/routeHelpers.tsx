@@ -11,7 +11,7 @@ export const lazyPage = (load: LazyPageLoader): React.ReactNode => {
 export const pageRoute = (
   path: string,
   load: LazyPageLoader,
-  allowedRoles?: RoleName[],
+  allowedRoles?: readonly RoleName[],
 ): AppRoute => ({
   path,
   component: lazyPage(load),

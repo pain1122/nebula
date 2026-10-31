@@ -31,6 +31,16 @@ return [
 
     'connections' => [
 
+        // Same database transaction as the file row, separate from default jobs.
+        'medical-scan' => [
+            'driver' => 'database',
+            'connection' => null,
+            'table' => 'jobs',
+            'queue' => 'medical-scan',
+            'retry_after' => 180,
+            'after_commit' => false,
+        ],
+
         'sync' => [
             'driver' => 'sync',
         ],

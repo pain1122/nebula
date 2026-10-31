@@ -1,25 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
-import {
-  Col,
-  Container,
-  Row,
-  Card,
-  CardHeader,
-  CardBody,
-  Input,
-  ModalHeader,
-  ModalBody,
-  Label,
-  ModalFooter,
-  Modal,
-  Form,
-  UncontrolledDropdown,
-  DropdownToggle,
-  DropdownMenu,
-  DropdownItem,
-  FormFeedback,
-} from "reactstrap";
+import { Col, Container, Row, Card, CardHeader, CardBody, Input, ModalHeader, ModalBody, Label, ModalFooter, Modal, Form, UncontrolledDropdown, DropdownToggle, DropdownItem, FormFeedback } from "reactstrap";
+import DropdownMenu from "../../../Components/Common/DirectionalDropdownMenu";
 import Select from "react-select";
 import Flatpickr from "react-flatpickr";
 import moment from "moment";

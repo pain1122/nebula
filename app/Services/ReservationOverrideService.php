@@ -3,10 +3,13 @@
 namespace App\Services;
 
 use App\Enums\PaymentSummaryStatus;
+use App\Models\Payment;
 use App\Models\Reservation;
 use App\Models\ReservationStatus;
 use App\Models\User;
+use App\Support\ReservationRevision;
 use DomainException;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -22,6 +25,7 @@ class ReservationOverrideService
         Reservation $reservation,
         ReservationStatus $newStatus,
         string $reason,
+        ?string $expectedRevision = null,
     ): Reservation {
         Gate::forUser($actor)->authorize('overrideStatus', $reservation);
         $reason = trim($reason);
@@ -30,25 +34,18 @@ class ReservationOverrideService
             throw new InvalidArgumentException('A reservation override reason is required.');
         }
 
-        return DB::transaction(function () use ($request, $actor, $reservation, $newStatus, $reason): Reservation {
+        return DB::transaction(function () use ($request, $actor, $reservation, $newStatus, $reason, $expectedRevision): Reservation {
+            $actor = User::query()->lockForUpdate()->findOrFail($actor->getKey());
+            $actor->load('roles');
+            if (! $actor->permitsAuthentication()) {
+                throw new AuthorizationException('The reservation actor is no longer active.');
+            }
+
             $locked = Reservation::query()->lockForUpdate()->findOrFail($reservation->getKey());
+            Gate::forUser($actor)->authorize('overrideStatus', $locked);
             $payment = $locked->payment()->lockForUpdate()->first();
-            $allowed = match ($newStatus) {
-                ReservationStatus::Confirmed => $locked->status === ReservationStatus::Pending
-                    && $locked->hold_expires_at?->isFuture()
-                    && $payment?->status === PaymentSummaryStatus::Paid
-                    && $payment->successful_attempt_id !== null,
-                ReservationStatus::Completed => $locked->status === ReservationStatus::Confirmed
-                    && ! $locked->starts_at?->isFuture(),
-                ReservationStatus::Cancelled => ! in_array($locked->status, [
-                    ReservationStatus::Completed,
-                    ReservationStatus::Cancelled,
-                    ReservationStatus::Expired,
-                ], true),
-                ReservationStatus::Expired => $locked->status === ReservationStatus::Pending
-                    && ! $locked->hold_expires_at?->isFuture(),
-                default => false,
-            };
+            ReservationRevision::assertMatches($locked, $payment, $expectedRevision);
+            $allowed = $this->canTransition($locked, $payment, $newStatus);
 
             if (! $allowed) {
                 throw new DomainException("Reservation cannot transition from {$locked->status->value} to {$newStatus->value}.");
@@ -76,6 +73,24 @@ class ReservationOverrideService
 
             return $locked->fresh();
         });
+    }
+
+    public function canTransition(Reservation $reservation, ?Payment $payment, ReservationStatus $target): bool
+    {
+        return (bool) match ($target) {
+            ReservationStatus::Confirmed => $reservation->status === ReservationStatus::Pending
+                && $reservation->hold_expires_at?->isFuture()
+                && $payment?->status === PaymentSummaryStatus::Paid
+                && $payment->successful_attempt_id !== null,
+            ReservationStatus::Completed => $reservation->status === ReservationStatus::Confirmed
+                && ! $reservation->starts_at?->isFuture(),
+            ReservationStatus::Cancelled => ! in_array($reservation->status, [
+                ReservationStatus::Completed, ReservationStatus::Cancelled, ReservationStatus::Expired,
+            ], true),
+            ReservationStatus::Expired => $reservation->status === ReservationStatus::Pending
+                && ! $reservation->hold_expires_at?->isFuture(),
+            default => false,
+        };
     }
 
     /** @return array<string, mixed> */

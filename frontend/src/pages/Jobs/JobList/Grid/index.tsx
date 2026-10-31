@@ -1,17 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  Card,
-  CardBody,
-  Col,
-  DropdownItem,
-  DropdownMenu,
-  DropdownToggle,
-  Form,
-  Input,
-  Row,
-  UncontrolledDropdown,
-} from "reactstrap";
+import { Card, CardBody, Col, DropdownItem, DropdownToggle, Form, Input, Row, UncontrolledDropdown } from "reactstrap";
+import DropdownMenu from "../../../../Components/Common/DirectionalDropdownMenu";
 import Flatpickr from "react-flatpickr";
 import { jobGrid } from "../../../../common/data/appsJobs";
 import BreadCrumb from "../../../../Components/Common/BreadCrumb";

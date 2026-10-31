@@ -10,6 +10,7 @@ use Tests\TestCase;
 class AdminUserStepUpTest extends TestCase
 {
     use RefreshDatabase;
+    use \Tests\Support\IsolatedProfileApplication;
 
     public function test_admin_user_create_requires_recent_password_confirmation(): void
     {
@@ -121,6 +122,8 @@ class AdminUserStepUpTest extends TestCase
             ->withSession(['auth.password_confirmed_at' => time()])
             ->postJson('/api/admin/users', $this->adminUserPayload([
                 'email' => 'confirmed-step-up@example.test',
+                'password' => 'maple harbor velvet sunrise',
+                'password_confirmation' => 'maple harbor velvet sunrise',
             ]))
             ->assertOk();
 
@@ -166,7 +169,7 @@ class AdminUserStepUpTest extends TestCase
     }
 
     /**
-     * @param array<string, mixed> $overrides
+     * @param  array<string, mixed>  $overrides
      * @return array<string, mixed>
      */
     private function adminUserPayload(array $overrides = []): array

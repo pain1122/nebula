@@ -19,6 +19,7 @@ use Tests\TestCase;
 class MarketplaceSettingServiceTest extends TestCase
 {
     use RefreshDatabase;
+    use \Tests\Support\IsolatedProfileApplication;
 
     protected function setUp(): void
     {
@@ -38,6 +39,8 @@ class MarketplaceSettingServiceTest extends TestCase
             'marketplace',
             45,
             '  Booking policy updated  ',
+            $this->revision($actor, 'site'),
+            true,
         );
 
         $this->assertSame(45, $setting->value);
@@ -108,6 +111,8 @@ class MarketplaceSettingServiceTest extends TestCase
                 'marketplace',
                 30,
                 'Attempt rollback',
+                $this->revision($actor, 'platform'),
+                true,
             );
             $this->fail('Audit failure must escape the transaction.');
         } catch (RuntimeException $exception) {
@@ -116,5 +121,12 @@ class MarketplaceSettingServiceTest extends TestCase
 
         $this->assertSame(60, $original->fresh()->value);
         $this->assertDatabaseCount('audit_events', 0);
+    }
+
+    private function revision(User $actor, string $scope): string
+    {
+        $settings = app(\App\Services\GeneralMarketplaceSettings::class);
+
+        return $settings->revision($settings->actor($actor), $settings->capture($scope));
     }
 }

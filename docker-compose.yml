@@ -9,6 +9,7 @@ services:
     working_dir: /var/www
     volumes:
       - ./:/var/www
+      - ./docker/php/uploads.ini:/usr/local/etc/php/conf.d/checkupino-uploads.ini:ro
     depends_on:
       - db
       - redis

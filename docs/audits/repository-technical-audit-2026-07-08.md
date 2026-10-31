@@ -2,6 +2,8 @@
 
 Review-only audit captured for later strict analysis.
 
+Status: historical pre-foundation snapshot. Its findings and source path describe the 2026-07-08 worktree, not current project reality. Phase 1 replacements and closure evidence are in `docs/audits/phase-1-verification-gate-2026-08-16.md`.
+
 Source state: current dirty worktree in `C:\Users\abbas\Desktop\work\checkupino\nebula`.
 
 No source changes were made during the original audit.

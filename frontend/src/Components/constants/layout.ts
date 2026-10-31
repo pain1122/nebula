@@ -1,8 +1,3 @@
-enum LAYOUT_DIRECTION_TYPES {
-  LTR = "ltr",
-  RTL = "rtl",
-}
-
 enum LAYOUT_TYPES {
   HORIZONTAL= "horizontal",
   VERTICAL= "vertical",
@@ -11,6 +6,7 @@ enum LAYOUT_TYPES {
 };
 
 enum LAYOUT_MODE_TYPES {
+  SYSTEM= "system",
   LIGHTMODE= "light",
   DARKMODE= "dark",
 };
@@ -70,7 +66,6 @@ enum SIDEBAR_VISIBILITY_TYPES {
 }
 
 export {
-  LAYOUT_DIRECTION_TYPES,
   LAYOUT_TYPES,
   LAYOUT_MODE_TYPES,
   LAYOUT_SIDEBAR_TYPES,

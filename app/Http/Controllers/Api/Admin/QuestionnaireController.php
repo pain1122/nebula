@@ -7,16 +7,26 @@ use App\Http\Requests\Admin\UpsertQuestionnaireRequest;
 use App\Http\Resources\AdminQuestionnaireResource;
 use App\Models\Questionnaire;
 use App\Services\AuditLogger;
+use App\Services\QuestionnaireRichTextSanitizer;
+use App\Support\AdminPanelFilters;
 use App\Support\QuerySorting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 
 class QuestionnaireController extends ApiController
 {
+    public function __construct(private readonly QuestionnaireRichTextSanitizer $richTextSanitizer) {}
+
     public function index(Request $request)
     {
         Gate::forUser($request->user())->authorize('viewAny', Questionnaire::class);
+        $filters = AdminPanelFilters::validate($request, [
+            'status' => ['nullable', Rule::in(['draft', 'published'])],
+            'version' => ['nullable', 'integer', 'min:1'],
+            'author_id' => ['nullable', 'integer', 'min:1'],
+        ]);
         $query = Questionnaire::query()
             ->withCount('questions');
 
@@ -32,6 +42,12 @@ class QuestionnaireController extends ApiController
             $query->where('status', $request->query('status'));
         }
 
+        foreach (['version' => 'version', 'author_id' => 'author_user_id'] as $filter => $column) {
+            if (! empty($filters[$filter])) {
+                $query->where($column, $filters[$filter]);
+            }
+        }
+        AdminPanelFilters::dates($query, $filters);
         QuerySorting::apply($query, $request, [
             'id' => 'questionnaires.id',
             'title' => 'questionnaires.title',
@@ -42,7 +58,7 @@ class QuestionnaireController extends ApiController
             'questions_count' => 'questions_count',
         ], 'id', 'desc');
 
-        $questionnaires = $query->paginate(max(1, min($request->integer('per_page', 20), 100)));
+        $questionnaires = $query->orderByDesc('id')->paginate(min($filters['per_page'] ?? 20, 100));
 
         return $this->successResponse(
             data: AdminQuestionnaireResource::collection($questionnaires->getCollection())->resolve($request),
@@ -85,7 +101,7 @@ class QuestionnaireController extends ApiController
                 'slug' => $data['slug'],
                 'status' => $data['status'] ?? 'draft',
                 'cover_image_url' => $data['cover_image_url'] ?? null,
-                'content_html' => $data['content_html'] ?? null,
+                'content_html' => $this->richTextSanitizer->sanitize($data['content_html'] ?? null),
                 'author_user_id' => request()->user()?->id,
                 'published_at' => ($data['status'] ?? 'draft') === 'published' ? now() : null,
             ]);
@@ -122,13 +138,16 @@ class QuestionnaireController extends ApiController
 
         $questionnaire = DB::transaction(function () use ($questionnaire, $data, $reason, $request, $auditLogger) {
             $lockedQuestionnaire = Questionnaire::query()->lockForUpdate()->findOrFail($questionnaire->getKey());
+            if (isset($data['expected_version'])) {
+                abort_unless($lockedQuestionnaire->version === $data['expected_version'], 409, 'Questionnaire changed; refresh before saving.');
+            }
             $before = $this->auditSnapshot($lockedQuestionnaire);
             $lockedQuestionnaire->update([
                 'title' => $data['title'],
                 'slug' => $data['slug'],
                 'status' => $data['status'] ?? $lockedQuestionnaire->status,
                 'cover_image_url' => $data['cover_image_url'] ?? null,
-                'content_html' => $data['content_html'] ?? null,
+                'content_html' => $this->richTextSanitizer->sanitize($data['content_html'] ?? null),
                 'version' => $lockedQuestionnaire->version + 1,
                 'published_at' => ($data['status'] ?? $lockedQuestionnaire->status->value) === 'published'
                     ? ($lockedQuestionnaire->published_at ?? now())
@@ -160,10 +179,13 @@ class QuestionnaireController extends ApiController
     public function destroy(Request $request, Questionnaire $questionnaire, AuditLogger $auditLogger)
     {
         Gate::authorize('delete', $questionnaire);
-        $data = $request->validate(['reason' => ['required', 'string', 'max:1000']]);
+        $data = $request->validate(['reason' => ['required', 'string', 'max:1000'], 'expected_version' => ['sometimes', 'integer', 'min:1']]);
 
         DB::transaction(function () use ($request, $questionnaire, $auditLogger, $data): void {
             $lockedQuestionnaire = Questionnaire::query()->lockForUpdate()->findOrFail($questionnaire->getKey());
+            if (isset($data['expected_version'])) {
+                abort_unless($lockedQuestionnaire->version === $data['expected_version'], 409, 'Questionnaire changed; refresh before archiving.');
+            }
             $before = $this->auditSnapshot($lockedQuestionnaire);
             $lockedQuestionnaire->delete();
             $auditLogger->log(
@@ -221,7 +243,7 @@ class QuestionnaireController extends ApiController
                     'min_score' => $rec['min_score'],
                     'max_score' => $rec['max_score'],
                     'title' => $rec['title'],
-                    'body_html' => $rec['body_html'] ?? null,
+                    'body_html' => $this->richTextSanitizer->sanitize($rec['body_html'] ?? null),
                     'priority' => $rec['priority'] ?? $ri,
                     'conditions' => $rec['conditions'] ?? null,
                 ]);

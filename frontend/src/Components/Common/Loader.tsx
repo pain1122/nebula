@@ -1,18 +1,16 @@
-import React from 'react';
-import { Spinner } from 'reactstrap';
+import { ErrorState, LoadingState } from "../../modules/checkupino/feedback";
+import type { ProductLocale } from "../../modules/checkupino/preferences/localization";
 
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+interface LoaderProps {
+  readonly error?: unknown;
+  readonly locale?: ProductLocale;
+}
 
-const Loader = (props : any) => {
-    return (
-        <React.Fragment>
-            <div className="d-flex justify-content-center mx-2 mt-2">
-                <Spinner color="primary"> Loading... </Spinner>
-            </div>
-            {toast.error(props.error, { position: "top-right", hideProgressBar: false, progress: undefined, toastId: "" })}
-        </React.Fragment>
-    );
-};
+const Loader = ({ error, locale = "fa" }: LoaderProps) =>
+  error === undefined ? (
+    <LoadingState className="justify-content-center mx-2 mt-2" locale={locale} />
+  ) : (
+    <ErrorState className="mx-2 mt-2" error={error} locale={locale} />
+  );
 
 export default Loader;

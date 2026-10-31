@@ -1,0 +1,3 @@
+services:
+  admin:
+    image: checkupino-admin:calendar-today-accepted-2026-10-16

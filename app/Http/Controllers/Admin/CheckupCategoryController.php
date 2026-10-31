@@ -10,9 +10,7 @@ use App\Models\CheckupCategory;
 use App\Services\AuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -34,7 +32,7 @@ class CheckupCategoryController extends Controller
 
     public function store(StoreCheckupCategoryRequest $request): RedirectResponse
     {
-        CheckupCategory::create($request->validated());
+        app(\App\Services\CatalogAdministration::class)->mutate($request, 'checkup-categories', null, 'create');
 
         return redirect()->route('admin.checkup-categories.index')->with('status', 'دسته ایجاد شد.');
     }
@@ -48,16 +46,7 @@ class CheckupCategoryController extends Controller
         UpdateCheckupCategoryRequest $request,
         CheckupCategory $checkup_category,
     ): RedirectResponse {
-        $data = $request->validated();
-
-        DB::transaction(function () use ($checkup_category, $data): void {
-            $lockedCategory = CheckupCategory::query()
-                ->whereKey($checkup_category->getKey())
-                ->lockForUpdate()
-                ->firstOrFail();
-
-            $lockedCategory->update($data);
-        }, attempts: 3);
+        app(\App\Services\CatalogAdministration::class)->mutate($request, 'checkup-categories', $checkup_category->getKey(), 'update');
 
         return redirect()->route('admin.checkup-categories.index')->with('status', 'دسته به‌روزرسانی شد.');
     }
@@ -93,86 +82,7 @@ class CheckupCategoryController extends Controller
         CheckupCategory $checkup_category,
         AuditLogger $auditLogger,
     ): RedirectResponse {
-        Gate::authorize('archive', $checkup_category);
-
-        [$checkupAction, $replacementCategory] = $this->validatedArchiveChoice($request, $checkup_category);
-        $replacementCategoryId = $replacementCategory?->id;
-        $batchId = (string) Str::uuid();
-
-        DB::transaction(function () use (
-            $request,
-            $checkup_category,
-            $checkupAction,
-            $replacementCategoryId,
-            $batchId,
-            $auditLogger,
-        ): void {
-            $categoryIds = collect([$checkup_category->getKey(), $replacementCategoryId])
-                ->filter(fn ($id) => ! is_null($id))
-                ->unique()
-                ->sort()
-                ->values();
-
-            $lockedCategories = CheckupCategory::query()
-                ->whereIn('id', $categoryIds)
-                ->orderBy('id')
-                ->lockForUpdate()
-                ->get()
-                ->keyBy('id');
-
-            $lockedCategory = $lockedCategories->get($checkup_category->getKey());
-            $lockedReplacement = $replacementCategoryId
-                ? $lockedCategories->get($replacementCategoryId)
-                : null;
-
-            if (! $lockedCategory || ($replacementCategoryId && ! $lockedReplacement)) {
-                throw ValidationException::withMessages([
-                    'replacement_category_id' => 'دسته مبدا یا جایگزین دیگر فعال نیست. صفحه را تازه‌سازی و دوباره تلاش کنید.',
-                ]);
-            }
-
-            $checkups = Checkup::withTrashed()
-                ->where('checkup_category_id', $lockedCategory->id)
-                ->lockForUpdate()
-                ->get();
-
-            foreach ($checkups as $checkup) {
-                $before = $this->checkupAuditSnapshot($checkup);
-                $checkup->checkup_category_id = $lockedReplacement?->id;
-                $checkup->save();
-
-                $auditLogger->log(
-                    request: $request,
-                    actor: $request->user(),
-                    action: $checkupAction === 'detach'
-                        ? 'admin.checkup.category_detached'
-                        : 'admin.checkup.category_reassigned',
-                    subject: $checkup,
-                    riskLevel: 'critical',
-                    before: $before,
-                    after: $this->checkupAuditSnapshot($checkup),
-                    batchId: $batchId,
-                );
-            }
-
-            $before = $this->categoryAuditSnapshot($lockedCategory);
-            $lockedCategory->delete();
-
-            $auditLogger->log(
-                request: $request,
-                actor: $request->user(),
-                action: 'admin.checkup_category.archived',
-                subject: $lockedCategory,
-                riskLevel: 'critical',
-                before: $before,
-                after: array_merge($this->categoryAuditSnapshot($lockedCategory), [
-                    'checkup_action' => $checkupAction,
-                    'replacement_category_id' => $lockedReplacement?->id,
-                    'affected_checkup_count' => $checkups->count(),
-                ]),
-                batchId: $batchId,
-            );
-        }, attempts: 3);
+        app(\App\Services\CatalogAdministration::class)->mutate($request, 'checkup-categories', $checkup_category->getKey(), 'archive');
 
         return redirect()
             ->route('admin.checkup-categories.index')

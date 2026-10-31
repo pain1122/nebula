@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardBody, Col, DropdownItem, DropdownMenu, DropdownToggle, Input, Row, UncontrolledDropdown } from 'reactstrap';
+import { Card, CardBody, Col, DropdownItem, DropdownToggle, Input, Row, UncontrolledDropdown } from "reactstrap";
+import DropdownMenu from "../../../Components/Common/DirectionalDropdownMenu";
 import DeleteModal from "../../../Components/Common/DeleteModal";
 import { ToastContainer } from 'react-toastify';
 

@@ -1,17 +1,6 @@
 import React, { useState } from "react";
-import {
-    Card,
-    CardBody,
-    CardHeader,
-    Col,
-    Container,
-    DropdownItem,
-    DropdownMenu,
-    DropdownToggle,
-    Row,
-    UncontrolledCollapse,
-    UncontrolledDropdown,
-} from "reactstrap";
+import { Card, CardBody, CardHeader, Col, Container, DropdownItem, DropdownToggle, Row, UncontrolledCollapse, UncontrolledDropdown } from "reactstrap";
+import DropdownMenu from "../../../Components/Common/DirectionalDropdownMenu";
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
 import { Link } from "react-router-dom";
 

@@ -58,7 +58,7 @@
         <div>
           <label class="block mb-1">شیفت‌ها (JSON)</label>
           <textarea name="availability" rows="4" class="w-full border rounded p-2"
-            placeholder='[{"day":"sat","slots":[["09:00","12:00"],["14:00","17:00"]]}]'>{{ old('availability', $profile->availability ? json_encode($profile->availability) : '') }}</textarea>
+            placeholder='[{"day":"sat","windows":[{"checkup_id":1,"start":"09:00","end":"13:00","duration_minutes":30,"price_override":13000000,"currency_override":"IRR","breaks":[{"start":"11:00","end":"11:30"}]}]}]'>{{ old('availability', $profile->availability ? json_encode($profile->availability) : '') }}</textarea>
           @error('availability') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
         </div>
 

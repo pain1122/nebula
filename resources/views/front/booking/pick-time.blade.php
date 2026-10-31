@@ -20,7 +20,8 @@
                 <div class="text-sm text-gray-700">
                     <div><strong>{{ __('Checkup') }}:</strong> {{ $checkup->title }}</div>
                     <div><strong>{{ __('Doctor') }}:</strong> {{ $doctor->user?->name ?? __('N/A') }}</div>
-                    <div><strong>{{ __('Fee') }}:</strong> {{ number_format($doctor->fee) }} {{ __('IRR') }}</div>
+                    <div><strong>{{ __('Workplace') }}:</strong> {{ $workplace->display_name ?: $workplace->hospital?->name }}</div>
+                    <div><strong>{{ __('Price') }}:</strong> {{ __('Shown per declared visit slot below') }}</div>
                 </div>
 
                 @if ($errors->any())
@@ -40,37 +41,20 @@
                 @else
                     <form method="POST" action="{{ route('book.store', ['checkup' => $checkup, 'doctor' => $doctor]) }}" class="space-y-4">
                         @csrf
-
                         <div>
-                            <label for="starts_at" class="block text-sm font-medium text-gray-700">{{ __('Available Slots') }}</label>
+                            <label for="slot_id" class="block text-sm font-medium text-gray-700">{{ __('Available Slots') }}</label>
                             <select
-                                id="starts_at"
-                                name="starts_at"
+                                id="slot_id"
+                                name="slot_id"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                 required
                             >
                                 @foreach ($slots as $slot)
-                                    @php
-                                        [$slotStart, $slotEnd] = $slot;
-                                    @endphp
-                                    <option value="{{ $slotStart->format('Y-m-d\TH:i') }}">
-                                        {{ $slotStart->format('Y-m-d H:i') }} - {{ $slotEnd->format('H:i') }}
+                                    <option value="{{ $slot['slot_public_id'] }}">
+                                        {{ $slot['start']->format('Y-m-d H:i') }} - {{ $slot['end']->format('H:i') }}
+                                        · {{ number_format($slot['price']) }} {{ $slot['currency'] }}
                                     </option>
                                 @endforeach
-                            </select>
-                        </div>
-
-                        <div>
-                            <label for="duration" class="block text-sm font-medium text-gray-700">{{ __('Duration (minutes)') }}</label>
-                            <select
-                                id="duration"
-                                name="duration"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                required
-                            >
-                                <option value="30" selected>30</option>
-                                <option value="45">45</option>
-                                <option value="60">60</option>
                             </select>
                         </div>
 

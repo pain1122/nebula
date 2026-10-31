@@ -1,6 +1,18 @@
 import PropTypes from "prop-types";
-import React from "react";
-import { Row, Col, Alert, Card, CardBody, Container, FormFeedback, Input, Label, Form } from "reactstrap";
+import React, { useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import {
+  Row,
+  Col,
+  Alert,
+  Card,
+  CardBody,
+  Container,
+  FormFeedback,
+  Input,
+  Label,
+  Form,
+} from "reactstrap";
 
 //redux
 import { useSelector, useDispatch } from "react-redux";
@@ -20,7 +32,6 @@ import { userForgetPassword } from "../../slices/auth/forgetpwd/thunk";
 import logoLight from "../../assets/images/logo-light.png";
 import ParticlesAuth from "../AuthenticationInner/ParticlesAuth";
 import { createSelector } from "reselect";
-import { userForgetPasswordError } from "./reducer";
 import type { AppDispatch } from "../../store";
 
 type ForgetPasswordValues = {
@@ -29,38 +40,40 @@ type ForgetPasswordValues = {
 
 type Navigate = (path: string) => void;
 
-const ForgetPasswordPage = (props:any) => {
-  const dispatch :any = useDispatch();
+const ForgetPasswordPage = (props: any) => {
+  const { t } = useTranslation();
+  const dispatch: any = useDispatch();
 
-  const validation :any= useFormik({
+  const validation: any = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed
     enableReinitialize: true,
 
     initialValues: {
-      email: '',
+      email: "",
     },
     validationSchema: Yup.object({
-      email: Yup.string().required("Please Enter Your Email"),
+      email: Yup.string().required(t("product.auth.emailRequired")),
     }),
     onSubmit: (values) => {
       dispatch(userForgetPassword(values, props.router.navigate));
-    }
+    },
   });
 
-  const selectLayoutState = (state:any) => state.ForgetPassword;
-  const selectLayoutProperties = createSelector(
-    selectLayoutState,
-    (state) => ({
-      forgetError: state.forgetError,
-      forgetSuccessMsg: state.forgetSuccessMsg,
-    })
-  );
+  const selectLayoutState = (state: any) => state.ForgetPassword;
+  const selectLayoutProperties = createSelector(selectLayoutState, (state) => ({
+    forgetError: state.forgetError,
+    forgetSuccessMsg: state.forgetSuccessMsg,
+  }));
   // Inside your component
-  const {
-    forgetError, forgetSuccessMsg
-  } = useSelector(selectLayoutProperties);
+  const { forgetError, forgetSuccessMsg } = useSelector(selectLayoutProperties);
 
-  document.title = "Reset Password | Velzon - React Admin & Dashboard Template";
+  useEffect(() => {
+    const previousTitle = document.title;
+    document.title = t("product.forgot.pageTitle");
+    return () => {
+      document.title = previousTitle;
+    };
+  }, [t]);
 
   return (
     <ParticlesAuth>
@@ -71,10 +84,10 @@ const ForgetPasswordPage = (props:any) => {
               <div className="text-center mt-sm-5 mb-4 text-white-50">
                 <div>
                   <Link to="/" className="d-inline-block auth-logo">
-                    <img src={logoLight} alt="" height="20" />
+                    <img src={logoLight} alt={t("product.brand")} height="20" />
                   </Link>
                 </div>
-                <p className="mt-3 fs-15 fw-medium">Premium Admin & Dashboard Template</p>
+                <p className="mt-3 fs-15 fw-medium">{t("product.auth.logoTagline")}</p>
               </div>
             </Col>
           </Row>
@@ -82,18 +95,16 @@ const ForgetPasswordPage = (props:any) => {
           <Row className="justify-content-center">
             <Col md={8} lg={6} xl={5}>
               <Card className="mt-4">
-
                 <CardBody className="p-4">
                   <div className="text-center mt-2">
-                    <h5 className="text-primary">Forgot Password?</h5>
-                    <p className="text-muted">Reset password with velzon</p>
+                    <h5 className="text-primary">{t("product.forgot.title")}</h5>
+                    <p className="text-muted">{t("product.forgot.intro")}</p>
 
                     <i className="ri-mail-send-line display-5 text-success mb-3"></i>
-
                   </div>
 
                   <Alert className="border-0 alert-warning text-center mb-2 mx-2" role="alert">
-                    Enter your email and instructions will be sent to you!
+                    {t("product.forgot.instructions")}
                   </Alert>
                   <div className="p-2">
                     {forgetError && forgetError ? (
@@ -107,18 +118,18 @@ const ForgetPasswordPage = (props:any) => {
                       </Alert>
                     ) : null}
                     <Form
-                      onSubmit={(e:any) => {
+                      onSubmit={(e: any) => {
                         e.preventDefault();
                         validation.handleSubmit();
                         return false;
                       }}
                     >
                       <div className="mb-4">
-                        <Label className="form-label">Email</Label>
+                        <Label className="form-label">{t("product.auth.email")}</Label>
                         <Input
                           name="email"
                           className="form-control"
-                          placeholder="Enter email"
+                          placeholder={t("product.auth.emailPlaceholder")}
                           type="email"
                           onChange={validation.handleChange}
                           onBlur={validation.handleBlur}
@@ -128,12 +139,16 @@ const ForgetPasswordPage = (props:any) => {
                           }
                         />
                         {validation.touched.email && validation.errors.email ? (
-                          <FormFeedback type="invalid"><div>{validation.errors.email}</div></FormFeedback>
+                          <FormFeedback type="invalid">
+                            <div>{validation.errors.email}</div>
+                          </FormFeedback>
                         ) : null}
                       </div>
 
                       <div className="text-center mt-4">
-                        <button className="btn btn-info w-100" type="submit">Send Reset Link</button>
+                        <button className="btn btn-info w-100" type="submit">
+                          {t("product.forgot.submit")}
+                        </button>
                       </div>
                     </Form>
                   </div>
@@ -141,9 +156,13 @@ const ForgetPasswordPage = (props:any) => {
               </Card>
 
               <div className="mt-4 text-center">
-                <p className="mb-0">Wait, I remember my password... <Link to="/login" className="fw-semibold text-primary text-decoration-underline"> Click here </Link> </p>
+                <p className="mb-0">
+                  {t("product.forgot.rememberPrompt")}{" "}
+                  <Link to="/login" className="fw-semibold text-primary text-decoration-underline">
+                    {t("product.forgot.backToLogin")}
+                  </Link>
+                </p>
               </div>
-
             </Col>
           </Row>
         </Container>

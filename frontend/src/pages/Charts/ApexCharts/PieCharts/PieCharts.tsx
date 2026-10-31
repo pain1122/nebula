@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactApexChart from "react-apexcharts";
+import ReactApexChart from "Components/Common/LegacyApexChart";
 
 //Import images
 import smallImage1 from '../../../../assets/images/small/img-1.jpg';

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import Chart from 'react-apexcharts';
+import Chart from "Components/Common/LegacyApexChart";
 import { createSelector } from 'reselect';
 import { useSelector } from 'react-redux';
 import getChartColorsArray from 'Components/Common/ChartsDynamicColor';

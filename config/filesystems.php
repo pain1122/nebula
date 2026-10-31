@@ -30,21 +30,47 @@ return [
 
     'disks' => [
 
+        'article-media' => [
+            'driver' => env('ARTICLE_MEDIA_STORAGE_DRIVER', 'local'),
+            'root' => storage_path('app/article-media'),
+            'visibility' => 'private', 'serve' => false, 'throw' => true,
+            'key' => env('ARTICLE_MEDIA_S3_ACCESS_KEY_ID'),
+            'secret' => env('ARTICLE_MEDIA_S3_SECRET_ACCESS_KEY'),
+            'region' => env('ARTICLE_MEDIA_S3_REGION', 'us-east-1'),
+            'bucket' => env('ARTICLE_MEDIA_S3_BUCKET'),
+            'endpoint' => env('ARTICLE_MEDIA_S3_ENDPOINT'),
+            'allow_insecure_http' => env('ARTICLE_MEDIA_S3_ALLOW_INSECURE_HTTP', false),
+            'use_path_style_endpoint' => env('ARTICLE_MEDIA_S3_USE_PATH_STYLE_ENDPOINT', true),
+            'http' => ['connect_timeout' => 3, 'timeout' => 30, 'verify' => true],
+            'retries' => 1,
+        ],
+
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
-            'serve' => true,
+            'serve' => false,
             'throw' => false,
             'report' => false,
         ],
 
         'private' => [
-            'driver' => 'local',
-            'root' => storage_path('app/private'),
+            'driver' => env('MEDICAL_STORAGE_DRIVER', 'local'),
+            'root' => env('MEDICAL_STORAGE_DRIVER', 'local') === 'local'
+                ? (env('MEDICAL_LOCAL_STORAGE_ROOT') ?: storage_path('app/private')) : '',
             'visibility' => 'private',
             'serve' => false,
             'throw' => true,
             'report' => true,
+            // Dedicated medical credentials; never inherit public-storage credentials.
+            'key' => env('MEDICAL_S3_ACCESS_KEY_ID'),
+            'secret' => env('MEDICAL_S3_SECRET_ACCESS_KEY'),
+            'region' => env('MEDICAL_S3_REGION', 'us-east-1'),
+            'bucket' => env('MEDICAL_S3_BUCKET'),
+            'endpoint' => env('MEDICAL_S3_ENDPOINT'),
+            'use_path_style_endpoint' => env('MEDICAL_S3_USE_PATH_STYLE_ENDPOINT', true),
+            'allow_insecure_http' => env('MEDICAL_S3_ALLOW_INSECURE_HTTP', false),
+            'http' => ['connect_timeout' => 3, 'timeout' => 30, 'verify' => true],
+            'retries' => 1,
         ],
 
         'public' => [

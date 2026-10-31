@@ -10,6 +10,7 @@ use Tests\TestCase;
 class AdminAuthorityBoundaryTest extends TestCase
 {
     use RefreshDatabase;
+    use \Tests\Support\IsolatedProfileApplication;
 
     public function test_normal_admin_cannot_list_show_create_or_update_admin_identities(): void
     {
@@ -32,6 +33,9 @@ class AdminAuthorityBoundaryTest extends TestCase
             ->postJson('/api/admin/users', $this->userPayload([
                 'role' => UserRole::Admin->value,
                 'email' => 'created-admin@example.test',
+                'password' => 'harbor linen comet meadow',
+                'password_confirmation' => 'harbor linen comet meadow',
+                'reason' => 'Provision a marketplace administrator.',
             ]))
             ->assertForbidden();
 
@@ -42,6 +46,7 @@ class AdminAuthorityBoundaryTest extends TestCase
                 'email' => $admin->email,
                 'phone' => $admin->phone,
                 'NID' => $admin->NID,
+                'reason' => 'Attempt to demote an administrator.',
             ]))
             ->assertForbidden();
 
@@ -60,6 +65,9 @@ class AdminAuthorityBoundaryTest extends TestCase
             ->postJson('/api/admin/users', $this->userPayload([
                 'role' => UserRole::Admin->value,
                 'email' => 'managed-admin@example.test',
+                'password' => 'cedar lantern valley compass',
+                'password_confirmation' => 'cedar lantern valley compass',
+                'reason' => 'Provision a marketplace administrator.',
             ]))
             ->assertOk();
 

@@ -3,7 +3,8 @@ import { Card, CardBody, CardHeader, Col, Container, Row } from 'reactstrap';
 import { Link } from 'react-router-dom';
 
 // Swiper
-import { Swiper, SwiperSlide } from "swiper/react";
+import { SwiperSlide } from "swiper/react";
+import Swiper from "../../../Components/Common/DirectionalSwiper";
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";

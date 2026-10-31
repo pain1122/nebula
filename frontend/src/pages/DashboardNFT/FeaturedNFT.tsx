@@ -3,7 +3,8 @@ import { Card, CardBody, Col, Row } from 'reactstrap';
 import { topartWork } from "../../common/data/index";
 import { featuredNFTData } from "../../common/data/dashboardNFT";
 // Swiper
-import { Swiper, SwiperSlide } from "swiper/react";
+import { SwiperSlide } from "swiper/react";
+import Swiper from "../../Components/Common/DirectionalSwiper";
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";

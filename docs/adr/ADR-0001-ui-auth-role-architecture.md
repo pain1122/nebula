@@ -2,7 +2,7 @@
 
 Status: Accepted
 Date: 2026-05-03
-Implementation status updated: 2026-06-14
+Implementation status updated: 2026-10-04
 
 ## Context
 The project drifted into a mixed architecture:
@@ -13,8 +13,8 @@ The project drifted into a mixed architecture:
 This drift caused duplicated logic, inconsistent enforcement, and fragile behavior.
 
 ## Decision
-1. Admin panel UI is React + Bootstrap.
-2. Client/public UI is React + Tailwind.
+1. Authenticated admin, doctor and patient panel UI is the existing Velzon React + Bootstrap framework. Each role sees its permitted navigation and workflows; backend policies remain authoritative. This October 4 user decision supersedes the previous client/public grouping for authenticated patients.
+2. Public SEO and subscription/plans pages remain separate from the authenticated panel and are excluded from the demo. Their later React + Tailwind work does not block the golden flow.
 3. Spatie roles/permissions are the sole authorization source of truth.
 4. First-party web SPA/PWA uses Sanctum Session/Cookie authentication.
 5. Mobile/external clients use bearer tokens with TTL/rotation/revocation policy.
@@ -23,28 +23,28 @@ This drift caused duplicated logic, inconsistent enforcement, and fragile behavi
 1. Role source-of-truth migration:
 - Complete for the active schema and runtime authority path.
 - `users.role` has been dropped.
-- Runtime roles are `admin`, `doctor`, and `patient`.
+- Runtime roles are `root-admin`, `admin`, `doctor`, and `patient`.
 - Role names are centralized in `App\Enums\UserRole`.
 
 2. UI boundary migration:
 - Partially complete.
-- Blade remains active for current admin/doctor/web surfaces.
-- `frontend/` is currently a Velzon React-TS template migrated to Vite.
-- The active React admin shell has session-cookie auth, Persian/RTL defaults, local font loading, and persistent theme settings.
-- `/panel/*`, role-specific menus, root-admin utilities, and normal-admin bundle trimming still need canonical implementation.
+- Relevant Blade/resources workflows are being migrated into role-specific versions of the established panel. Retain unmigrated sources until their replacement passes acceptance; no template deletion or broad resource rewrite is authorized.
+- `frontend/` is the active Velzon React-TS/Vite panel with one /panel basename, session cookies, the existing language flag/direction ownership, local fonts and retained theme/layout controls.
+- Admin login/home/users/create/edit and root-only lazy `/panel/dev/*` are deployed and verified. October 4 also delivers patient booking/own reservations and doctor assigned reservations with shared session, role-specific landing/menu/guards and deployed browser acceptance. Evidence: `../deployment/demo-role-booking-2026-10-04.md`; payment/medical/questionnaire/full golden-flow acceptance remains separate.
+- All versions share the existing transport, auth authority, query/cache and manifest contracts, with role-gated routes/navigation and backend-owned authorization. CI, portability and toolbox disposition remain separately deferred.
 
 3. Auth-mode migration:
 - Partially complete.
 - Bearer token auth exists for API/mobile-style clients.
 - First-party browser SPA auth is wired through Sanctum session/cookies in `frontend/src/helpers/session_api.ts`.
 - Browser-tested flow: CSRF cookie, JSON login, `/api/auth/me`, dashboard refresh, profile display, logout, and logged-out redirect.
-- Mobile/external bearer token policy still needs TTL, rotation, revocation, and documentation.
+- Mobile/external bearer tokens have server-timed TTL, refresh/rotation, current-token logout/revocation, and expiry metadata. Device/push ownership and later mobile-product policy remain Phase 6.
 
 ## Consequences
 ### Positive
 - Clear ownership boundaries for UI and styling systems.
 - Reduced split-brain behavior in authorization.
-- Stronger browser security posture for first-party SPA once cookie/session auth is implemented.
+- Stronger browser security posture through the implemented first-party Sanctum cookie/session boundary.
 - Cleaner API client separation for first-party vs external consumers.
 
 ### Tradeoffs
@@ -68,7 +68,7 @@ This drift caused duplicated logic, inconsistent enforcement, and fragile behavi
 ## Implementation Notes
 - Route and build boundaries must reflect this ADR.
 - Authorization checks must be role-based via Spatie middleware/policies.
-- Any high-authority mutation should include step-up controls through policy, re-auth, and audit logging.
+- Named high-authority mutations use verified policy, recent session-backed password confirmation, reason, transaction, and fail-closed audit boundaries as applicable.
 - API payload keys named `role` must be computed from Spatie roles, never from a users table column.
 
 ## Acceptance Signals
@@ -76,3 +76,4 @@ This drift caused duplicated logic, inconsistent enforcement, and fragile behavi
 - First-party SPA auth works end-to-end via Sanctum session/cookie.
 - Mobile/external token auth remains supported and documented.
 - Admin/client style boundaries are explicit and enforced by conventions.
+- Phase 2 must prove canonical product routing, normal/root navigation, build/type quality, bundle isolation, and reusable-core portability before the React admin becomes canonical.

@@ -3,7 +3,8 @@ import React from 'react'
 
 //Import Icons
 import FeatherIcon from "feather-icons-react";
-import { DropdownItem, DropdownMenu, DropdownToggle, UncontrolledDropdown } from 'reactstrap';
+import { DropdownItem, DropdownToggle, UncontrolledDropdown } from "reactstrap";
+import DropdownMenu from "../../Components/Common/DirectionalDropdownMenu";
 import { DashboardBlogCharts } from './DashboardBlogCharts';
 
 const Widget = () => {

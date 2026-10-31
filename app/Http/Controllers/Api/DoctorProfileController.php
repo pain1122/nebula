@@ -3,11 +3,16 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\DoctorProfile;
+use App\Models\DoctorVisitSlot;
+use App\Models\DoctorWorkplace;
 use App\Models\Specialty;
 use App\Models\User;
 use App\Services\AuditLogger;
 use App\Services\DoctorScheduleService;
+use App\Services\DoctorVisitSlotControlService;
 use App\Support\QuerySorting;
+use App\Support\ScheduleControlConflict;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -38,7 +43,21 @@ class DoctorProfileController extends ApiController
             'fee' => ['sometimes', 'integer', 'min:0'],
             'bio' => ['nullable', 'string'],
             'experience_years' => ['nullable', 'integer', 'min:0'],
-            'availability' => ['nullable', 'array'], // JSON schedule
+            'availability' => ['nullable', 'array'],
+            'availability.*.day' => ['required_with:availability', 'in:sat,sun,mon,tue,wed,thu,fri'],
+            'availability.*.windows' => ['required_with:availability', 'array'],
+            'availability.*.windows.*' => ['array'],
+            'availability.*.windows.*.checkup_id' => ['required', 'integer'],
+            'availability.*.windows.*.start' => ['required', 'date_format:H:i'],
+            'availability.*.windows.*.end' => ['required', 'date_format:H:i'],
+            'availability.*.windows.*.duration_minutes' => ['required', 'integer', 'min:5', 'max:720'],
+            'availability.*.windows.*.price_override' => ['nullable', 'integer', 'min:0'],
+            'availability.*.windows.*.currency_override' => ['nullable', 'string', 'size:3'],
+            'availability.*.windows.*.effective_from' => ['nullable', 'date_format:Y-m-d'],
+            'availability.*.windows.*.effective_until' => ['nullable', 'date_format:Y-m-d'],
+            'availability.*.windows.*.breaks' => ['nullable', 'array'],
+            'availability.*.windows.*.breaks.*.start' => ['required', 'date_format:H:i'],
+            'availability.*.windows.*.breaks.*.end' => ['required', 'date_format:H:i'],
             'workplace_id' => ['required_with:availability', 'exists:doctor_workplaces,id'],
         ]);
 
@@ -65,7 +84,7 @@ class DoctorProfileController extends ApiController
 
         if ($workplaceId !== null) {
             $workplace = $profile->workplaces()->whereKey($workplaceId)->firstOrFail();
-            $this->doctorScheduleService->replaceFromLegacyInput($workplace, $availability ?? []);
+            $this->doctorScheduleService->replaceWeeklyRules($workplace, $availability ?? []);
         }
 
         return $this->successResponse(
@@ -74,19 +93,97 @@ class DoctorProfileController extends ApiController
         );
     }
 
+    public function controlVisitSlot(
+        Request $request,
+        DoctorVisitSlot $doctorVisitSlot,
+        DoctorVisitSlotControlService $service,
+    ) {
+        $data = $request->validate([
+            'is_active' => ['nullable', 'required_without:price', 'boolean'],
+            'price' => ['nullable', 'required_without:is_active', 'integer', 'min:0'],
+            'reason' => ['required', 'string', 'max:1000'],
+            'starts_at' => ['prohibited'],
+            'ends_at' => ['prohibited'],
+            'currency' => ['prohibited'],
+        ]);
+
+        try {
+            $slots = $service->change(
+                request: $request,
+                actor: $request->user(),
+                workplace: $doctorVisitSlot->workplace,
+                checkup: $doctorVisitSlot->checkup,
+                scope: 'slot',
+                localDate: $doctorVisitSlot->starts_at,
+                slot: $doctorVisitSlot,
+                isActive: array_key_exists('is_active', $data) ? (bool) $data['is_active'] : null,
+                price: $data['price'] ?? null,
+                reason: $data['reason'],
+            );
+        } catch (ScheduleControlConflict $exception) {
+            return $this->errorResponse($exception->getMessage(), 409, ['slot_id' => ['slot_control_conflict']]);
+        } catch (\DomainException|\InvalidArgumentException $exception) {
+            return $this->errorResponse($exception->getMessage(), 422, ['slot_id' => ['slot_control_rejected']]);
+        }
+
+        return $this->successResponse($slots->first(), 'Visit slot updated.');
+    }
+
+    public function controlVisitSlotRange(
+        Request $request,
+        DoctorWorkplace $doctorWorkplace,
+        DoctorVisitSlotControlService $service,
+    ) {
+        $data = $request->validate([
+            'checkup_id' => ['required', 'integer', 'exists:checkups,id'],
+            'scope' => ['required', 'in:day,week'],
+            'date' => ['required', 'date_format:Y-m-d'],
+            'is_active' => ['nullable', 'required_without:price', 'boolean'],
+            'price' => ['nullable', 'required_without:is_active', 'integer', 'min:0'],
+            'reason' => ['required', 'string', 'max:1000'],
+            'starts_at' => ['prohibited'],
+            'ends_at' => ['prohibited'],
+            'currency' => ['prohibited'],
+        ]);
+
+        try {
+            $slots = $service->change(
+                request: $request,
+                actor: $request->user(),
+                workplace: $doctorWorkplace,
+                checkup: \App\Models\Checkup::query()->findOrFail($data['checkup_id']),
+                scope: $data['scope'],
+                localDate: Carbon::createFromFormat('Y-m-d', $data['date']),
+                slot: null,
+                isActive: array_key_exists('is_active', $data) ? (bool) $data['is_active'] : null,
+                price: $data['price'] ?? null,
+                reason: $data['reason'],
+            );
+        } catch (ScheduleControlConflict $exception) {
+            return $this->errorResponse($exception->getMessage(), 409, ['date' => ['slot_control_conflict']]);
+        } catch (\DomainException|\InvalidArgumentException $exception) {
+            return $this->errorResponse($exception->getMessage(), 422, ['date' => ['slot_control_rejected']]);
+        }
+
+        return $this->successResponse([
+            'scope' => $data['scope'],
+            'date' => $data['date'],
+            'affected_slots' => $slots->count(),
+        ], 'Visit slots updated.');
+    }
+
     // GET /api/admin/doctors
     public function index(Request $request)
     {
         $query = DoctorProfile::query()
-            ->with(['user:id,name,email', 'specialty:id,name'])
+            ->with(['user:id,public_id,name', 'specialty:id,name'])
             ->select('doctor_profiles.*');
 
         if ($request->filled('q')) {
             $term = trim((string) $request->query('q'));
             $query->where(function ($q) use ($term): void {
                 $q->where('doctor_profiles.bio', 'like', "%{$term}%")
-                    ->orWhere('doctor_profiles.phone', 'like', "%{$term}%")
-                    ->orWhereHas('user', fn ($uq) => $uq->where('name', 'like', "%{$term}%")->orWhere('email', 'like', "%{$term}%"))
+                    ->orWhereHas('user', fn ($uq) => $uq->where('name', 'like', "%{$term}%"))
                     ->orWhereHas('specialty', fn ($sq) => $sq->where('name', 'like', "%{$term}%"));
             });
         }
@@ -135,6 +232,7 @@ class DoctorProfileController extends ApiController
 
         $doctors = $query
             ->paginate(20);
+        $doctors->getCollection()->each(fn ($profile) => $profile->makeHidden(['phone']));
 
         return $this->successResponse(
             data: $doctors,
@@ -171,11 +269,11 @@ class DoctorProfileController extends ApiController
                 reason: trim($data['reason']),
             );
 
-            return $lockedProfile->fresh(['user:id,name,email', 'specialty:id,name']);
+            return $lockedProfile->fresh(['user:id,public_id,name', 'specialty:id,name'])->makeHidden(['phone']);
         });
 
         return $this->successResponse(
-            data: $doctorProfile->fresh(['user:id,name,email', 'specialty:id,name']),
+            data: $doctorProfile->fresh(['user:id,public_id,name', 'specialty:id,name'])->makeHidden(['phone']),
             message: $doctorProfile->verified
                 ? 'Doctor verified.'
                 : 'Doctor unverified.'

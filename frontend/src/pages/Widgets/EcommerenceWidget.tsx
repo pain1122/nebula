@@ -1,5 +1,6 @@
 import React, {useState } from 'react';
-import { Swiper, SwiperSlide } from "swiper/react";
+import { SwiperSlide } from "swiper/react";
+import Swiper from "../../Components/Common/DirectionalSwiper";
 import { Link } from 'react-router-dom';
 import { Card, CardBody, Col, Row } from 'reactstrap';
 

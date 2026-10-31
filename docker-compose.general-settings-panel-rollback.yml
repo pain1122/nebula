@@ -1,0 +1,3 @@
+services:
+  admin:
+    image: checkupino-admin:payment-controls-accepted-2026-10-16

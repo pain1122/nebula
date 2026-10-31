@@ -1,5 +1,5 @@
 import React from "react";
-import ReactApexChart from "react-apexcharts";
+import ReactApexChart from "Components/Common/LegacyApexChart";
 import avatar1 from "../../../../assets/images/users/avatar-1.jpg";
 import avatar2 from "../../../../assets/images/users/avatar-2.jpg";
 

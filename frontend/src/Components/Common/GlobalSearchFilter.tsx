@@ -1,13 +1,6 @@
 import React, { useState } from 'react';
-import {
-    Col,
-    Row,
-    Button,
-    UncontrolledDropdown,
-    DropdownToggle,
-    DropdownItem,
-    DropdownMenu,
-} from "reactstrap";
+import { Col, Row, Button, UncontrolledDropdown, DropdownToggle, DropdownItem } from "reactstrap";
+import DropdownMenu from "./DirectionalDropdownMenu";
 import { Link } from "react-router-dom";
 import Flatpickr from "react-flatpickr";
 import Select from "react-select";

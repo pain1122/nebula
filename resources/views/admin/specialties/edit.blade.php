@@ -3,6 +3,7 @@
   <div class="max-w-xl mx-auto p-4">
     <form method="POST" action="{{ route('admin.specialties.update',$item) }}" class="bg-white p-4 rounded shadow space-y-3">
       @csrf @method('PUT')
+            @include('admin.catalog.guard', ['kind' => 'specialties', 'catalogId' => $item->id, 'needsReason' => true])
       <div>
         <label class="block mb-1">نام</label>
         <input name="name" value="{{ old('name',$item->name) }}" class="w-full border rounded p-2"/>

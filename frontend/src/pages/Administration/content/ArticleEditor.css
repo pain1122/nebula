@@ -1,0 +1,18 @@
+/* Article-only viewport; leave questionnaire and template editors unchanged. */
+[data-article-preview] img {
+  max-width: 100%;
+  height: auto;
+}
+[data-article-editor] .ck-editor__main > .ck-editor__editable {
+  height: 400px;
+  min-height: 400px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+@media (max-width: 767.98px) {
+  [data-article-editor] .ck-editor__main > .ck-editor__editable {
+    height: 250px;
+    min-height: 250px;
+    max-height: 250px;
+  }
+}

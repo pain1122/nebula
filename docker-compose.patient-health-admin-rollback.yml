@@ -1,0 +1,5 @@
+# Restore the previously accepted static panel only. Retain all health tables/history/key.
+services:
+  admin:
+    image: sha256:2f7bc492869f107f55fac878b320ca01b5b10838a3f9e6b295900dee8a31c182
+    pull_policy: never

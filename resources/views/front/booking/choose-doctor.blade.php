@@ -24,15 +24,17 @@
                                 <p class="text-sm text-gray-600">
                                     {{ $doctor->specialty?->name ?? __('No specialty set') }}
                                 </p>
-                                <p class="text-sm text-gray-600">
-                                    {{ __('Fee') }}: {{ number_format($doctor->fee) }} {{ __('IRR') }}
-                                </p>
-                                <a
-                                    href="{{ route('book.pick-time', ['checkup' => $checkup, 'doctor' => $doctor]) }}"
-                                    class="inline-flex justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
-                                >
-                                    {{ __('Pick Time') }}
-                                </a>
+                                <div class="space-y-2">
+                                    @foreach ($doctor->workplaces as $workplace)
+                                        <a
+                                            href="{{ route('book.pick-time', ['checkup' => $checkup, 'doctor' => $doctor, 'workplace_id' => $workplace->id]) }}"
+                                            class="flex justify-between rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
+                                        >
+                                            <span>{{ $workplace->display_name ?: $workplace->hospital?->name }}</span>
+                                            <span>{{ __('Pick Time') }}</span>
+                                        </a>
+                                    @endforeach
+                                </div>
                             </article>
                         @endforeach
                     </div>

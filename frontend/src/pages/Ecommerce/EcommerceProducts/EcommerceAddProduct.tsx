@@ -22,8 +22,7 @@ import {
 import { useDispatch } from "react-redux";
 import { addNewProduct as onAddNewProduct } from "../../../slices/thunks";
 
-import { CKEditor } from "@ckeditor/ckeditor5-react";
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import ToolboxClassicEditor from "../../../Components/Common/ToolboxClassicEditor";
 import classnames from "classnames";
 import Dropzone from "react-dropzone";
 import { Link, useNavigate } from "react-router-dom";
@@ -247,8 +246,7 @@ const EcommerceAddProduct = () => {
                   <div>
                     <Label>Product Description</Label>
 
-                    <CKEditor
-                      editor={ClassicEditor}
+                    <ToolboxClassicEditor
                       data="<p>
                       Tommy Hilfiger men striped pink sweatshirt. Crafted with
                       cotton. Material composition is 100% organic cotton.

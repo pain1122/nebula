@@ -10,9 +10,7 @@ use App\Models\CheckupCategory;
 use App\Services\AuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class CheckupController extends Controller
@@ -31,24 +29,9 @@ class CheckupController extends Controller
         return view('admin.checkups.create', compact('cats'));
     }
 
-    public function store(StoreCheckupRequest $request): RedirectResponse
+    public function store(StoreCheckupRequest $request, AuditLogger $auditLogger): RedirectResponse
     {
-        $data = $request->validated();
-
-        DB::transaction(function () use ($data): void {
-            $category = CheckupCategory::query()
-                ->whereKey($data['checkup_category_id'])
-                ->lockForUpdate()
-                ->first();
-
-            if (! $category) {
-                throw ValidationException::withMessages([
-                    'checkup_category_id' => 'دسته انتخاب‌شده دیگر فعال نیست.',
-                ]);
-            }
-
-            Checkup::create($data);
-        }, attempts: 3);
+        app(\App\Services\CatalogAdministration::class)->mutate($request, 'checkups', null, 'create');
 
         return redirect()->route('admin.checkups.index')->with('status', 'چکاپ ایجاد شد.');
     }
@@ -62,68 +45,7 @@ class CheckupController extends Controller
 
     public function update(UpdateCheckupRequest $request, Checkup $checkup, AuditLogger $auditLogger): RedirectResponse
     {
-        $data = $request->validated();
-        $reason = trim($data['reason']);
-        unset($data['reason']);
-        $originalCategoryId = $checkup->checkup_category_id;
-        $requestedCategoryId = $data['checkup_category_id'] ?? null;
-
-        DB::transaction(function () use (
-            $checkup,
-            $data,
-            $originalCategoryId,
-            $requestedCategoryId,
-            $request,
-            $auditLogger,
-            $reason,
-        ): void {
-            $categoryIds = collect([$originalCategoryId, $requestedCategoryId])
-                ->filter(fn ($id) => ! is_null($id))
-                ->unique()
-                ->sort()
-                ->values();
-
-            $lockedCategories = CheckupCategory::withTrashed()
-                ->whereIn('id', $categoryIds)
-                ->orderBy('id')
-                ->lockForUpdate()
-                ->get()
-                ->keyBy('id');
-
-            $requestedCategory = $requestedCategoryId
-                ? $lockedCategories->get($requestedCategoryId)
-                : null;
-
-            if ($requestedCategoryId && (! $requestedCategory || $requestedCategory->trashed())) {
-                throw ValidationException::withMessages([
-                    'checkup_category_id' => 'دسته انتخاب‌شده دیگر فعال نیست.',
-                ]);
-            }
-
-            $lockedCheckup = Checkup::query()
-                ->whereKey($checkup->getKey())
-                ->lockForUpdate()
-                ->firstOrFail();
-
-            if ($lockedCheckup->checkup_category_id !== $originalCategoryId) {
-                throw ValidationException::withMessages([
-                    'checkup_category_id' => 'دسته چکاپ هم‌زمان تغییر کرده است. صفحه را تازه‌سازی و دوباره تلاش کنید.',
-                ]);
-            }
-
-            $before = $this->auditSnapshot($lockedCheckup);
-            $lockedCheckup->update($data);
-            $auditLogger->log(
-                request: $request,
-                actor: $request->user(),
-                action: 'admin.checkup.updated',
-                subject: $lockedCheckup,
-                riskLevel: 'high',
-                before: $before,
-                after: $this->auditSnapshot($lockedCheckup),
-                reason: $reason,
-            );
-        }, attempts: 3);
+        app(\App\Services\CatalogAdministration::class)->mutate($request, 'checkups', $checkup->getKey(), 'update');
 
         return redirect()->route('admin.checkups.index')->with('status', 'چکاپ به‌روزرسانی شد.');
     }
@@ -144,27 +66,7 @@ class CheckupController extends Controller
 
     public function archive(Request $request, Checkup $checkup, AuditLogger $auditLogger): RedirectResponse
     {
-        Gate::authorize('archive', $checkup);
-
-        DB::transaction(function () use ($request, $checkup, $auditLogger): void {
-            $lockedCheckup = Checkup::query()
-                ->whereKey($checkup->getKey())
-                ->lockForUpdate()
-                ->firstOrFail();
-
-            $before = $this->auditSnapshot($lockedCheckup);
-            $lockedCheckup->delete();
-
-            $auditLogger->log(
-                request: $request,
-                actor: $request->user(),
-                action: 'admin.checkup.archived',
-                subject: $lockedCheckup,
-                riskLevel: 'critical',
-                before: $before,
-                after: $this->auditSnapshot($lockedCheckup),
-            );
-        });
+        app(\App\Services\CatalogAdministration::class)->mutate($request, 'checkups', $checkup->getKey(), 'archive');
 
         return redirect()
             ->route('admin.checkups.index')
@@ -183,6 +85,8 @@ class CheckupController extends Controller
             'slug' => $checkup->slug,
             'description' => $checkup->description,
             'price' => $checkup->price,
+            'currency' => $checkup->currency,
+            'default_duration_minutes' => $checkup->default_duration_minutes,
             'deleted_at' => $checkup->deleted_at?->toIso8601String(),
         ];
     }

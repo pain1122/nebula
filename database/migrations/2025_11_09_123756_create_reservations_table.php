@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('reservations', function (Blueprint $table): void {
             $table->id();
             $table->ulid('public_id')->unique();
+            $table->foreignId('doctor_visit_slot_id')->constrained('doctor_visit_slots')->restrictOnDelete();
             $table->foreignId('user_id')->constrained()->restrictOnDelete();
             $table->foreignId('doctor_profile_id')->constrained()->restrictOnDelete();
             $table->foreignId('doctor_workplace_id')->constrained('doctor_workplaces')->restrictOnDelete();
@@ -44,6 +45,7 @@ return new class extends Migration
                 'reservation_workplace_conflict_idx'
             );
             $table->index(['user_id', 'status', 'starts_at']);
+            $table->index(['doctor_visit_slot_id', 'status']);
         });
 
         Schema::create('reservation_schedule_changes', function (Blueprint $table): void {
@@ -51,6 +53,8 @@ return new class extends Migration
             $table->ulid('public_id')->unique();
             $table->foreignId('reservation_id')->constrained('reservations')->restrictOnDelete();
             $table->foreignId('actor_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->unsignedBigInteger('previous_doctor_visit_slot_id');
+            $table->unsignedBigInteger('new_doctor_visit_slot_id');
             $table->unsignedBigInteger('previous_doctor_workplace_id');
             $table->unsignedBigInteger('new_doctor_workplace_id');
             $table->dateTime('previous_starts_at');
@@ -65,6 +69,14 @@ return new class extends Migration
             $table->foreign('previous_doctor_workplace_id', 'schedule_change_previous_workplace_fk')
                 ->references('id')
                 ->on('doctor_workplaces')
+                ->restrictOnDelete();
+            $table->foreign('previous_doctor_visit_slot_id', 'schedule_change_previous_slot_fk')
+                ->references('id')
+                ->on('doctor_visit_slots')
+                ->restrictOnDelete();
+            $table->foreign('new_doctor_visit_slot_id', 'schedule_change_new_slot_fk')
+                ->references('id')
+                ->on('doctor_visit_slots')
                 ->restrictOnDelete();
             $table->foreign('new_doctor_workplace_id', 'schedule_change_new_workplace_fk')
                 ->references('id')

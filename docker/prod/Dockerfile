@@ -32,24 +32,31 @@ RUN composer dump-autoload --no-dev --optimize --no-scripts
 
 FROM php:8.3-fpm-alpine AS app
 
+COPY docker/medical-content/build-qpdf.sh /tmp/checkupino-build-qpdf.sh
+
 RUN set -eux; \
-    apk add --no-cache ca-certificates curl libzip oniguruma unzip zip; \
+    apk add --no-cache ca-certificates curl libzip oniguruma unzip zip libpng libjpeg-turbo libstdc++ openssl util-linux; \
     apk add --no-cache --virtual .build-deps \
         $PHPIZE_DEPS \
+        cmake g++ pkgconf openssl-dev zlib-dev libjpeg-turbo-dev \
         linux-headers \
         oniguruma-dev \
         libpng-dev \
         libxml2-dev \
         libzip-dev; \
-    docker-php-ext-install pdo_mysql mbstring zip exif pcntl bcmath opcache; \
+    docker-php-ext-configure gd --with-jpeg; \
+    docker-php-ext-install pdo_mysql mbstring zip exif pcntl bcmath opcache gd; \
     pecl install redis; \
     docker-php-ext-enable redis; \
+    sh /tmp/checkupino-build-qpdf.sh; \
+    rm /tmp/checkupino-build-qpdf.sh; \
     apk del .build-deps; \
     rm -rf /tmp/pear
 
 WORKDIR /var/www
 
 COPY --from=vendor /app /var/www
+COPY scripts/media/validate-medical-image.php /var/www/scripts/media/validate-medical-image.php
 COPY --from=assets /app/public/build /var/www/public/build
 COPY docker/prod/app/entrypoint.sh /usr/local/bin/checkupino-entrypoint
 

@@ -1,11 +1,12 @@
 ## Verification Status
 
-Last verified against code: 2026-08-03
+Last verified against code: 2026-08-16
 Verification method:
 - repo inspection
-- SQLite and user-confirmed disposable-MySQL suites
+- final Phase 1 SQLite suite: 304 tests/1,796 assertions with three intentional MySQL-only skips
+- user-confirmed full disposable-MySQL Phase 1 suite: 307 tests/1,816 assertions
 - marketplace/tenant outbox isolation, retry, recovery, and failure regressions
-- 104-route list and touched-file Pint
+- current route discovery: 121 non-vendor routes, including 68 API routes; touched-file Pint scopes are clean
 
 If this file conflicts with source code, source code wins.
 Update this module after verification.

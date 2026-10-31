@@ -1,5 +1,7 @@
+import FileManagerFrame from './FileManagerFrame';
 import React, { useEffect, useState, useCallback } from 'react';
-import { Card, CardBody, Col, Container, DropdownItem, DropdownMenu, DropdownToggle, FormFeedback, Input, Modal, ModalBody, ModalHeader, Row, UncontrolledDropdown } from 'reactstrap';
+import { Card, CardBody, Col, Container, DropdownItem, DropdownToggle, FormFeedback, Input, Modal, ModalBody, ModalHeader, Row, UncontrolledDropdown } from "reactstrap";
+import DropdownMenu from "../../Components/Common/DirectionalDropdownMenu";
 import SimpleBar from 'simplebar-react';
 import { ToastContainer } from 'react-toastify';
 import SimpleDonutCharts from './FileManagerCharts';
@@ -324,8 +326,7 @@ const FileManager = () => {
 
             <div className="page-content">
                 <Container fluid>
-                    <div className="chat-wrapper d-lg-flex gap-1 mx-n4 mt-n4 p-1">
-                        <div className="file-manager-sidebar">
+                    <FileManagerFrame sidebar={<> 
                             <div className="p-3 d-flex flex-column h-100">
                                 <div className="mb-3">
                                     <h5 className="mb-0 fw-semibold">My Drive</h5>
@@ -393,8 +394,7 @@ const FileManager = () => {
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div className="file-manager-content w-100 p-3 py-0">
+                         </>} content={<> 
                             <div className="mx-n3 pt-4 px-4 file-manager-content-scroll overflow-x-hidden overflow-y-auto">
                                 <div id="folder-list" className="mb-2">
                                     <Row className="justify-content-beetwen g-2 mb-3 mb-4">
@@ -554,8 +554,7 @@ const FileManager = () => {
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div className="file-manager-detail-content p-3 py-0">
+                         </>} details={<> 
                             <SimpleBar className="mx-n3 pt-3 px-3 file-detail-content-scroll">
                                 <div id="folder-overview">
                                     <div className="d-flex align-items-center pb-3 border-bottom border-bottom-dashed">
@@ -731,8 +730,7 @@ const FileManager = () => {
                                     </div>
                                 </div>
                             </SimpleBar>
-                        </div>
-                    </div>
+                         </>} />
                 </Container>
             </div>
 

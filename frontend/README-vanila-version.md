@@ -1,3 +1,9 @@
+# Archived Upstream Create React App README
+
+Status: historical vendor reference only. It does not describe the current workspace, available scripts, build output, or quality gates. The active workspace uses Vite; use `frontend/README.md` and `frontend/package.json` for current facts.
+
+## Original text
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

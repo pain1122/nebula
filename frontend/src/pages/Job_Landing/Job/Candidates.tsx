@@ -5,7 +5,8 @@ import avatar3 from "../../../assets/images/users/avatar-3.jpg";
 import avatar10 from "../../../assets/images/users/avatar-10.jpg";
 import avatar8 from "../../../assets/images/users/avatar-8.jpg";
 import avatar5 from "../../../assets/images/users/avatar-5.jpg";
-import { Swiper, SwiperSlide } from "swiper/react";
+import { SwiperSlide } from "swiper/react";
+import Swiper from "../../../Components/Common/DirectionalSwiper";
 import { Autoplay } from "swiper/modules";
 import "swiper/css";
 

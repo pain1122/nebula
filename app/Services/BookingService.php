@@ -5,12 +5,12 @@ namespace App\Services;
 use App\Enums\OutboxEventType;
 use App\Models\Checkup;
 use App\Models\DoctorProfile;
+use App\Models\DoctorVisitSlot;
 use App\Models\DoctorWorkplace;
 use App\Models\Payment;
 use App\Models\Reservation;
 use App\Models\ReservationStatus;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -25,11 +25,7 @@ class BookingService
      */
     public function createReservation(
         User $user,
-        Checkup $checkup,
-        DoctorProfile $doctor,
-        Carbon $start,
-        int $durationMinutes,
-        ?DoctorWorkplace $workplace = null,
+        string $slotPublicId,
         ?string $idempotencyKey = null
     ): array {
         if ($idempotencyKey !== null) {
@@ -50,11 +46,7 @@ class BookingService
 
         return DB::transaction(function () use (
             $user,
-            $checkup,
-            $doctor,
-            $start,
-            $durationMinutes,
-            $workplace,
+            $slotPublicId,
             $idempotencyKey
         ): array {
             User::query()->whereKey($user->getKey())->lockForUpdate()->firstOrFail();
@@ -71,48 +63,65 @@ class BookingService
                 ]);
             }
 
-            $lockedCheckup = Checkup::query()->whereKey($checkup->id)->lockForUpdate()->first();
+            $lockedSlot = DoctorVisitSlot::query()
+                ->where('public_id', $slotPublicId)
+                ->lockForUpdate()
+                ->first();
 
-            if (! $lockedCheckup) {
-                throw ValidationException::withMessages(['checkup_id' => ['checkup_not_available']]);
+            if (! $lockedSlot
+                || ! $lockedSlot->is_active
+                || ! $lockedSlot->workingWindow()->where('is_active', true)->exists()) {
+                throw ValidationException::withMessages(['slot_id' => ['slot_not_available']]);
             }
 
-            $lockedDoctor = DoctorProfile::query()->whereKey($doctor->id)->lockForUpdate()->first();
+            if ($lockedSlot->starts_at->lessThanOrEqualTo(now())) {
+                throw ValidationException::withMessages(['slot_id' => ['past_slot']]);
+            }
+
+            $lockedWorkplace = DoctorWorkplace::query()
+                ->whereKey($lockedSlot->doctor_workplace_id)
+                ->lockForUpdate()
+                ->firstOrFail();
+            $lockedDoctor = DoctorProfile::query()
+                ->whereKey($lockedWorkplace->doctor_profile_id)
+                ->lockForUpdate()
+                ->first();
 
             if (! $lockedDoctor) {
                 throw ValidationException::withMessages(['doctor_profile_id' => ['doctor_not_found']]);
             }
 
+            $lockedCheckup = Checkup::query()->whereKey($lockedSlot->checkup_id)->lockForUpdate()->first();
+
+            if (! $lockedCheckup) {
+                throw ValidationException::withMessages(['checkup_id' => ['checkup_not_available']]);
+            }
+
             $lockedWorkplace = $this->resolveBookableWorkplace(
                 $lockedCheckup,
                 $lockedDoctor,
-                $workplace?->id
+                $lockedWorkplace->getKey(),
             );
-            $service = $lockedWorkplace->checkups()
-                ->whereKey($lockedCheckup->id)
-                ->wherePivot('is_active', true)
-                ->firstOrFail();
-            $configuredDuration = $service->pivot->duration_override_minutes
-                ?? $lockedCheckup->default_duration_minutes;
+            $start = $lockedSlot->starts_at;
+            $end = $lockedSlot->ends_at;
+            $durationMinutes = (int) $start->diffInMinutes($end);
 
-            if ($durationMinutes !== (int) $configuredDuration) {
-                throw ValidationException::withMessages(['duration' => ['duration_not_offered']]);
-            }
-
-            $this->assertRequestedSlotIsGenerated($lockedWorkplace, $start, $durationMinutes);
-
-            $end = $start->copy()->addMinutes($durationMinutes);
-
-            if (SchedulingService::hasConflict($lockedDoctor->id, $start, $end)) {
+            if (SchedulingService::hasConflict(
+                $lockedDoctor->id,
+                $start,
+                $end,
+                lockForUpdate: true,
+            )) {
                 throw ValidationException::withMessages(['time' => ['time_conflict']]);
             }
 
             $lockedWorkplace->loadMissing(['hospital', 'doctorProfile.user']);
             $lockedCheckup->loadMissing('category');
-            $price = (int) ($service->pivot->price_override ?? $lockedCheckup->price);
-            $currency = $service->pivot->currency_override ?? $lockedCheckup->currency;
+            $price = (int) $lockedSlot->price;
+            $currency = (string) $lockedSlot->currency;
 
             $reservation = Reservation::query()->create([
+                'doctor_visit_slot_id' => $lockedSlot->id,
                 'user_id' => $user->id,
                 'doctor_profile_id' => $lockedDoctor->id,
                 'doctor_workplace_id' => $lockedWorkplace->id,
@@ -120,10 +129,10 @@ class BookingService
                 'starts_at' => $start,
                 'ends_at' => $end,
                 'duration_minutes' => $durationMinutes,
-                'timezone' => $lockedWorkplace->hospital->timezone,
+                'timezone' => app(GeneralMarketplaceRuntime::class)->timezone($lockedWorkplace->hospital->timezone),
                 'status' => ReservationStatus::Pending,
                 'hold_expires_at' => now()->addMinutes(
-                    max(1, (int) config('payments.hold_minutes', 60))
+                    app(GeneralMarketplaceRuntime::class)->holdMinutes()
                 ),
                 'booking_idempotency_key' => $idempotencyKey,
                 'hospital_name_snapshot' => $lockedWorkplace->hospital->name,
@@ -191,40 +200,5 @@ class BookingService
         }
 
         return $workplaces->first();
-    }
-
-    public function assertDoctorCanPerformCheckup(Checkup $checkup, DoctorProfile $doctor): void
-    {
-        $this->resolveBookableWorkplace($checkup, $doctor);
-    }
-
-    public function assertRequestedSlotIsGenerated(
-        DoctorWorkplace $workplace,
-        Carbon $start,
-        int $durationMinutes
-    ): void {
-        if ($durationMinutes <= 0) {
-            throw ValidationException::withMessages(['duration' => ['invalid_duration']]);
-        }
-
-        if ($start->lessThanOrEqualTo(now())) {
-            throw ValidationException::withMessages(['starts_at' => ['past_slot']]);
-        }
-
-        $end = $start->copy()->addMinutes($durationMinutes);
-        $slots = SchedulingService::buildWorkplaceSlots(
-            $workplace,
-            $start->copy()->startOfDay(),
-            $start->copy()->endOfDay(),
-            $durationMinutes
-        );
-
-        foreach ($slots as [$slotStart, $slotEnd]) {
-            if ($slotStart->equalTo($start) && $slotEnd->equalTo($end)) {
-                return;
-            }
-        }
-
-        throw ValidationException::withMessages(['starts_at' => ['slot_not_available']]);
     }
 }

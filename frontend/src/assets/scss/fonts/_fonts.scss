@@ -4,27 +4,23 @@
 
 @font-face {
     font-family: "hkgrotesk";
-    src: url("../../fonts/hkgrotesk-light.eot");
-    src: local('hkgrotesk light'), url("../../fonts/hkgrotesk-light.woff") format("woff");
+    src: local('hkgrotesk light'), url("../../fonts/hkgrotesk-light.woff2") format("woff2");
     font-weight: 300;
 }
 
 @font-face {
     font-family: "hkgrotesk";
-    src: url("../../fonts/hkgrotesk-regular.eot");
-    src: local('hkgrotesk regular'), url("../../fonts/hkgrotesk-regular.woff") format("woff");
+    src: local('hkgrotesk regular'), url("../../fonts/hkgrotesk-regular.woff2") format("woff2");
     font-weight: 400;
 }
 @font-face {
     font-family: "hkgrotesk";
-    src: url("../../fonts/hkgrotesk-medium.eot");
-    src: local('hkgrotesk medium'), url("../../fonts/hkgrotesk-medium.woff") format("woff");
+    src: local('hkgrotesk medium'), url("../../fonts/hkgrotesk-medium.woff2") format("woff2");
     font-weight: 500;
 }
 @font-face {
     font-family: "hkgrotesk";
-    src: url("../../fonts/hkgrotesk-semibold.eot");
-    src: local('hkgrotesk semibold'), url("../../fonts/hkgrotesk-semibold.woff") format("woff");
+    src: local('hkgrotesk semibold'), url("../../fonts/hkgrotesk-semibold.woff2") format("woff2");
     font-weight: 600;
 }
 // @font-face {
@@ -39,6 +35,10 @@
 // Persian-friendly local fonts
 //
 
+/*
+ * Retained Velzon-era Dana/IRANSans/fixed-Vazir declarations are quarantined here until the
+ * later asset-disposition gate. They are intentionally not active product font sources.
+ *
 @font-face {
     font-family: "DanaFaNum";
     src: url("../../fonts/dana/DanaFaNum-Light.woff2") format("woff2"),
@@ -170,17 +170,18 @@
     font-style: normal;
     font-display: swap;
 }
+*/
 
 @font-face {
-    font-family: "Roboto";
-    src: url("../../fonts/roboto/Roboto-Light.ttf") format("truetype");
-    font-weight: 300;
+    font-family: "Vazirmatn";
+    src: url("../../fonts/vazir-matn/Vazirmatn-v33.003-wght.woff2") format("woff2");
+    font-weight: 100 900;
     font-style: normal;
     font-display: swap;
 }
 
 :root {
-    --nebula-font-persian: "DanaFaNum", "VazirFaNum", "Vazirmatn", "IRANSansFaNum", "IRANSans", sans-serif;
+    --nebula-font-persian: "Vazirmatn", system-ui, sans-serif;
 }
 
 html[lang="fa"] {

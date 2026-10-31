@@ -4,7 +4,8 @@ import UiContent from "../../../Components/Common/UiContent";
 
 //import Components
 import BreadCrumb from '../../../Components/Common/BreadCrumb';
-import { Card, CardBody, Col, Container, DropdownItem, DropdownMenu, DropdownToggle, Input, Label, Row, UncontrolledDropdown, FormGroup } from 'reactstrap';
+import { Card, CardBody, Col, Container, DropdownItem, DropdownToggle, Input, Label, Row, UncontrolledDropdown, FormGroup } from "reactstrap";
+import DropdownMenu from "../../../Components/Common/DirectionalDropdownMenu";
 import PreviewCardHeader from '../../../Components/Common/PreviewCardHeader';
 
 

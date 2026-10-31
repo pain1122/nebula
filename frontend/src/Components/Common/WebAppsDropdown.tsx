@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Col, Dropdown, DropdownMenu, DropdownToggle, Row } from 'reactstrap';
+import { Col, Dropdown, DropdownToggle, Row } from "reactstrap";
+import DropdownMenu from "./DirectionalDropdownMenu";
 
 //import images
 import github from "../../assets/images/brands/github.png";

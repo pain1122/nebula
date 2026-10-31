@@ -2,6 +2,8 @@
 
 Snapshot date: 2026-07-12
 
+Status: historical pre-rebuild inventory. Its “current” statements describe the inspected 2026-07-12 baseline, not the live post-Phase-1 schema. The approved replacements were implemented and verified; use `docs/PROJECT_MAP.md` and `docs/audits/phase-1-verification-gate-2026-08-16.md` for current reality.
+
 Purpose: capture the schema and runtime data contract that must be preserved, corrected, or intentionally replaced before historical migrations are consolidated.
 
 ## Inspection Scope

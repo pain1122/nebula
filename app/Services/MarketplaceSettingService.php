@@ -26,8 +26,24 @@ class MarketplaceSettingService
         string $scopeKey,
         mixed $value,
         string $reason,
+        ?string $expectedRevision = null,
+        bool $confirmed = false,
+        bool $reset = false,
     ): SettingValue {
-        $definition = SettingDefinition::query()->where('key', $key)->firstOrFail();
+        if (in_array($key, GeneralMarketplaceSettings::KEYS, true)) {
+            return app(GeneralMarketplaceSettingWriter::class)->set($request, $actor, $key, $scopeType, $scopeKey,
+                $value, $reason, $expectedRevision, $confirmed, $reset);
+        }
+        if ($reset) {
+            throw ValidationException::withMessages(['operation' => 'Reset is unavailable for this setting.']);
+        }
+        $definition = SettingDefinition::query()->where('key', $key)->first();
+        if ($definition === null && UploadPolicySettings::isSetting($key)) {
+            // Only these registered upload keys can be provisioned by an ordinary,
+            // authorized setting write; validation precedes all persistence.
+            $definition = new SettingDefinition(['key' => $key]);
+        }
+        $definition ??= SettingDefinition::query()->where('key', $key)->firstOrFail();
         Gate::forUser($actor)->authorize('update', $definition);
         $reason = trim($reason);
 
@@ -37,6 +53,16 @@ class MarketplaceSettingService
 
         $this->registry->assertScopeAllowed('marketplace', $key, $scopeType);
         $this->assertScopeKey($scopeType, $scopeKey);
+        if (UploadPolicySettings::isSetting($key)
+            && (! is_string($expectedRevision) || ! preg_match('/^[a-f0-9]{64}$/D', $expectedRevision))) {
+            throw ValidationException::withMessages(['expected_revision' => 'Read the current upload policy before saving.']);
+        }
+        if (UploadPolicySettings::isSetting($key)
+            && ! hash_equals(app(UploadPolicySettings::class)->revision($key), $expectedRevision)) {
+            throw ValidationException::withMessages([
+                'expected_revision' => 'Upload policy changed. Reload and review before saving.',
+            ]);
+        }
         $validatedValue = $this->registry->validateValue('marketplace', $key, $value);
 
         return DB::transaction(function () use (
@@ -48,7 +74,20 @@ class MarketplaceSettingService
             $scopeKey,
             $validatedValue,
             $reason,
+            $expectedRevision,
         ): SettingValue {
+            if (! $definition->exists) {
+                $registered = $this->registry->definition('marketplace', $key);
+                $definition = SettingDefinition::query()->firstOrCreate(['key' => $key], [
+                    'group' => $registered['group'],
+                    'value_type' => $registered['value_type'],
+                    'default_value' => $registered['default'],
+                    'validation_rules' => $registered['validation_rules'],
+                    'sensitivity' => $registered['sensitivity'],
+                    'allowed_scopes' => $registered['allowed_scopes'],
+                    'description' => $registered['description'],
+                ]);
+            }
             $lockedDefinition = SettingDefinition::query()->lockForUpdate()->findOrFail($definition->getKey());
             $settingValue = SettingValue::query()
                 ->where('setting_definition_id', $lockedDefinition->getKey())
@@ -56,6 +95,12 @@ class MarketplaceSettingService
                 ->where('scope_key', $scopeKey)
                 ->lockForUpdate()
                 ->first();
+            if (UploadPolicySettings::isSetting($key)
+                && ! hash_equals(UploadPolicySettings::revisionFor($key, $settingValue?->value, $settingValue !== null), $expectedRevision)) {
+                throw ValidationException::withMessages([
+                    'expected_revision' => 'Upload policy changed. Reload and review before saving.',
+                ]);
+            }
             $before = $settingValue === null ? null : $this->snapshot($key, $settingValue);
 
             $settingValue ??= new SettingValue;

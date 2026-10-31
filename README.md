@@ -7,24 +7,27 @@ Current primary runtime:
 - Sanctum-backed API for auth, booking, admin, doctor, profile, and questionnaire flows.
 - Docker local stack with Nginx, PHP-FPM, MySQL, and Redis.
 
-Parked frontend workspace:
-- `frontend/` currently contains a Velzon React-TS template migrated from Create React App to Vite.
+Active frontend workspace:
+- `frontend/` contains the Velzon React-TS/Vite admin with a real API-backed `/panel/users` directory and paired English/Farsi labels.
 - It is not the canonical production admin/client surface yet.
-- It now has a working Sanctum session-cookie admin auth shell, but route ownership and demo-page isolation are still in progress.
+- It has working Sanctum session-cookie admin auth, canonical `/panel` product routes, manifest-driven product navigation, and lazy root-admin toolbox routes under `/panel/dev/*`. F28's inert root-system extension slot is complete without a dead route; full asset isolation, deployment, CI, and portability remain Phase 2 work.
 
 ## Current Scope
 
 Implemented backend/domain foundations:
-- Authentication: Laravel Breeze web auth plus Sanctum API token auth.
-- Roles/permissions: Spatie Permission with `admin`, `doctor`, and `patient` roles.
+- Authentication: Laravel Breeze web auth plus Sanctum session-cookie and expiring/refreshable bearer-token APIs.
+- Roles/permissions: Spatie Permission with `root-admin`, `admin`, `doctor`, and `patient` roles.
 - Role source of truth: Spatie role tables only. The legacy `users.role` column has been migrated out.
 - User classification: public/free-form captures live in `leads`; authenticated users with the patient role are patients.
 - Patient lifecycle flag: nullable `users.patient_status` for values such as `free`, `trial`, `active`, `expired`, and `suspended`.
-- Booking domain: checkup categories, checkups, doctor profiles, reservations, payments, and the `checkup_doctor` eligibility pivot.
-- Admin Blade panel: specialties, checkup categories, checkups.
+- Booking domain: marketplace hospitals, doctor workplaces/services, recurring working rules and breaks, persistent public-ID visit slots, reservations, schedule history, holds, payment summaries/attempts/adjustments, and lifecycle services.
+- Service eligibility: active `doctor_workplace_checkup` records; the old global `checkup_doctor` pivot is not part of the active schema.
+- Admin surfaces/APIs: specialties, categories/checkups, users/account state, doctor verification, reservations, questionnaires/submissions, marketplace tenant controls/settings, and payment-adjustment requests.
 - Doctor Blade panel: dashboard, profile edit, service selection.
 - Medical profile API: `user_profiles` table plus `/api/auth/profile` endpoints.
-- Questionnaire domain: questionnaire CRUD, public submission, admin submissions, and lead creation for unknown submitters.
+- Questionnaire domain: sanitized/versioned definitions, server-owned answer validation/scoring/recommendations, throttled public submission, admin submissions, and lead creation for unknown submitters.
+- Medical workflow: doctor request/review, patient private quarantined upload, internal scan status, immutable report publication/amendment, and authorized patient outcome/file reads.
+- Platform foundation: audit/step-up, outbox, typed settings/features, marketplace tenant registry/health/entitlements, and an isolated minimal tenant schema.
 
 ## Stack
 
@@ -49,7 +52,7 @@ Implemented backend/domain foundations:
 - `database/seeders/` local roles, users, and domain seed data
 - `resources/views/` Blade UI
 - `resources/js/` and `resources/css/` root Vite entrypoints
-- `frontend/` separate parked Velzon React-TS Vite workspace
+- `frontend/` separate active Velzon React-TS Vite workspace
 - `docs/` architecture notes and ADRs
 - `docker/` Dockerfiles and Nginx config
 
@@ -77,7 +80,7 @@ This project is designed for Docker-based local development.
 ### 2) Clone
 
 ```bash
-git clone https://github.com/pain1122/checkupino.git
+git clone https://github.com/pain1122/nebula.git checkupino
 cd checkupino
 ```
 
@@ -140,11 +143,15 @@ docker compose exec app php artisan migrate --seed
 ```
 
 Seeded local users:
+- `rootadmin@checkupino.test` / `Password123!`
 - `admin@checkupino.test` / `Password123!`
 - `doctor@checkupino.test` / `Password123!`
 - `patient@checkupino.test` / `Password123!`
 
+`Password123!` is the `.env.example` local default for `DEMO_SEED_PASSWORD`. Known-credential users are guarded to local/testing seed execution and must never be treated as production accounts.
+
 Seeded roles:
+- `root-admin`
 - `admin`
 - `doctor`
 - `patient`
@@ -194,7 +201,7 @@ curl http://localhost:8080/api/auth/me \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
-### 10) Optional: run the parked React workspace
+### 10) Optional: run the React development workspace
 
 Use this only if you are actively exploring or rebuilding the Velzon React admin/client workspace:
 
@@ -212,12 +219,12 @@ Current frontend workspace facts:
 - Active login/logout/current-user flow uses Laravel Sanctum session cookies through `frontend/src/helpers/session_api.ts`.
 - Browser admin auth does not store bearer tokens in `localStorage` or `sessionStorage`.
 - Firebase auth helpers, fake JWT auth backend, and JWT token-access helpers have been removed.
-- `frontend/src/helpers/fakebackend_helper.ts` remains only for Velzon demo data slices until the root-admin/developer toolbox split.
+- `frontend/src/helpers/fakebackend_helper.ts` remains for Velzon demo data slices routed through the root-admin developer toolbox; Phase 2 must prove the complete import graph before deletion or stronger quarantine.
 - Vite dev server runs at `http://localhost:3000`.
 - Laravel backend target for future local integration is `http://localhost:8080`; Laravel API routes are under `http://localhost:8080/api`.
-- Frontend env declarations use Vite keys: `VITE_BACKEND_URL`, `VITE_API_BASE_URL`, and temporary `VITE_DEFAULT_AUTH`.
+- Active frontend env declarations use Vite keys `VITE_BACKEND_URL` and `VITE_API_BASE_URL`; no active fake-auth environment switch remains.
 - Active frontend env reads use `import.meta.env`; the old CRA `process.env.REACT_APP_*` compatibility bridge has been removed.
-- Do not treat `frontend/` as the canonical admin surface until the `/panel/*` route namespace, role-specific menus, and root-admin/developer toolbox boundaries are implemented.
+- `frontend/` now has an implemented standalone Nginx admin image and `/panel/*` history-fallback contract. The build rejects the reserved example API origin instead of emitting an unusable artifact. F29 remains open for the user-run rebuilt-image/deployed-origin smoke and deferred F27I disposition; full asset isolation, CI, and portability remain approval-gated. F28 navigation is complete.
 
 ## Production Docker Skeleton
 
@@ -227,6 +234,9 @@ The repository includes an early production packaging path:
 - `docker/prod/Dockerfile`
 - `docker/prod/app/entrypoint.sh`
 - `docker/prod/nginx/default.conf`
+- `frontend/Dockerfile`
+- `frontend/nginx/default.conf`
+- `frontend/.env.production.example`
 - `.env.production.example`
 - `docs/deployment/docker-production.md`
 
@@ -244,7 +254,7 @@ Important differences from local Docker:
 - No whole-project bind mount.
 - Laravel code, Composer dependencies, and root Vite assets are baked into images.
 - MySQL, Redis, and Laravel storage use named volumes.
-- The parked `frontend/` Vite template is excluded from the production image for now.
+- The React admin builds into its own Nginx image, serves only `/panel/*`, and calls the separate Laravel origin through the existing API/Sanctum client.
 - Queue and scheduler containers are available through the optional `workers` profile.
 
 Health endpoint:
@@ -310,28 +320,27 @@ docker compose down -v
 
 ## Current Verification Snapshot
 
-As of 2026-06-14:
-- Backend tests pass: 25 tests, 61 assertions.
-- Runtime roles are `admin`, `doctor`, and `patient`.
-- `users.role` is not present in the migrated schema.
-- `/debug/res-last` is local-only and excluded from production route lists.
-- Backend Sanctum session-cookie smoke test passes for CSRF, JSON login, and `/api/auth/me`.
-- `frontend/` has been migrated from CRA/react-scripts to Vite and builds successfully.
-- `frontend` dev server runs at `http://localhost:3000`.
-- Active frontend env usage has been converted to Vite env access; only commented Firebase template notes still mention old CRA env names.
-- Frontend browser auth has been tested with session-cookie login, dashboard refresh, profile dropdown, `/profile`, logout, and logged-out dashboard redirect.
-- `frontend/src/helpers/api_helper.ts` no longer reads `sessionStorage authUser` or attaches global `Authorization: Bearer` headers.
+As of 2026-08-16:
+- Phase 1A-1E is complete and documented.
+- Full SQLite baseline: 304 tests, 1,796 assertions, with three intentional MySQL-only concurrency skips.
+- User-confirmed disposable-MySQL baseline: 307 tests, 1,816 assertions.
+- Current route discovery: 121 non-vendor routes, including 68 API routes.
+- Composer audit: no advisories or abandoned packages.
+- Agreed touched-file Pint scopes and `git diff --check` pass.
+- Runtime roles are `root-admin`, `admin`, `doctor`, and `patient`; `users.role` and the former shared temporary-admin-password path are absent.
+- Marketplace and isolated minimal-tenant migration/seed/rollback/reapply gates pass; deterministic MySQL booking/payment lock tests pass.
+- Detailed evidence: `docs/audits/phase-1-verification-gate-2026-08-16.md`.
+
+Frontend checkpoint reconciled 2026-09-11: F27A-F27H are complete with user-confirmed chart, landing, toolbox-style, typography, icon, and console checks. Retained demo styles load through the lazy root-only toolbox entry. Active font declarations ship WOFF2 only, reducing emitted fonts from 34 files/8,375,625 bytes to 11/1,135,684; only `en` and `fa` enter the locale graph. Current quality passes 42 files/196 tests; the 7.30-second build keeps toolbox CSS out of initial HTML and reduces initial CSS to 1,002,953/158,135 gzip. The unchanged lock retains zero production audit findings. See `CURRENT_TASK.md` and `frontend/README.md` for feature evidence and remaining gates.
+
+The first combined live matrix exposed `/panel/dev/apps-chat` reaching the obsolete Themesbrand API and crashing on failed message data. It now uses direct cloned local fixtures and local demo mutations; its built route closure excludes the fake helper/external thunk barrel, and the separate Reactstrap timeout warning is fixed. Automated regression/artifact checks and the user-confirmed live repair pass.
 
 ## Known Gaps
 
-Next technical gaps are architectural/product work, not boot blockers:
-- Mobile/external bearer token policy still needs TTL, rotation, revocation, and documentation.
-- High-authority admin actions still need step-up controls and audit logging.
-- React admin workspace still needs route ownership, `/panel/*` namespace decisions, API client consolidation, and root-admin/demo-toolbox isolation.
-- Velzon demo pages are still statically imported and make the initial frontend bundle large.
-- Booking runtime still needs full `checkup_doctor` pivot enforcement.
-- Reservation creation still needs generated-slot enforcement.
-- Web/API booking rules should be consolidated into a shared domain service.
-- Reservation/payment lifecycle and callbacks need deterministic status transitions.
-- API response envelopes are not fully uniform yet, especially around public questionnaire endpoints.
-- Reservation policy behavior needs enum-safe tests.
+The active gaps begin in Phase 2 and later roadmap phases:
+- Preserve the passing local frontend quality/build gates; approve and implement CI only through F32A/F32.
+- Verify F29 deployed static-host history fallback for the approved `/panel/*` routing and separate admin origin while preserving the active Blade runtime.
+- Prove the implemented internal core/module and typed API/auth/query/form/navigation contracts through the later minimal-manifest portability gate.
+- F27I page/image allowlisting and quarantine resume on 2026-09-21 after the demo. F28 navigation is complete; F29 remains a separate deployment-topology decision.
+- Prove portability through a minimal module manifest and documented extraction/configuration contract.
+- Payment-provider execution, product notifications, rating submission, medical UI/scanner integration, content/commerce/mobile, and complete tenant products remain their explicitly later phases.

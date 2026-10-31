@@ -2,9 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\Checkup;
-use App\Models\DoctorProfile;
-use App\Models\DoctorWorkplace;
+use App\Models\DoctorVisitSlot;
 use App\Models\ReservationStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -12,28 +10,31 @@ use Illuminate\Support\Str;
 
 class ReservationFactory extends Factory
 {
-    public function configure(): static
-    {
-        return $this->afterCreating(function ($reservation): void {
-            $reservation->workplace()->update(['doctor_profile_id' => $reservation->doctor_profile_id]);
-            $reservation->workplace->checkups()->syncWithoutDetaching([
-                $reservation->checkup_id => ['is_active' => true],
-            ]);
-        });
-    }
-
     public function definition(): array
     {
-        $startsAt = now()->addDays(fake()->numberBetween(2, 20))->startOfHour();
-
         return [
             'user_id' => User::factory()->patient(),
-            'doctor_profile_id' => DoctorProfile::factory(),
-            'doctor_workplace_id' => DoctorWorkplace::factory(),
-            'checkup_id' => Checkup::factory(),
-            'starts_at' => $startsAt,
-            'ends_at' => $startsAt->copy()->addMinutes(30),
-            'duration_minutes' => 30,
+            'doctor_visit_slot_id' => DoctorVisitSlot::factory(),
+            'doctor_profile_id' => fn (array $attributes): int => DoctorVisitSlot::query()
+                ->findOrFail($attributes['doctor_visit_slot_id'])
+                ->workplace
+                ->doctor_profile_id,
+            'doctor_workplace_id' => fn (array $attributes): int => DoctorVisitSlot::query()
+                ->findOrFail($attributes['doctor_visit_slot_id'])
+                ->doctor_workplace_id,
+            'checkup_id' => fn (array $attributes): int => DoctorVisitSlot::query()
+                ->findOrFail($attributes['doctor_visit_slot_id'])
+                ->checkup_id,
+            'starts_at' => fn (array $attributes) => DoctorVisitSlot::query()
+                ->findOrFail($attributes['doctor_visit_slot_id'])
+                ->starts_at,
+            'ends_at' => fn (array $attributes) => DoctorVisitSlot::query()
+                ->findOrFail($attributes['doctor_visit_slot_id'])
+                ->ends_at,
+            'duration_minutes' => fn (array $attributes): int => (int) DoctorVisitSlot::query()
+                ->findOrFail($attributes['doctor_visit_slot_id'])
+                ->starts_at
+                ->diffInMinutes(DoctorVisitSlot::query()->findOrFail($attributes['doctor_visit_slot_id'])->ends_at),
             'timezone' => 'Asia/Tehran',
             'status' => ReservationStatus::Pending->value,
             'hold_expires_at' => now()->addHour(),

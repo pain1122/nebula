@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Col, Container, Row } from "reactstrap";
 import Widget from "./Widgets";
 import BestSellingProducts from "./BestSellingProducts";
@@ -11,7 +12,16 @@ import StoreVisits from "./StoreVisits";
 import TopSellers from "./TopSellers";
 
 const DashboardEcommerce = () => {
-  document.title = "Dashboard | Velzon - React Admin & Dashboard Template";
+  const { t } = useTranslation();
+
+  useEffect(() => {
+    const previousTitle = document.title;
+    document.title = t("product.dashboard.pageTitle");
+
+    return () => {
+      document.title = previousTitle;
+    };
+  }, [t]);
 
   const [rightColumn, setRightColumn] = useState<boolean>(true);
   const toggleRightColumn = () => {

@@ -1,0 +1,10 @@
+# Apply only after isolated parser acceptance; keep the backend image unchanged.
+services:
+  app:
+    volumes:
+      - content_socket:/run/medical-content:ro
+
+volumes:
+  content_socket:
+    external: true
+    name: checkupino_content_socket

@@ -1,0 +1,3 @@
+services:
+  admin:
+    image: checkupino-admin:operational-directory-accepted-2026-10-13

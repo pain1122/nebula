@@ -14,13 +14,15 @@
 
 ## Project Reality
 - Backend: Laravel 12 running in Docker.
+- Phase 1A-1E backend foundations and documentation are complete and validated; Phase 2 reusable-admin implementation follows the completed audit and approved blueprint in `CURRENT_TASK.md`.
 - Root frontend assets: Blade + Laravel Vite.
-- Separate frontend workspace: `frontend/` currently holds a parked Velzon React-TS Vite template.
+- Separate frontend workspace: `frontend/` holds the Velzon React-TS Vite panel; its original design, logos, assets, composition, classes, controls, and placements are frozen unless the user explicitly approves a visual change.
 - `frontend/` is not production-ready yet. It still has Velzon demo routes and demo-data helpers. Active browser admin auth has been migrated to Sanctum session cookies, but some template-era assumptions may remain in non-product/demo areas.
 - Local environment: Docker with Nginx, PHP-FPM, MySQL, and Redis.
 - Local app URL: `http://localhost:8080`.
 - Local API base: `http://localhost:8080/api`.
 - Production Docker skeleton: `docker-compose.prod.yml` plus `docker/prod/`, with no whole-project bind mount.
+- Phase 2 follows the user-approved `CURRENT_TASK.md`. Integrate Vite/backend/auth/data/i18n into the retained Velzon surfaces; do not infer permission to redesign or replace them.
 
 ## What To Do
 - Identify bugs, security issues, missing env/config, broken imports, stale docs, and Windows-to-Linux case-sensitivity risks.
@@ -38,7 +40,11 @@
 - Do not invent credentials, API keys, or production settings.
 - Do not treat `frontend/` as production-ready until the frontend rebuild phase wires routing, auth, and API clients intentionally.
 - Do not remove fake backend/demo routes in the same commit as Sanctum auth unless explicitly requested.
+- Do not move, replace, restyle, or recompose Velzon UI while wiring backend or translations. The flag selector owns language and language owns direction; obtain explicit approval before any visual/RTL geometry correction.
 - Do not use local bind-mount Docker patterns as production deployment patterns.
+- October 4 user direction selects the existing Velzon React/Bootstrap panel for authenticated patients, doctors and admins, with specific role access. Migrate required Blade/resources workflows into the established framework; public SEO/subscription pages are excluded from the demo. Do not repeat the resolved Blade-versus-new-client question or create a second demo UI stack.
+- Phase 3A is authorized from September 11. The October 2 recalibration brings Phase 2 items 1/2/4/5/8 demo quality/routing/auth/registry/startup stability and measured performance fixes into scope before another feature. Follow CURRENT_TASK.md; CI, extraction/portability, quarantine/deletion, broad optimization and optional dashboards remain deferred.
+- Stop for user approval before dependencies, canonical route changes, design-system choices, or deletion/quarantine of template inventory.
 
 ## Preferred Report Format For Reviews
 1. Problem summary.

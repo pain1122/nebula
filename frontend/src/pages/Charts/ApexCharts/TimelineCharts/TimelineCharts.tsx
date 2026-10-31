@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactApexChart from "react-apexcharts";
+import ReactApexChart from "Components/Common/LegacyApexChart";
 import moment from "moment";
 
 import getChartColorsArray from "../../../../Components/Common/ChartsDynamicColor";

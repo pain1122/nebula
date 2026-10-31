@@ -15,6 +15,7 @@ class Reservation extends Model
     ];
 
     protected $fillable = [
+        'doctor_visit_slot_id',
         'user_id',
         'doctor_profile_id',
         'doctor_workplace_id',
@@ -57,6 +58,11 @@ class Reservation extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function visitSlot()
+    {
+        return $this->belongsTo(DoctorVisitSlot::class, 'doctor_visit_slot_id');
+    }
+
     public function doctor()
     {
         return $this->belongsTo(DoctorProfile::class, 'doctor_profile_id');
@@ -82,9 +88,24 @@ class Reservation extends Model
         return $this->hasMany(ReservationFile::class);
     }
 
+    public function medicalRequests()
+    {
+        return $this->hasMany(ReservationMedicalRequest::class);
+    }
+
+    public function reports()
+    {
+        return $this->hasMany(ReservationReport::class);
+    }
+
     public function payment()
     {
         return $this->hasOne(Payment::class);
+    }
+
+    public function attempts()
+    {
+        return $this->hasMany(PaymentAttempt::class);
     }
 
     public function scheduleChanges()

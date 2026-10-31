@@ -1,0 +1,3 @@
+services:
+  admin:
+    image: checkupino-admin:user-profile-accepted-2026-10-13

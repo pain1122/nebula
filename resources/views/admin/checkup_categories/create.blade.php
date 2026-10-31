@@ -6,6 +6,7 @@
         <form method="POST" action="{{ route('admin.checkup-categories.store') }}"
             class="bg-white p-4 rounded shadow space-y-3">
             @csrf
+            @include('admin.catalog.guard', ['kind' => 'checkup-categories', 'catalogId' => null, 'needsReason' => true])
             <div>
                 <label class="block mb-1">نام</label>
                 <input name="name" value="{{ old('name') }}" class="w-full border rounded p-2" />

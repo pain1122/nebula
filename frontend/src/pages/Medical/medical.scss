@@ -1,0 +1,7 @@
+// Load the unchanged retained File Manager styles only with the medical route.
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables";
+@import "../../assets/scss/config/Interactive/variables";
+@import "../../assets/scss/config/Interactive/variables-custom";
+@import "../../assets/scss/config/Interactive/variables-dark";
+@import "../../assets/scss/pages/file-manager";

@@ -1,18 +1,8 @@
-export type RoleName = "root-admin" | "admin" | "doctor" | "patient";
-
-export interface AuthUser {
-    id: number;
-    name: string;
-    email: string;
-    roles: RoleName[];
-    doctor_profile: unknown | null;
-}
-
-export interface LoginCredentials {
-    email: string;
-    password: string;
-    remember?: boolean;
-}
+export type {
+  AuthUser,
+  LoginCredentials,
+  RoleName,
+} from "../modules/checkupino/auth/types";
 
 export interface LoginFormValues {
     email: string;

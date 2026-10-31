@@ -1,17 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 
-import {
-  CardBody,
-  Container,
-  Progress,
-  Row,
-  Card,
-  UncontrolledDropdown,
-  DropdownToggle,
-  DropdownMenu,
-  DropdownItem,
-  Table,
-} from "reactstrap";
+import { CardBody, Container, Progress, Row, Card, UncontrolledDropdown, DropdownToggle, DropdownItem, Table } from "reactstrap";
+import DropdownMenu from "../../../Components/Common/DirectionalDropdownMenu";
 
 //Import Breadcrumb
 import BreadCrumb from "../../../Components/Common/BreadCrumb";

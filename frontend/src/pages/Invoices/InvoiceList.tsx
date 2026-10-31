@@ -1,16 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import {
-  CardBody,
-  Row,
-  Col,
-  Card,
-  Container,
-  CardHeader,
-  UncontrolledDropdown,
-  DropdownToggle,
-  DropdownMenu,
-  DropdownItem,
-} from "reactstrap";
+import { CardBody, Row, Col, Card, Container, CardHeader, UncontrolledDropdown, DropdownToggle, DropdownItem } from "reactstrap";
+import DropdownMenu from "../../Components/Common/DirectionalDropdownMenu";
 import { Link } from "react-router-dom";
 import moment from "moment";
 import CountUp from "react-countup";
@@ -36,6 +26,7 @@ import Loader from "../../Components/Common/Loader";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { createSelector } from "reselect";
+import { joinPath } from "../../core/runtime/config";
 
 const InvoiceList = () => {
   const dispatch: any = useDispatch();
@@ -171,7 +162,7 @@ const InvoiceList = () => {
           <>
             <div className="d-flex align-items-center">
               {cell.row.original.img ? <img
-                src={import.meta.env.VITE_BACKEND_URL + "/images/users/" + cell.row.original.img}
+                src={joinPath("/", "images/users", cell.row.original.img)}
                 alt=""
                 className="avatar-xs rounded-circle me-2"
               /> :

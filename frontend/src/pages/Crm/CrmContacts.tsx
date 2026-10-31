@@ -5,27 +5,8 @@ import { isEmpty } from "lodash";
 // Import Images
 import avatar10 from "../../assets/images/users/avatar-10.jpg";
 
-import {
-  Col,
-  Container,
-  Row,
-  Card,
-  CardHeader,
-  CardBody,
-  UncontrolledDropdown,
-  DropdownToggle,
-  DropdownMenu,
-  DropdownItem,
-  Label,
-  Input,
-  Modal,
-  ModalHeader,
-  ModalBody,
-  Form,
-  ModalFooter,
-  Table,
-  FormFeedback
-} from "reactstrap";
+import { Col, Container, Row, Card, CardHeader, CardBody, UncontrolledDropdown, DropdownToggle, DropdownItem, Label, Input, Modal, ModalHeader, ModalBody, Form, ModalFooter, Table, FormFeedback } from "reactstrap";
+import DropdownMenu from "../../Components/Common/DirectionalDropdownMenu";
 import Select from "react-select";
 
 import BreadCrumb from "../../Components/Common/BreadCrumb";

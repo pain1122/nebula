@@ -7,21 +7,44 @@ use App\Enums\UserRole;
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Resources\AdminUserResource;
 use App\Models\User;
+use App\Rules\NotCommonPassword;
 use App\Services\AccountStateService;
-use App\Services\AuditLogger;
+use App\Services\AdminIdentityService;
+use App\Services\PanelProfileService;
 use App\Support\QuerySorting;
 use Carbon\Carbon;
 use DomainException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 
 class UserController extends ApiController
 {
-    public function index(Request $request)
+    public function staff(Request $request)
+    {
+        $actor = $this->staffActor($request);
+        abort_if($request->has('role') && $request->query('role') !== UserRole::Admin->value, 422, 'Staff role cannot be overridden.');
+        $staffRequest = $request->duplicate(query: [...$request->query(), 'role' => UserRole::Admin->value]);
+        $staffRequest->setUserResolver(fn () => $actor);
+        $response = $this->index($staffRequest, staffOnly: true);
+        $fresh = $this->staffActor($request);
+        abort_unless($actor->roles->pluck('name')->sort()->values()->all() === $fresh->roles->pluck('name')->sort()->values()->all(), 403);
+
+        return $response;
+    }
+
+    private function staffActor(Request $request): User
+    {
+        abort_unless($request->user() instanceof User, 401);
+        $actor = User::with('roles')->findOrFail($request->user()->id);
+        abort_unless($actor->permitsAuthentication() && $actor->isRootAdmin(), 403);
+
+        return $actor;
+    }
+
+    public function index(Request $request, bool $staffOnly = false)
     {
         $actor = $request->user();
         $q = $request->query('q');
@@ -35,6 +58,21 @@ class UserController extends ApiController
             abort(403, 'This role is not accessible from admin user management.');
         }
 
+        $request->validate([
+            'q' => ['nullable', 'string', 'max:160'],
+            'role' => ['nullable', Rule::in(['patient', 'doctor', 'admin'])],
+            'range' => ['nullable', Rule::in(['all', 'week', 'month', 'year'])],
+            'account_state' => ['nullable', Rule::in(AccountState::values())],
+            'verification' => ['nullable', Rule::in(['verified', 'unverified', 'missing'])],
+            'specialty_id' => ['nullable', 'integer', 'min:1'],
+            'workplace_id' => ['nullable', 'integer', 'min:1'],
+            'page' => ['nullable', 'integer', 'min:1', 'max:1000'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
+        if ($role !== 'doctor' && collect(['verification', 'specialty_id', 'workplace_id'])->contains(fn ($key) => $request->filled($key))) {
+            throw ValidationException::withMessages(['role' => ['Doctor filters require the doctor scope.']]);
+        }
+
         $from = match ($range) {
             'week' => Carbon::now()->subDays(7),
             'month' => Carbon::now()->subDays(30),
@@ -43,8 +81,12 @@ class UserController extends ApiController
         };
 
         $query = User::query()
-            ->with('roles')
+            ->with(['roles', 'doctorProfile' => fn ($profile) => $profile
+                ->select(['id', 'user_id', 'specialty_id', 'verified'])
+                ->with('specialty:id,name')
+                ->withCount(['workplaces as active_workplaces_count' => fn ($workplaces) => $workplaces->where('is_active', true)])])
             ->whereDoesntHave('roles', fn ($r) => $r->where('name', UserRole::RootAdmin->value))
+            ->when($staffOnly, fn ($users) => $users->whereDoesntHave('roles', fn ($roles) => $roles->whereIn('name', ['doctor', 'patient'])))
             ->when(
                 ! $actor->isRootAdmin(),
                 fn ($users) => $users->whereDoesntHave(
@@ -55,27 +97,40 @@ class UserController extends ApiController
             ->when($q, function ($query) use ($q) {
                 $query->where(function ($qq) use ($q) {
                     $qq->where('first_name', 'like', "%{$q}%")
+                        ->orWhere('name', 'like', "%{$q}%")
                         ->orWhere('last_name', 'like', "%{$q}%")
-                        ->orWhere('email', 'like', "%{$q}%")
-                        ->orWhere('phone', 'like', "%{$q}%")
-                        ->orWhere('NID', 'like', "%{$q}%");
+                        ->orWhere('public_id', $q);
                 });
             })
             ->when($role, function ($query) use ($role) {
                 $query->whereHas('roles', fn ($r) => $r->where('name', $role));
             })
-            ->when($from, fn ($query) => $query->where('created_at', '>=', $from));
+            ->when($from, fn ($query) => $query->where('created_at', '>=', $from))
+            ->when($request->filled('account_state'), fn ($query) => $query->where('account_state', $request->query('account_state')))
+            ->when($request->filled('verification'), function ($query) use ($request): void {
+                if ($request->query('verification') === 'missing') {
+                    $query->whereDoesntHave('doctorProfile');
+                } else {
+                    $query->whereHas('doctorProfile', fn ($profile) => $profile->where('verified', $request->query('verification') === 'verified'));
+                }
+            })
+            ->when($request->filled('specialty_id'), fn ($query) => $query->whereHas('doctorProfile', fn ($profile) => $profile
+                ->where(function ($specialties) use ($request): void {
+                    $specialties->where('specialty_id', $request->integer('specialty_id'))
+                        ->orWhereHas('specialties', fn ($specialty) => $specialty->where('specialties.id', $request->integer('specialty_id')));
+                })))
+            ->when($request->filled('workplace_id'), fn ($query) => $query->whereHas('doctorProfile.workplaces', fn ($workplace) => $workplace->whereKey($request->integer('workplace_id'))));
 
         QuerySorting::apply($query, $request, [
             'id' => 'users.id',
             'name' => 'users.name',
             'first_name' => 'users.first_name',
             'last_name' => 'users.last_name',
-            'email' => 'users.email',
-            'phone' => 'users.phone',
             'patient_status' => 'users.patient_status',
+            'account_state' => 'users.account_state',
             'created_at' => 'users.created_at',
         ], 'id', 'desc');
+        $query->orderByDesc('users.id');
 
         $users = $query->paginate(max(1, min($request->integer('per_page', 20), 100)));
 
@@ -91,7 +146,7 @@ class UserController extends ApiController
                     'total' => $users->total(),
                 ],
             ],
-        );
+        )->header('Cache-Control', 'no-store, private');
     }
 
     public function show(Request $request, User $user)
@@ -99,12 +154,21 @@ class UserController extends ApiController
         $this->assertCanManageAdminIdentity($request, $user);
 
         return $this->successResponse(data: [
-            'user' => (new AdminUserResource($user->loadMissing('roles')))->resolve($request),
+            'user' => [
+                ...(new AdminUserResource($user->loadMissing('roles')))->resolve($request),
+                'revision' => app(PanelProfileService::class)->revision($user),
+            ],
         ]);
     }
 
-    public function store(Request $request, AuditLogger $auditLogger)
+    public function store(Request $request, AdminIdentityService $adminIdentityService)
     {
+        $requestedRole = $request->input('role');
+
+        if ($requestedRole === UserRole::Admin->value) {
+            Gate::authorize('createAdminIdentity', User::class);
+        }
+
         $data = $request->validate([
             'role' => ['required', Rule::in(UserRole::adminAssignableValues())],
             'first_name' => ['required', 'string', 'max:100'],
@@ -119,50 +183,36 @@ class UserController extends ApiController
             'bio' => ['nullable', 'string', 'max:2000'],
             'patient_status' => ['nullable', Rule::in(['free', 'trial', 'active', 'expired', 'suspended'])],
 
-            // می‌تونی موقتاً اجباری نگیری و auto بسازی
-            'password' => ['nullable', 'string', 'min:8'],
+            'password' => [
+                'required',
+                'string',
+                'confirmed',
+                Password::min(15)->max(64),
+                new NotCommonPassword([
+                    $request->input('email'),
+                    $request->input('phone'),
+                    $request->input('NID'),
+                    $request->input('first_name'),
+                    $request->input('last_name'),
+                    'checkupino',
+                ]),
+            ],
+            'reason' => [Rule::requiredIf($requestedRole === UserRole::Admin->value), 'nullable', 'string', 'max:1000'],
         ]);
 
-        $password = $data['password'] ?? 'TempPass123!'; // موقت (بعداً ریست پسورد)
-        unset($data['password']);
-
         $role = $data['role'];
-        unset($data['role']);
+        $password = $data['password'];
+        $reason = $data['reason'] ?? null;
+        unset($data['role'], $data['password'], $data['reason']);
 
-        $this->assertCanManageAdminIdentity($request, requestedRole: $role);
-
-        if ($role === UserRole::Patient->value) {
-            $data['patient_status'] = $data['patient_status'] ?? 'free';
-        } else {
-            $data['patient_status'] = null;
-        }
-
-        $user = DB::transaction(function () use ($request, $auditLogger, $data, $password, $role) {
-            $user = new User;
-            $user->fill($data);
-
-            // برای سازگاری با formatUser قدیمی
-            $user->name = trim(($user->first_name ?? '').' '.($user->last_name ?? ''));
-
-            $user->password = Hash::make($password);
-            $user->save();
-
-            // spatie role assignment
-            $user->syncRoles([$role]);
-            $user->load('roles');
-
-            $auditLogger->log(
-                request: $request,
-                actor: $request->user(),
-                action: 'admin.user.created',
-                subject: $user,
-                riskLevel: 'critical',
-                before: null,
-                after: $this->auditedUserSnapshot($user),
-            );
-
-            return $user->fresh()->load('roles');
-        });
+        $user = $adminIdentityService->create(
+            request: $request,
+            actor: $request->user(),
+            attributes: $data,
+            role: $role,
+            password: $password,
+            reason: $reason,
+        );
 
         return $this->successResponse(
             data: ['user' => (new AdminUserResource($user))->resolve($request)],
@@ -170,59 +220,49 @@ class UserController extends ApiController
         );
     }
 
-    public function update(Request $request, User $user, AuditLogger $auditLogger)
+    public function update(Request $request, User $user, AdminIdentityService $adminIdentityService)
     {
-        $this->assertCanManageAdminIdentity($request, $user);
+        $requestedRole = $request->input('role');
+        $touchesAdminIdentity = $user->hasAnyRole(UserRole::adminPanelValues())
+            || $requestedRole === UserRole::Admin->value;
 
+        if ($touchesAdminIdentity) {
+            Gate::authorize('updateAdminIdentity', $user);
+        }
+
+        $unknown = array_diff(array_keys($request->all()), ['role', 'first_name', 'last_name', 'patient_status', 'reason', 'expected_revision']);
+        if ($unknown) {
+            throw ValidationException::withMessages(array_fill_keys($unknown, 'This field cannot be edited by an administrator.'));
+        }
         $data = $request->validate([
             'role' => ['required', Rule::in(UserRole::adminAssignableValues())],
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
-            'phone' => ['required', 'string', 'max:30', Rule::unique('users', 'phone')->ignore($user->id)],
-            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
-            'birth_date' => ['required', 'date'],
-            'NID' => ['required', 'string', 'size:10', Rule::unique('users', 'NID')->ignore($user->id)],
-            'city' => ['nullable', 'string', 'max:120'],
-            'country' => ['nullable', 'string', 'max:120'],
-            'zip_code' => ['nullable', 'string', 'max:20'],
-            'bio' => ['nullable', 'string', 'max:2000'],
             'patient_status' => ['nullable', Rule::in(['free', 'trial', 'active', 'expired', 'suspended'])],
-
+            'reason' => ['required', 'string', 'max:1000'],
+            'expected_revision' => ['required', 'string', 'regex:/\A[a-f0-9]{64}\z/'],
         ]);
 
         $role = $data['role'];
-        unset($data['role']);
+        $reason = $data['reason'] ?? null;
+        $expectedRevision = $data['expected_revision'];
+        unset(
+            $data['role'],
+            $data['reason'],
+            $data['expected_revision'],
+            $data['password'],
+            $data['password_confirmation'],
+        );
 
-        $this->assertCanManageAdminIdentity($request, $user, $role);
-
-        if ($role === UserRole::Patient->value) {
-            $data['patient_status'] = $data['patient_status'] ?? 'free';
-        } else {
-            $data['patient_status'] = null;
-        }
-
-        $user = DB::transaction(function () use ($request, $auditLogger, $user, $data, $role) {
-            $user->load('roles');
-            $before = $this->auditedUserSnapshot($user);
-
-            $user->fill($data);
-            $user->name = trim(($user->first_name ?? '').' '.($user->last_name ?? ''));
-            $user->save();
-            $user->syncRoles([$role]);
-            $user->load('roles');
-
-            $auditLogger->log(
-                request: $request,
-                actor: $request->user(),
-                action: 'admin.user.updated',
-                subject: $user,
-                riskLevel: 'critical',
-                before: $before,
-                after: $this->auditedUserSnapshot($user),
-            );
-
-            return $user->fresh()->load('roles');
-        });
+        $user = $adminIdentityService->update(
+            request: $request,
+            actor: $request->user(),
+            target: $user,
+            attributes: $data,
+            role: $role,
+            reason: $reason,
+            expectedRevision: $expectedRevision,
+        );
 
         return $this->successResponse(
             data: ['user' => (new AdminUserResource($user))->resolve($request)],
@@ -269,31 +309,6 @@ class UserController extends ApiController
             ],
             message: 'Account state updated.',
         );
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function auditedUserSnapshot(User $user): array
-    {
-        $user->loadMissing('roles');
-
-        return [
-            'id' => $user->id,
-            'roles' => $user->roles->pluck('name')->values()->all(),
-            'first_name' => $user->first_name,
-            'last_name' => $user->last_name,
-            'name' => $user->name,
-            'email' => $user->email,
-            'phone' => $user->phone,
-            'birth_date' => $user->birth_date?->format('Y-m-d'),
-            'NID' => $user->NID,
-            'city' => $user->city,
-            'country' => $user->country,
-            'zip_code' => $user->zip_code,
-            'bio' => $user->bio,
-            'patient_status' => $user->patient_status,
-        ];
     }
 
     private function assertCanManageAdminIdentity(

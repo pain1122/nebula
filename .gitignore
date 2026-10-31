@@ -32,3 +32,14 @@ Thumbs.db
 /frontend/node_modules/
 /frontend/dist/
 /frontend/.vite/
+
+# Generated synthetic media evaluation credentials; never commit these.
+/.local/media-evaluation/
+
+# Local Composer/REPL state can contain machine paths or sensitive session history.
+/.composer/
+/.config/
+
+# Keep generated runtime receipts and screenshots on the operator's device.
+/docs/deployment/evidence/*
+!/docs/deployment/evidence/README.md

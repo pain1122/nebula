@@ -60,7 +60,11 @@ class SettingsRegistry
             throw new InvalidArgumentException("Setting [{$key}] has invalid registry validation rules.");
         }
 
-        return Validator::make(['value' => $value], ['value' => $rules])->validate()['value'];
+        $validated = Validator::make(['value' => $value], ['value' => $rules])->validate()['value'];
+
+        return $context === 'marketplace' && UploadPolicySettings::isSetting($key)
+            ? UploadPolicySettings::validateSetting($key, $validated)
+            : $validated;
     }
 
     public function assertScopeAllowed(string $context, string $key, string $scope): void

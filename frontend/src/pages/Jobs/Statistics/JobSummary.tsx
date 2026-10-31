@@ -1,6 +1,7 @@
 import React from "react";
-import { Card, CardBody, CardHeader, Col,  DropdownItem, DropdownMenu, DropdownToggle,  UncontrolledDropdown } from "reactstrap";
-import ReactApexChart from "react-apexcharts";
+import { Card, CardBody, CardHeader, Col, DropdownItem, DropdownToggle, UncontrolledDropdown } from "reactstrap";
+import DropdownMenu from "../../../Components/Common/DirectionalDropdownMenu";
+import ReactApexChart from "Components/Common/LegacyApexChart";
 import getChartColorsArray from "../../../Components/Common/ChartsDynamicColor";
 
 const JobSummary = ({ dataColors }:any) => {

@@ -1,6 +1,6 @@
 import React from "react";
 import { Col, Card, CardBody, CardHeader } from "reactstrap";
-import ReactApexChart from "react-apexcharts";
+import ReactApexChart from "Components/Common/LegacyApexChart";
 import CountUp from "react-countup";
 import getChartColorsArray from "../../Components/Common/ChartsDynamicColor";
 

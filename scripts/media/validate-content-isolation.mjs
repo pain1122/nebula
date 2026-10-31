@@ -1,0 +1,46 @@
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+
+const expectedBase = 'sha256:a48b0c0b60fc1e5b59685dd0d6a6fece0aec8119b9b5f854dbd1f3f2497b3094';
+const image = spawnSync('docker', ['image', 'inspect', 'checkupino-content-validation:2026-10-08', '--format', '{{.Id}}'], { encoding: 'utf8', windowsHide: true });
+assert.equal(image.status, 0, 'The approved existing parser base image is required.');
+assert.equal(image.stdout.trim(), expectedBase, 'Parser base tag must still identify the accepted image.');
+const php = '<?php require "/var/www/vendor/autoload.php"; $files=["docker-compose.content.yml","docker-compose.content-client.yml"]; $result=[]; foreach($files as $file) $result[]=Symfony\\Component\\Yaml\\Yaml::parseFile("/var/www/".$file); echo json_encode($result,JSON_THROW_ON_ERROR);';
+const parsed = spawnSync('docker', ['exec', '-i', '--user', 'www-data', 'checkupino_app', 'php'], { input: php, encoding: 'utf8', windowsHide: true, timeout: 15000 });
+assert.equal(parsed.status, 0, 'Parser isolation YAML must parse without a Compose operation.');
+const [config, client] = JSON.parse(parsed.stdout);
+assert.equal(config.name, 'checkupino_content');
+assert.deepEqual(Object.keys(config.services).sort(), ['content-init', 'content-parser']);
+for (const service of Object.values(config.services)) {
+  assert.equal(service.image, 'sha256:c4809fae4ab094ce353a28995fac698355ada6eab92f10e18ad874da2d2bbf4c');
+  assert.equal(service.read_only, true);
+  assert.equal(service.network_mode, 'none');
+  assert.equal(service.pull_policy, 'never');
+  assert.deepEqual(service.cap_drop, ['ALL']);
+  assert.deepEqual(service.security_opt, ['no-new-privileges:true']);
+  assert.ok(!service.environment && !service.env_file && !service.ports && !service.networks);
+  assert.deepEqual(service.volumes, ['content_socket:/run/medical-content']);
+}
+const parser = config.services['content-parser'];
+assert.equal(parser.user, '33:33');
+assert.equal(parser.restart, 'no');
+assert.equal(parser.mem_limit, '512m');
+assert.equal(parser.memswap_limit, '512m');
+assert.equal(parser.cpus, 1);
+assert.equal(parser.pids_limit, 16);
+assert.deepEqual(parser.tmpfs, ['/tmp:rw,noexec,nosuid,nodev,size=128m,mode=1777']);
+assert.deepEqual(config.services['content-init'].cap_add, ['CHOWN', 'FOWNER']);
+assert.equal(config.volumes.content_socket.name, 'checkupino_content_socket');
+assert.deepEqual(client.services.app.volumes, ['content_socket:/run/medical-content:ro']);
+assert.deepEqual(Object.keys(client.services), ['app']);
+assert.equal(client.volumes.content_socket.external, true);
+assert.equal(client.volumes.content_socket.name, 'checkupino_content_socket');
+const dockerfile = readFileSync('docker/medical-content/Dockerfile', 'utf8');
+assert.ok(dockerfile.startsWith('FROM checkupino-content-validation:2026-10-08'));
+assert.ok(!/^RUN\s/m.test(dockerfile), 'Isolation image must install no dependencies.');
+assert.ok(!/^COPY\s+(?:\.\s|\.\/\s|\.env\b|storage\b)/m.test(dockerfile));
+const allowlist = readFileSync('docker/medical-content/Dockerfile.dockerignore', 'utf8');
+assert.ok(allowlist.split(/\r?\n/).includes('**'));
+assert.ok(!allowlist.split(/\r?\n/).some(line => /^!(?:\.env|storage|bootstrap|routes|app\/Models)/.test(line)));
+console.log('Parser base identity, isolated service limits, private socket mounts and restricted build context pass; no Compose/build operation ran.');

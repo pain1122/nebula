@@ -7,6 +7,8 @@ use App\Models\AuditEvent;
 use App\Models\Checkup;
 use App\Models\CheckupCategory;
 use App\Models\DoctorProfile;
+use App\Models\DoctorVisitSlot;
+use App\Models\DoctorWorkingWindow;
 use App\Models\DoctorWorkplace;
 use App\Models\MarketplaceHospital;
 use App\Models\Payment;
@@ -26,6 +28,8 @@ use Tests\TestCase;
 class CatalogDestructiveDataSafetyTest extends TestCase
 {
     use RefreshDatabase;
+    use \Tests\Support\GuardedCatalogClient;
+    use \Tests\Support\IsolatedProfileApplication;
 
     public function test_checkup_archive_requires_recent_password_confirmation(): void
     {
@@ -47,6 +51,32 @@ class CatalogDestructiveDataSafetyTest extends TestCase
         $this->assertDatabaseCount('audit_events', 0);
     }
 
+    public function test_catalog_archive_requires_an_explicit_reason(): void
+    {
+        $admin = $this->userWithRole(UserRole::Admin);
+        $history = $this->catalogHistory();
+
+        $this->actingAs($admin)
+            ->withSession($this->recentPasswordConfirmation())
+            ->from(route('admin.checkups.archive-confirm', $history['checkup']))
+            ->delete(route('admin.checkups.destroy', $history['checkup']))
+            ->assertRedirect(route('admin.checkups.archive-confirm', $history['checkup']))
+            ->assertSessionHasErrors('reason');
+
+        $this->actingAs($admin)
+            ->withSession($this->recentPasswordConfirmation())
+            ->from(route('admin.checkup-categories.archive-confirm', $history['category']))
+            ->delete(route('admin.checkup-categories.destroy', $history['category']), [
+                'checkup_action' => 'detach',
+            ])
+            ->assertRedirect(route('admin.checkup-categories.archive-confirm', $history['category']))
+            ->assertSessionHasErrors('reason');
+
+        $this->assertNotSoftDeleted('checkups', ['id' => $history['checkup']->id]);
+        $this->assertNotSoftDeleted('checkup_categories', ['id' => $history['category']->id]);
+        $this->assertDatabaseCount('audit_events', 0);
+    }
+
     public function test_recently_confirmed_admin_archives_only_the_checkup_and_preserves_history(): void
     {
         $admin = $this->userWithRole(UserRole::Admin);
@@ -55,7 +85,9 @@ class CatalogDestructiveDataSafetyTest extends TestCase
         $this
             ->actingAs($admin)
             ->withSession($this->recentPasswordConfirmation())
-            ->delete(route('admin.checkups.destroy', $history['checkup']))
+            ->delete(route('admin.checkups.destroy', $history['checkup']), [
+                'reason' => 'Retire this marketplace service.',
+            ])
             ->assertRedirect(route('admin.checkups.index'));
 
         $this->assertSoftDeleted('checkups', ['id' => $history['checkup']->id]);
@@ -79,6 +111,7 @@ class CatalogDestructiveDataSafetyTest extends TestCase
         $this->assertSame(Checkup::class, $event->subject_type);
         $this->assertSame($history['checkup']->id, $event->subject_id);
         $this->assertSame('critical', $event->risk_level);
+        $this->assertSame('Retire this marketplace service.', $event->reason);
         $this->assertNull($event->before['deleted_at']);
         $this->assertNotNull($event->after['deleted_at']);
 
@@ -122,6 +155,7 @@ class CatalogDestructiveDataSafetyTest extends TestCase
             ->withSession($this->recentPasswordConfirmation())
             ->delete(route('admin.checkup-categories.destroy', $history['category']), [
                 'checkup_action' => 'detach',
+                'reason' => 'Retire this empty catalog grouping.',
             ])
             ->assertRedirect(route('admin.checkup-categories.index'));
 
@@ -138,6 +172,9 @@ class CatalogDestructiveDataSafetyTest extends TestCase
         $this->assertDependentHistoryRowsRemain($history);
         $this->assertSame(2, AuditEvent::query()->where('action', 'admin.checkup.category_detached')->count());
         $this->assertSame(1, AuditEvent::query()->where('action', 'admin.checkup_category.archived')->count());
+        $this->assertTrue(AuditEvent::query()->get()->every(
+            fn (AuditEvent $event): bool => $event->reason === 'Retire this empty catalog grouping.',
+        ));
 
         $this
             ->actingAs($history['patient'], 'sanctum')
@@ -168,6 +205,7 @@ class CatalogDestructiveDataSafetyTest extends TestCase
             ->delete(route('admin.checkup-categories.destroy', $history['category']), [
                 'checkup_action' => 'reassign',
                 'replacement_category_id' => $replacement->id,
+                'reason' => 'Merge duplicate catalog groupings.',
             ])
             ->assertRedirect(route('admin.checkup-categories.index'));
 
@@ -211,6 +249,7 @@ class CatalogDestructiveDataSafetyTest extends TestCase
             ->delete(route('admin.checkup-categories.destroy', $history['category']), [
                 'checkup_action' => 'reassign',
                 'replacement_category_id' => $history['category']->id,
+                'reason' => 'Attempt invalid self reassignment.',
             ])
             ->assertRedirect(route('admin.checkup-categories.index'))
             ->assertSessionHasErrors('replacement_category_id');
@@ -242,6 +281,7 @@ class CatalogDestructiveDataSafetyTest extends TestCase
             ->delete(route('admin.checkup-categories.destroy', $history['category']), [
                 'checkup_action' => 'reassign',
                 'replacement_category_id' => $replacement->id,
+                'reason' => 'Attempt archived reassignment.',
             ])
             ->assertRedirect(route('admin.checkup-categories.index'))
             ->assertSessionHasErrors('replacement_category_id');
@@ -366,6 +406,7 @@ class CatalogDestructiveDataSafetyTest extends TestCase
             ->withSession($this->recentPasswordConfirmation())
             ->delete(route('admin.checkup-categories.destroy', $history['category']), [
                 'checkup_action' => 'detach',
+                'reason' => 'Retire this catalog grouping.',
             ])
             ->assertStatus(500);
 
@@ -427,6 +468,8 @@ class CatalogDestructiveDataSafetyTest extends TestCase
                 'slug' => $history['checkup']->slug,
                 'description' => $history['checkup']->description,
                 'price' => $history['checkup']->price,
+                'currency' => $history['checkup']->currency,
+                'default_duration_minutes' => $history['checkup']->default_duration_minutes,
                 'reason' => 'Attempt archived category assignment',
             ])
             ->assertRedirect(route('admin.checkups.edit', $history['checkup']))
@@ -446,10 +489,7 @@ class CatalogDestructiveDataSafetyTest extends TestCase
         try {
             app(BookingService::class)->createReservation(
                 user: $history['patient'],
-                checkup: $history['checkup'],
-                doctor: $history['doctor'],
-                start: now()->addWeeks(2),
-                durationMinutes: 30,
+                slotPublicId: $history['visit_slot']->public_id,
             );
             $this->fail('Expected booking to reject an archived checkup.');
         } catch (ValidationException $exception) {
@@ -497,7 +537,9 @@ class CatalogDestructiveDataSafetyTest extends TestCase
         $this
             ->actingAs($patient)
             ->withSession($this->recentPasswordConfirmation())
-            ->delete(route('admin.checkups.destroy', $history['checkup']))
+            ->delete(route('admin.checkups.destroy', $history['checkup']), [
+                'reason' => 'Retire this marketplace service.',
+            ])
             ->assertForbidden();
 
         $this->assertNotSoftDeleted('checkups', ['id' => $history['checkup']->id]);
@@ -518,7 +560,9 @@ class CatalogDestructiveDataSafetyTest extends TestCase
         $this
             ->actingAs($admin)
             ->withSession($this->recentPasswordConfirmation())
-            ->delete(route('admin.checkups.destroy', $history['checkup']))
+            ->delete(route('admin.checkups.destroy', $history['checkup']), [
+                'reason' => 'Retire this marketplace service.',
+            ])
             ->assertStatus(500);
 
         $this->assertNotSoftDeleted('checkups', ['id' => $history['checkup']->id]);
@@ -540,6 +584,7 @@ class CatalogDestructiveDataSafetyTest extends TestCase
      *     checkup: Checkup,
      *     doctor: DoctorProfile,
      *     patient: User,
+     *     visit_slot: DoctorVisitSlot,
      *     reservation: Reservation,
      *     payment: Payment
      * }
@@ -590,14 +635,29 @@ class CatalogDestructiveDataSafetyTest extends TestCase
         $workplace->checkups()->attach($checkup->id);
 
         $patient = $this->userWithRole(UserRole::Patient);
+        $startsAt = now()->addWeek();
+        $rule = DoctorWorkingWindow::factory()->create([
+            'doctor_workplace_id' => $workplace->id,
+            'checkup_id' => $checkup->id,
+        ]);
+        $visitSlot = DoctorVisitSlot::query()->create([
+            'doctor_working_window_id' => $rule->id,
+            'doctor_workplace_id' => $workplace->id,
+            'checkup_id' => $checkup->id,
+            'starts_at' => $startsAt,
+            'ends_at' => $startsAt->copy()->addMinutes(30),
+            'price' => $checkup->price,
+            'currency' => $checkup->currency,
+        ]);
 
         $reservation = Reservation::query()->create([
+            'doctor_visit_slot_id' => $visitSlot->id,
             'user_id' => $patient->id,
             'doctor_profile_id' => $doctor->id,
             'doctor_workplace_id' => $workplace->id,
             'checkup_id' => $checkup->id,
-            'starts_at' => now()->addWeek(),
-            'ends_at' => now()->addWeek()->addMinutes(30),
+            'starts_at' => $visitSlot->starts_at,
+            'ends_at' => $visitSlot->ends_at,
             'duration_minutes' => 30,
             'timezone' => $hospital->timezone,
             'hold_expires_at' => now()->addHour(),
@@ -619,7 +679,9 @@ class CatalogDestructiveDataSafetyTest extends TestCase
             'status' => 'unpaid',
         ]);
 
-        return compact('category', 'checkup', 'doctor', 'patient', 'reservation', 'payment');
+        return compact('category', 'checkup', 'doctor', 'patient', 'reservation', 'payment') + [
+            'visit_slot' => $visitSlot,
+        ];
     }
 
     /**

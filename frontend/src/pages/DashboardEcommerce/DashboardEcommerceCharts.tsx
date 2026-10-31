@@ -1,11 +1,12 @@
 import React from "react";
-import ReactApexChart from "react-apexcharts";
+import { useTranslation } from "react-i18next";
+import ReactApexChart from "Components/Common/LegacyApexChart";
 import getChartColorsArray from "../../Components/Common/ChartsDynamicColor";
 
-const RevenueCharts = ({dataColors, series}:any) => {
+const RevenueCharts = ({ dataColors, series, categories, countsOnly = false }: any) => {
+  const { t, i18n } = useTranslation();
   var linechartcustomerColors = getChartColorsArray(dataColors);
 
-  
   var options = {
     chart: {
       height: 370,
@@ -30,19 +31,19 @@ const RevenueCharts = ({dataColors, series}:any) => {
       },
     },
     xaxis: {
-      categories: [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
+      categories: categories ?? [
+        t("product.calendar.month.jan"),
+        t("product.calendar.month.feb"),
+        t("product.calendar.month.mar"),
+        t("product.calendar.month.apr"),
+        t("product.calendar.month.may"),
+        t("product.calendar.month.jun"),
+        t("product.calendar.month.jul"),
+        t("product.calendar.month.aug"),
+        t("product.calendar.month.sep"),
+        t("product.calendar.month.oct"),
+        t("product.calendar.month.nov"),
+        t("product.calendar.month.dec"),
       ],
       axisTicks: {
         show: false,
@@ -94,37 +95,45 @@ const RevenueCharts = ({dataColors, series}:any) => {
     colors: linechartcustomerColors,
     tooltip: {
       shared: true,
-      y: [
-        {
-          formatter: function (y:any) {
-            if (typeof y !== "undefined") {
-              return y.toFixed(0);
-            }
-            return y;
-          },
-        },
-        {
-          formatter: function (y:any) {
-            if (typeof y !== "undefined") {
-              return "$" + y.toFixed(2) + "k";
-            }
-            return y;
-          },
-        },
-        {
-          formatter: function (y:any) {
-            if (typeof y !== "undefined") {
-              return y.toFixed(0) + " Sales";
-            }
-            return y;
-          },
-        },
-      ],
+      y: countsOnly
+        ? {
+            formatter: (value: number) =>
+              new Intl.NumberFormat(i18n.resolvedLanguage === "fa" ? "fa-IR" : "en-US").format(
+                value,
+              ),
+          }
+        : [
+            {
+              formatter: function (y: any) {
+                if (typeof y !== "undefined") {
+                  return y.toFixed(0);
+                }
+                return y;
+              },
+            },
+            {
+              formatter: function (y: any) {
+                if (typeof y !== "undefined") {
+                  return "$" + y.toFixed(2) + "k";
+                }
+                return y;
+              },
+            },
+            {
+              formatter: function (y: any) {
+                if (typeof y !== "undefined") {
+                  return t("product.dashboard.chart.salesValue", { count: y.toFixed(0) });
+                }
+                return y;
+              },
+            },
+          ],
     },
   };
   return (
     <React.Fragment>
-      <ReactApexChart dir="ltr"
+      <ReactApexChart
+        dir="ltr"
         options={options}
         series={series}
         type="line"
@@ -135,12 +144,19 @@ const RevenueCharts = ({dataColors, series}:any) => {
   );
 };
 
-const StoreVisitsCharts = ({dataColors}:any) => {
+const StoreVisitsCharts = ({ dataColors, values, labels }: any) => {
+  const { t } = useTranslation();
   var chartDonutBasicColors = getChartColorsArray(dataColors);
 
-  const series = [44, 55, 41, 17, 15];
+  const series = values ?? [44, 55, 41, 17, 15];
   var options = {
-    labels: ["Direct", "Social", "Email", "Other", "Referrals"],
+    labels: labels ?? [
+      t("product.dashboard.visit.direct"),
+      t("product.dashboard.visit.social"),
+      t("product.dashboard.visit.email"),
+      t("product.dashboard.visit.other"),
+      t("product.dashboard.visit.referrals"),
+    ],
     chart: {
       height: 333,
       type: "donut",
@@ -160,7 +176,8 @@ const StoreVisitsCharts = ({dataColors}:any) => {
   };
   return (
     <React.Fragment>
-      <ReactApexChart dir="ltr"
+      <ReactApexChart
+        dir="ltr"
         options={options}
         series={series}
         type="donut"

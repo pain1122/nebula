@@ -5,8 +5,7 @@ import BreadCrumb from '../../../Components/Common/BreadCrumb';
 //Import Flatepicker
 import Flatpickr from "react-flatpickr";
 import Select from "react-select";
-import { CKEditor } from "@ckeditor/ckeditor5-react";
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import ToolboxClassicEditor from '../../../Components/Common/ToolboxClassicEditor';
 
 import Dropzone from "react-dropzone";
 
@@ -78,8 +77,7 @@ const CreateProject = () => {
 
                                     <div className="mb-3">
                                         <Label className="form-label">Project Description</Label>
-                                        <CKEditor
-                                            editor={ClassicEditor}
+                                        <ToolboxClassicEditor
                                             data="<p>Hello from CKEditor 5!</p>"
                                             onReady={(editor) => {
                                                 // You can store the "editor" and use when it is needed.

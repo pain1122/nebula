@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, Col, DropdownMenu, DropdownToggle, UncontrolledDropdown, DropdownItem } from 'reactstrap';
+import { Card, CardHeader, Col, DropdownToggle, UncontrolledDropdown, DropdownItem } from "reactstrap";
+import DropdownMenu from "../../Components/Common/DirectionalDropdownMenu";
 import { useSelector, useDispatch } from "react-redux";
 import { AudiencesSessionsCharts } from './DashboardAnalyticsCharts';
 import { getAudiencesSessionsChartsData } from "../../slices/thunks";

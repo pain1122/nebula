@@ -1,0 +1,10 @@
+[
+  { "name": "first_saves", "leader": "first", "follower": "fact", "initialized": false, "expected": ["committed", "conflict"] },
+  { "name": "later_fact_saves", "leader": "fact", "follower": "other_fact", "initialized": true, "expected": ["committed", "conflict"] },
+  { "name": "measurement_before_fact", "leader": "measurement", "follower": "fact", "initialized": true, "expected": ["committed", "conflict"] },
+  { "name": "fact_before_measurement", "leader": "fact", "follower": "measurement", "initialized": true, "expected": ["committed", "conflict"] },
+  { "name": "duplicate_measurement_delivery", "leader": "measurement", "follower": "measurement", "initialized": true, "expected": ["committed", "conflict"] },
+  { "name": "late_audit_rollback", "leader": "measurement", "follower": "other_fact", "initialized": true, "audit_failure": true, "expected": ["audit_rolled_back", "committed"] },
+  { "name": "deactivation_before_save", "leader": "deactivate", "follower": "measurement", "initialized": true, "expected": ["authority_changed", "forbidden"] },
+  { "name": "role_revocation_before_save", "leader": "revoke_role", "follower": "fact", "initialized": true, "expected": ["authority_changed", "forbidden"] }
+]

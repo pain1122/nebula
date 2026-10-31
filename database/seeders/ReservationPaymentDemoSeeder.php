@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Checkup;
+use App\Models\DoctorVisitSlot;
 use App\Models\DoctorWorkplace;
 use App\Models\Payment;
 use App\Models\PaymentAttempt;
@@ -24,9 +25,10 @@ class ReservationPaymentDemoSeeder extends Seeder
             ->firstOrFail();
         $checkup = Checkup::where('slug', 'cardio-eval')->with('category')->firstOrFail();
         $service = $workplace->checkups()->whereKey($checkup->id)->firstOrFail();
-        $price = (int) ($service->pivot->price_override ?? $checkup->price);
-        $duration = (int) ($service->pivot->duration_override_minutes ?? $checkup->default_duration_minutes);
-        $currency = $service->pivot->currency_override ?? $checkup->currency;
+        $declaredSlot = $workplace->workingWindows()->where('checkup_id', $checkup->id)->firstOrFail();
+        $price = (int) ($declaredSlot->price_override ?? $service->pivot->price_override ?? $checkup->price);
+        $duration = (int) $declaredSlot->visit_duration_minutes;
+        $currency = $declaredSlot->currency_override ?? $service->pivot->currency_override ?? $checkup->currency;
         $today = CarbonImmutable::now('Asia/Tehran')->startOfDay();
 
         $fixtures = [
@@ -40,9 +42,24 @@ class ReservationPaymentDemoSeeder extends Seeder
 
         foreach ($fixtures as $fixture) {
             $startsAt = $fixture['starts_at'];
+            $visitSlot = DoctorVisitSlot::query()->firstOrCreate(
+                [
+                    'doctor_working_window_id' => $declaredSlot->id,
+                    'starts_at' => $startsAt,
+                ],
+                [
+                    'doctor_workplace_id' => $workplace->id,
+                    'checkup_id' => $checkup->id,
+                    'ends_at' => $startsAt->addMinutes($duration),
+                    'price' => $price,
+                    'currency' => $currency,
+                    'is_active' => true,
+                ],
+            );
             $reservation = Reservation::updateOrCreate(
                 ['booking_idempotency_key' => $fixture['key']],
                 [
+                    'doctor_visit_slot_id' => $visitSlot->id,
                     'user_id' => $fixture['user']->id,
                     'doctor_profile_id' => $workplace->doctor_profile_id,
                     'doctor_workplace_id' => $workplace->id,

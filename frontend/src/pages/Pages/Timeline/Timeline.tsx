@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Col, Container, Row } from 'reactstrap';
 import BreadCrumb from '../../../Components/Common/BreadCrumb';
 
-import { Swiper, SwiperSlide } from "swiper/react";
+import { SwiperSlide } from "swiper/react";
+import Swiper from "../../../Components/Common/DirectionalSwiper";
 
 import { Link } from 'react-router-dom';
 import{  Navigation, Thumbs } from "swiper/modules";

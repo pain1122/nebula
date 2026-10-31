@@ -29,6 +29,7 @@ class FoundationQuestionnaireMedicalMigrationLifecycleTest extends TestCase
         'database/migrations/2025_12_01_083086_questionnaire_submissions.php',
         'database/migrations/2026_06_03_095153_create_user_profiles_table.php',
         'database/migrations/2026_06_03_103137_create_leads_table.php',
+        'database/migrations/2026_08_16_000000_create_reservation_medical_requests_and_reports.php',
     ];
 
     protected function tearDown(): void
@@ -45,17 +46,25 @@ class FoundationQuestionnaireMedicalMigrationLifecycleTest extends TestCase
         $this->assertTrue(Schema::hasTable('questionnaire_submissions'));
         $this->assertTrue(Schema::hasTable('leads'));
         $this->assertTrue(Schema::hasTable('reservation_files'));
+        $this->assertTrue(Schema::hasTable('reservation_medical_requests'));
+        $this->assertTrue(Schema::hasTable('reservation_reports'));
+        $this->assertTrue(Schema::hasColumn('reservation_files', 'medical_request_id'));
 
         Artisan::call('migrate:rollback', ['--path' => $this->paths, '--force' => true]);
 
         $this->assertFalse(Schema::hasTable('questionnaire_submissions'));
         $this->assertFalse(Schema::hasTable('leads'));
         $this->assertFalse(Schema::hasTable('reservation_files'));
+        $this->assertFalse(Schema::hasTable('reservation_medical_requests'));
+        $this->assertFalse(Schema::hasTable('reservation_reports'));
 
         Artisan::call('migrate', ['--path' => $this->paths, '--force' => true]);
 
         $this->assertTrue(Schema::hasTable('questionnaire_submissions'));
         $this->assertTrue(Schema::hasTable('leads'));
         $this->assertTrue(Schema::hasTable('reservation_files'));
+        $this->assertTrue(Schema::hasTable('reservation_medical_requests'));
+        $this->assertTrue(Schema::hasTable('reservation_reports'));
+        $this->assertTrue(Schema::hasColumn('reservation_files', 'medical_request_id'));
     }
 }

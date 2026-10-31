@@ -1,68 +1,45 @@
 import i18n from "i18next";
-import detector from "i18next-browser-languagedetector";
 import { initReactI18next } from "react-i18next";
 
 import translationFA from "./locales/fa.json";
-import translationGr from "./locales/gr.json";
-import translationIT from "./locales/it.json";
-import translationRS from "./locales/ru.json";
-import translationSP from "./locales/sp.json";
 import translationENG from "./locales/en.json";
-import translationCN from "./locales/ch.json";
-import translationFR from "./locales/fr.json";
-import translationAR from "./locales/ar.json";
+import { runtimeConfig } from "./core/runtime/config";
+import {
+    ProductLocale,
+    applyProductLocale,
+    initializeProductLocale,
+    normalizeProductLocale,
+    persistProductLocale,
+} from "./modules/checkupino/preferences/localization";
 
 // the translations
 const resources = {
     fa: {
         translation: translationFA,
     },
-    gr: {
-        translation: translationGr,
-    },
-    it: {
-        translation: translationIT,
-    },
-    rs: {
-        translation: translationRS,
-    },
-    sp: {
-        translation: translationSP,
-    },
     en: {
         translation: translationENG,
     },
-    cn: {
-        translation: translationCN,
-    },
-    fr: {
-        translation: translationFR,
-    },
-    ar: {
-        translation: translationAR,
-    },
 };
 
-const language = localStorage.getItem("I18N_LANGUAGE");
-if (!language) {
-    localStorage.setItem("I18N_LANGUAGE", "fa");
-}
+const activeLanguage = initializeProductLocale(
+    document.documentElement,
+    window.localStorage,
+    runtimeConfig.defaultLocale,
+);
 
-export const syncDocumentLanguage = (language: string) => {
-    document.documentElement.lang = language;
-    document.documentElement.dataset.language = language;
+export const syncDocumentLanguage = (language: unknown): ProductLocale => {
+    const locale = normalizeProductLocale(language);
+    persistProductLocale(window.localStorage, locale);
+    applyProductLocale(document.documentElement, locale);
+    return locale;
 };
 
-const activeLanguage = localStorage.getItem("I18N_LANGUAGE") || "fa";
-
-syncDocumentLanguage(activeLanguage);
-
-i18n.use(detector)
-    .use(initReactI18next) // passes i18n down to react-i18next
+i18n.use(initReactI18next) // passes i18n down to react-i18next
     .init({
         resources,
         lng: activeLanguage,
-        fallbackLng: "en", // use en if detected lng is not available
+        fallbackLng: normalizeProductLocale(runtimeConfig.fallbackLocale, "en"),
 
         keySeparator: false, // we do not use keys in form messages.welcome
 
@@ -72,5 +49,10 @@ i18n.use(detector)
     });
 
 i18n.on("languageChanged", syncDocumentLanguage);
+
+export const changeProductLanguage = async (locale: ProductLocale) => {
+    syncDocumentLanguage(locale);
+    await i18n.changeLanguage(locale);
+};
 
 export default i18n;

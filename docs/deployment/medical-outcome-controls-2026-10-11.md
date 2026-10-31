@@ -1,0 +1,23 @@
+# Medical review, report and history controls
+
+The approved remaining medical controls are implemented and deployed on the two existing Velzon File Manager pages. No URL, design system, dependency, schema, booking/payment rule or medical release rule changed.
+
+Eligible role-scoped downloads use a URL helper in the existing transport adapter. Assigned doctors can start review, create/edit plain-text drafts, explicitly confirm publication and create a new draft amendment of a published report. Published content remains immutable; amendments retain predecessor/history. Patients see only backend-published outcomes and eligible files. Text is rendered escaped, never as HTML.
+
+Every write performs a fresh same-reservation/request/report read. Changed draft bodies/status/predecessors stop an old edit/publication confirmation; eligibility and amendment successors are rechecked. Only ordinary allowed fields reach existing APIs. Duplicate clicks, page unmount/abort and ambiguous delivery are guarded; ambiguous acknowledgements block another write across modal close/reopen until an explicit matching refresh. Refresh starts list and selected detail together so list invalidation cannot unsubscribe the selected preflight. Backend ownership, quarantine, retention, verified-byte/content/freshness and audit services remain authoritative.
+
+## Verification and deployment
+
+Final frontend quality passes **52 files / 384 tests**, TypeScript, installed governed/supplemental lint, fixtures, formatting and unchanged ratchets **2515/10/40/0**. The medical suite has 64 cases and the centralized download helper adds five scope/encoding/invalid-ID tests. These cover real shared-store adapters with mocked HTTP, fresh read ordering, exact write payloads, plain-text escaping, draft/edit/publish/amend/history, EN/FA, patient exclusion and failed/ambiguous/duplicate/unmount paths. Positive review/report actions are source evidence until a real eligible file exists. An incorrect root-directory `npx` invocation fetched a temporary newer lint CLI into npm cache and failed; it is excluded from acceptance. No project dependency files were changed by that invocation. Final lint uses the installed frontend CLI and the render-time ref read it detected was corrected. The unchanged origin ratchet correctly rejected a page-level origin read; origin construction now stays in the existing transport adapter.
+
+The assistant reused the same expressly delegated static-admin config/build/recreate sequence from the earlier medical slice. Dependency layers were cached; Vite built in 5.63 seconds. Healthy image **2e6c7185** serves 21 byte-matched assets: entry `index-2wefgQWT.js`, medical page `MedicalFiles-DKB7MYUo.js`, unchanged lazy CSS `MedicalFiles-CR21OHT8.css`. Thirteen actual browser groups pass EN/FA owner upload/progress/oversize refusal, medical role boundaries, refresh/mobile and blocked owner/doctor original-quarantine downloads. No medical POST, file upload, review, draft or publication was sent by this harness. Stored medical/booking/payment/outbox/settings, protected accounts and original audits through9 match before/after; read-only history/integrity acceptance passes separately. The older request-history checker prints its historical28951daf artifact; current served proof establishes2e6c7185.
+
+Run current read-only checks with `node scripts/media/verify-medical-outcome-static.mjs`, then `node scripts/media/verify-medical-outcome-browser.mjs`. These guards preserve the pre-activation two-request/one-quarantine/zero-report/zero-job/scanning-disabled checkpoint and must not be replayed after successful clinical state changes.
+
+[Source/deployment evidence](evidence/medical-outcome-controls-2026-10-11.json), [served artifact](evidence/medical-outcome-static-2026-10-11.json), [browser refusal/role evidence](evidence/medical-outcome-browser-2026-10-11.json).
+
+## Rollback and next step
+
+Current accepted artifact is retained as `checkupino-admin:medical-outcome-accepted-2026-10-11`; immediately preceding patient-upload artifact c33f9e73 is retained as `checkupino-admin:patient-upload-accepted-2026-10-11`. Source rollback/rebuild remains additive and data-preserving; do not remove backend safeguards or clinical history. All medical UX controls are approved already.
+
+Next is [idle dedicated worker and controlled producer activation](medical-demo-worker-2026-10-11.md), one ordinary fresh bounded synthetic PDF, one inspected encrypted medical-scan job, actual scan/content/audit and eligible review/report/patient acceptance. Questionnaire and final rehearsal follow. No general worker, producer activation, main-env mutation or new clinical row occurred in this controls slice.

@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import type { ColorPreference } from "../../core";
 //constants
 import {
-  LAYOUT_DIRECTION_TYPES,
   LAYOUT_TYPES,
   LAYOUT_MODE_TYPES,
   LAYOUT_SIDEBAR_TYPES,
@@ -17,9 +17,8 @@ import {
 
 
 export interface LayoutState {
-  layoutDirectionType: LAYOUT_DIRECTION_TYPES.LTR | LAYOUT_DIRECTION_TYPES.RTL;
   layoutType: LAYOUT_TYPES.HORIZONTAL | LAYOUT_TYPES.VERTICAL | LAYOUT_TYPES.TWOCOLUMN | LAYOUT_TYPES.SEMIBOX;
-  layoutModeType: LAYOUT_MODE_TYPES.LIGHTMODE | LAYOUT_MODE_TYPES.DARKMODE;
+  layoutModeType: ColorPreference;
   leftSidebarType: LAYOUT_SIDEBAR_TYPES.LIGHT | LAYOUT_SIDEBAR_TYPES.DARK | LAYOUT_SIDEBAR_TYPES.GRADIENT | LAYOUT_SIDEBAR_TYPES.GRADIENT_2 | LAYOUT_SIDEBAR_TYPES.GRADIENT_3 | LAYOUT_SIDEBAR_TYPES.GRADIENT_4;
   layoutWidthType: LAYOUT_WIDTH_TYPES.FLUID | LAYOUT_WIDTH_TYPES.BOXED;
   layoutPositionType: LAYOUT_POSITION_TYPES.FIXED | LAYOUT_POSITION_TYPES.SCROLLABLE;
@@ -34,9 +33,8 @@ export interface LayoutState {
 const LAYOUT_STORAGE_KEY = "nebula.layout.settings";
 
 const defaultLayoutState: LayoutState = {
-  layoutDirectionType: LAYOUT_DIRECTION_TYPES.RTL,
   layoutType: LAYOUT_TYPES.VERTICAL,
-  layoutModeType: LAYOUT_MODE_TYPES.LIGHTMODE,
+  layoutModeType: LAYOUT_MODE_TYPES.SYSTEM,
   leftSidebarType: LAYOUT_SIDEBAR_TYPES.LIGHT,
   layoutWidthType: LAYOUT_WIDTH_TYPES.FLUID,
   layoutPositionType: LAYOUT_POSITION_TYPES.FIXED,
@@ -73,11 +71,6 @@ const readStoredLayoutState = (): LayoutState => {
     const stored = JSON.parse(rawSettings) as Partial<LayoutState>;
 
     return {
-      layoutDirectionType: pickStoredValue(
-        stored.layoutDirectionType,
-        Object.values(LAYOUT_DIRECTION_TYPES),
-        defaultLayoutState.layoutDirectionType
-      ),
       layoutType: pickStoredValue(
         stored.layoutType,
         Object.values(LAYOUT_TYPES),
@@ -146,9 +139,10 @@ const persistLayoutState = (state: LayoutState) => {
   }
 
   window.localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify({
-    layoutDirectionType: state.layoutDirectionType,
     layoutType: state.layoutType,
-    layoutModeType: state.layoutModeType,
+    ...(state.layoutModeType === LAYOUT_MODE_TYPES.SYSTEM
+      ? {}
+      : { layoutModeType: state.layoutModeType }),
     leftSidebarType: state.leftSidebarType,
     layoutWidthType: state.layoutWidthType,
     layoutPositionType: state.layoutPositionType,
@@ -167,10 +161,6 @@ const LayoutSlice = createSlice({
   name: 'LayoutSlice',
   initialState,
   reducers: {
-    changeLayoutDirectionAction(state, action: PayloadAction<LayoutState["layoutDirectionType"]>) {
-      state.layoutDirectionType = action.payload;
-      persistLayoutState(state);
-    },
     changeLayoutAction(state, action : PayloadAction<LayoutState["layoutType"]>) {
       state.layoutType = action.payload;
       persistLayoutState(state);
@@ -219,7 +209,6 @@ const LayoutSlice = createSlice({
 });
 
 export const {
-  changeLayoutDirectionAction,
   changeLayoutAction,
   changeLayoutModeAction,
   changeSidebarThemeAction,

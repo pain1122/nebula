@@ -1,0 +1,20 @@
+# A dedicated build context excludes .env, application data, routes and models.
+**
+!vendor/
+!vendor/**
+!app/
+!app/Services/
+!app/Services/MedicalContentValidator.php
+!app/Support/
+!app/Support/MedicalContentPolicy.php
+!app/Support/MedicalContentProtocol.php
+!config/
+!config/medical_content.php
+!scripts/
+!scripts/media/
+!scripts/media/serve-medical-content.php
+!scripts/media/validate-medical-image.php
+!docker/
+!docker/medical-content/
+!docker/medical-content/Dockerfile
+!docker/medical-content/Dockerfile.dockerignore

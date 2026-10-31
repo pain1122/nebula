@@ -11,11 +11,21 @@ use App\Models\TenantInstance;
 use App\Services\MarketplaceSettingService;
 use App\Services\TenantFeatureOverrideService;
 use App\Services\TenantRegistryService;
+use App\Services\UploadPolicySettings;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class PlatformPrimitiveController extends ApiController
 {
+    public function showUploadSetting(Request $request, string $settingKey, UploadPolicySettings $settings): JsonResponse
+    {
+        abort_unless($request->user()?->isRootAdmin(), 403);
+        abort_unless(UploadPolicySettings::isSetting($settingKey), 404);
+
+        return $this->successResponse(data: ['setting' => $settings->describe($settingKey)]);
+    }
+
     public function updateTenant(
         UpdateTenantRegistryRequest $request,
         TenantInstance $tenantInstance,
@@ -79,8 +89,11 @@ class PlatformPrimitiveController extends ApiController
             $settingKey,
             $data['scope_type'],
             $data['scope_key'],
-            $data['value'],
+            $data['value'] ?? null,
             $data['reason'],
+            $data['expected_revision'] ?? null,
+            in_array($data['confirmed'] ?? null, [true, 1, '1', 'yes', 'on', 'true'], true),
+            ($data['operation'] ?? 'set') === 'reset',
         );
 
         return $this->successResponse(
@@ -90,6 +103,7 @@ class PlatformPrimitiveController extends ApiController
                     'scope_type' => $setting->scope_type,
                     'scope_key' => $setting->scope_key,
                     'value' => $setting->value,
+                    'stored' => $setting->exists,
                 ],
             ],
             message: 'Marketplace setting updated.',

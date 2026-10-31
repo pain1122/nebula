@@ -1,0 +1,22 @@
+[
+  "app/Http/Controllers/Api/Admin/UserController.php",
+  "routes/api.php",
+  "frontend/src/modules/checkupino/manifest.ts",
+  "frontend/src/modules/checkupino/query/api.ts",
+  "frontend/src/modules/checkupino/query/lists.ts",
+  "frontend/src/modules/checkupino/users/directory.ts",
+  "frontend/src/modules/checkupino/users/editor.ts",
+  "frontend/src/modules/checkupino/users/UserEditor.tsx",
+  "frontend/src/pages/Users/UserDirectory.tsx",
+  "frontend/src/pages/Users/UserProfile.tsx",
+  "frontend/src/locales/en.json",
+  "frontend/src/locales/fa.json",
+  "frontend/src/test/UserDirectory.test.tsx",
+  "frontend/src/test/productRegistry.test.ts",
+  "frontend/src/test/UserProfile.test.tsx",
+  "frontend/src/Layouts/LayoutMenuData.test.tsx",
+  "frontend/src/Routes/RouterContract.test.tsx",
+  "frontend/src/test/AdminReservations.test.tsx",
+  "tests/Feature/Api/StaffDirectoryTest.php",
+  "scripts/media/verify-staff-directory.ps1"
+]

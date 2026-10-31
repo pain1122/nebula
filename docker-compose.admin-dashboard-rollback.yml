@@ -1,0 +1,3 @@
+services:
+  admin:
+    image: checkupino-admin:general-settings-accepted-2026-10-16

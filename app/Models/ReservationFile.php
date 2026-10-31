@@ -13,8 +13,6 @@ class ReservationFile extends Model
     use HasFactory, HasUlids, SoftDeletes;
 
     protected $fillable = [
-        'reservation_id',
-        'uploaded_by',
         'original_filename',
         'safe_filename',
         'label',
@@ -45,8 +43,25 @@ class ReservationFile extends Model
         return $this->belongsTo(Reservation::class);
     }
 
+    public function medicalRequest()
+    {
+        return $this->belongsTo(ReservationMedicalRequest::class, 'medical_request_id');
+    }
+
     public function uploader()
     {
         return $this->belongsTo(User::class, 'uploaded_by');
+    }
+
+    public function scopeAvailableForMedicalReview($query)
+    {
+        return $query
+            ->where('disk', 'private')
+            ->where('scan_status', ReservationFileScanStatus::Clean->value)
+            ->where(function ($retention): void {
+                $retention
+                    ->whereNull('retention_until')
+                    ->orWhere('retention_until', '>', now());
+            });
     }
 }

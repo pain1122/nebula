@@ -1,8 +1,9 @@
 # Phase 1D Future-Feature Extension Contract
 
 Snapshot date: 2026-08-03
+Last reconciled: 2026-08-16
 
-Status: canonical Phase 1D contract for later content, commerce, mobile, tenant-site, reports, and notification work.
+Status: canonical Phase 1D contract for later content, commerce, mobile, tenant-site, report UI, and notification work. The Phase 1E backend medical vertical slice described below was subsequently implemented and verified on 2026-08-16.
 
 Depends on:
 
@@ -206,9 +207,9 @@ Tenant-local doctor/patient/catalog/booking/payment/questionnaire/medical/conten
 - Tenant reports belong only to the tenant-local patient/reservation/medical context.
 - A marketplace report never references a tenant-local file or patient.
 
-### Required future workflow boundary
+### Implemented backend workflow boundary
 
-The Phase 1E/Phase 3 vertical slice must explicitly model:
+The Phase 1E backend slice now explicitly models:
 
 ```text
 doctor requests result/test
@@ -226,11 +227,14 @@ Report publication/review state, authorship, patient/reservation ownership, amen
 - `ReservationFile`, `ReservationFileService`, `ReservationFilePolicy`
 - private disk, server-owned opaque metadata, validation, checksum, quarantine/scan, archive/replacement/retention
 - policy-protected download and access/lifecycle audit
+- `ReservationMedicalRequest`, `ReservationMedicalRequestService`, and assigned-doctor request/review policy
+- `ReservationReport`, `ReservationReportService`, immutable publication, idempotence, and amendment history
+- doctor/patient API resources and public-ID ownership boundaries for request/upload/review/report/outcome/download
 - `reports.enabled` setting intersected with signed `tenant.reports` entitlement
 
-### Deferred to Phase 1E item 19 and demo phase
+### Deferred after Phase 1E
 
-Requested-test/result records, report/note lifecycle, doctor/patient routes/resources, review/amendment rules, outcome UI, and complete acceptance workflow.
+Medical UI, antivirus-provider/public scan callback integration, tenant-local medical product workflows, and broader demo acceptance remain later work.
 
 ## 6. Notifications
 
@@ -275,18 +279,18 @@ Notification/template/preference/delivery tables, channel policy, consent, local
 | Products/commerce | Marketplace or tenant-local | catalog/order/payment separation, snapshots, tax/discount adjustments | money, media, payment contracts, audit, outbox | Phase 5 |
 | Mobile | User/device local to owning database | bearer/device/push ownership, expiry/revocation, settings/features | Sanctum TTL/rotation, API v1, settings, push/outbox contracts | Phase 6 |
 | Hospital/clinic sites | One implicit local hospital database | signed entitlement, local authority, sanitized monitoring | verified tenant schema, registry, heartbeat, audit/outbox | Phase 7 |
-| Reports/medical files | patient/reservation in owning database | private/quarantine/review/report/retention/audit | private file service/policy and report entitlement | Phase 1E/Phase 3 |
+| Reports/medical files | patient/reservation in owning database | private/quarantine/review/report/retention/audit | implemented Phase 1E request/file/report services, policies, resources, and report entitlement | UI/provider/tenant expansion in later phases |
 | Notifications | recipient and event in owning database | templates/channels/preferences/delivery/privacy | transport contracts, typed outbox, job account checks | Later feature phases |
 
 ## Phase 1D Gate
 
-Phase 1D is complete when:
+Phase 1D closed when:
 
 - all six domains have explicit marketplace-versus-tenant ownership
 - later lifecycle vocabulary and non-negotiable invariants are recorded
 - each row maps to verified Phase 1C runtime primitives
 - dead placeholder schema and premature product/provider/UI work are explicitly excluded
 - roadmap, current task, project map, and task log reference this contract
-- no Phase 1E or Phase 2 work is claimed complete
+- no premature Phase 1E or Phase 2 implementation was claimed at the time of Phase 1D closure; Phase 1E was implemented afterward under its own blueprint and verification gates
 
 Changes to these ownership or aggregate boundaries require an intentional architecture update before implementation.

@@ -1,0 +1,22 @@
+Checkupino frontend third-party notices
+=======================================
+
+CKEditor 5
+----------
+
+This frontend includes CKEditor 5 version 48.5.0 and the CKEditor 5 React
+integration version 11.2.0.
+
+Copyright (c) 2003-2026, CKSource Holding sp. z o.o. All rights reserved.
+
+For this project, these components are used under the GNU General Public
+License, version 2 or (at your option) any later version (GPL-2.0-or-later).
+
+CKEditor source: https://github.com/ckeditor/ckeditor5
+React integration source: https://github.com/ckeditor/ckeditor5-react
+License terms: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+CKEditor licensing information: https://ckeditor.com/legal/ckeditor-licensing-options/
+
+The dependency distributions also contain CKEditor's LICENSE.md and
+COPYING.GPL files. Preserve this notice and those upstream license files when
+redistributing the frontend or its corresponding source.

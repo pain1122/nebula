@@ -14,6 +14,7 @@ use Tests\TestCase;
 class AdminUserAuditTest extends TestCase
 {
     use RefreshDatabase;
+    use \Tests\Support\IsolatedProfileApplication;
 
     public function test_admin_user_create_writes_audit_event_without_sensitive_fields(): void
     {
@@ -25,7 +26,8 @@ class AdminUserAuditTest extends TestCase
             ->withHeader('User-Agent', 'AuditTest/1.0')
             ->postJson('/api/admin/users', $this->adminUserPayload([
                 'role' => UserRole::Doctor->value,
-                'password' => 'SecretPass123!',
+                'password' => 'Secret passphrase river 123!',
+                'password_confirmation' => 'Secret passphrase river 123!',
             ]));
 
         $response->assertOk();
@@ -42,12 +44,12 @@ class AdminUserAuditTest extends TestCase
         $this->assertNull($event->before);
         $this->assertSame('POST /api/admin/users', $event->route);
         $this->assertSame('AuditTest/1.0', $event->user_agent);
-        $this->assertSame('created-audit@example.test', $event->after['email']);
+        $this->assertArrayNotHasKey('email', $event->after);
         $this->assertSame([UserRole::Doctor->value], $event->after['roles']);
 
         $encodedAfter = json_encode($event->after);
         $this->assertIsString($encodedAfter);
-        $this->assertStringNotContainsString('SecretPass123!', $encodedAfter);
+        $this->assertStringNotContainsString('Secret passphrase river 123!', $encodedAfter);
         $this->assertArrayNotHasKey('password', $event->after);
     }
 
@@ -65,13 +67,12 @@ class AdminUserAuditTest extends TestCase
         $response = $this
             ->actingAsStatefulAdmin($admin)
             ->withSession($this->recentPasswordConfirmation())
-            ->putJson('/api/admin/users/'.$target->id, $this->adminUserPayload([
+            ->putJson('/api/admin/users/'.$target->id, [
                 'role' => UserRole::Doctor->value,
-                'email' => 'after-audit@example.test',
-                'phone' => '09222222222',
-                'NID' => '2222222222',
+                'first_name' => 'Updated', 'last_name' => 'Display', 'reason' => 'Synthetic role correction',
+                'expected_revision' => app(\App\Services\PanelProfileService::class)->revision($target),
                 'patient_status' => 'active',
-            ]));
+            ]);
 
         $response->assertOk();
 
@@ -79,8 +80,10 @@ class AdminUserAuditTest extends TestCase
 
         $this->assertSame('admin.user.updated', $event->action);
         $this->assertSame($target->id, $event->subject_id);
-        $this->assertSame('before-audit@example.test', $event->before['email']);
-        $this->assertSame('after-audit@example.test', $event->after['email']);
+        $this->assertArrayNotHasKey('email', $event->before);
+        $this->assertArrayNotHasKey('email', $event->after);
+        $this->assertSame('Updated', $event->after['first_name']);
+        $this->assertSame('before-audit@example.test', $target->fresh()->email);
         $this->assertSame([UserRole::Patient->value], $event->before['roles']);
         $this->assertSame([UserRole::Doctor->value], $event->after['roles']);
         $this->assertNull($event->after['patient_status']);
@@ -101,12 +104,49 @@ class AdminUserAuditTest extends TestCase
             ->withSession($this->recentPasswordConfirmation())
             ->postJson('/api/admin/users', $this->adminUserPayload([
                 'email' => 'rollback-audit@example.test',
+                'password' => 'willow harbor quartz meadow',
+                'password_confirmation' => 'willow harbor quartz meadow',
             ]))
             ->assertStatus(500);
 
         $this->assertDatabaseMissing('users', [
             'email' => 'rollback-audit@example.test',
         ]);
+        $this->assertDatabaseCount('audit_events', 0);
+    }
+
+    public function test_admin_identity_update_rolls_back_when_audit_write_fails(): void
+    {
+        $rootAdmin = User::factory()->create();
+        $rootAdmin->syncRoles([UserRole::RootAdmin->value]);
+        $target = User::factory()->create([
+            'email' => 'admin-before-rollback@example.test',
+            'phone' => '09333333333',
+            'NID' => '3333333333',
+        ]);
+        $target->syncRoles([UserRole::Admin->value]);
+
+        $this->mock(AuditLogger::class, function (MockInterface $mock): void {
+            $mock->shouldReceive('log')
+                ->once()
+                ->andThrow(new RuntimeException('audit failed'));
+        });
+
+        $this->actingAsStatefulAdmin($rootAdmin)
+            ->withSession($this->recentPasswordConfirmation())
+            ->putJson('/api/admin/users/'.$target->id, [
+                'role' => UserRole::Admin->value,
+                'first_name' => 'Updated', 'last_name' => 'Display',
+                'expected_revision' => app(\App\Services\PanelProfileService::class)->revision($target),
+                'reason' => 'Correct the administrator profile.',
+            ])
+            ->assertStatus(500);
+
+        $this->assertDatabaseHas('users', [
+            'id' => $target->id,
+            'email' => 'admin-before-rollback@example.test',
+        ]);
+        $this->assertTrue($target->fresh()->hasRole(UserRole::Admin->value));
         $this->assertDatabaseCount('audit_events', 0);
     }
 
@@ -135,7 +175,7 @@ class AdminUserAuditTest extends TestCase
     }
 
     /**
-     * @param array<string, mixed> $overrides
+     * @param  array<string, mixed>  $overrides
      * @return array<string, mixed>
      */
     private function adminUserPayload(array $overrides = []): array

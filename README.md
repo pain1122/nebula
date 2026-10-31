@@ -73,6 +73,8 @@ This project is designed for Docker-based local development.
 
 For continuing the existing demo on another PC, first use the [Windows transfer readiness checklist](docs/deployment/windows10-transfer-readiness-2026-10-31.md). A clone does not include local images, dependencies, database/files or encryption keys; the fresh-install steps below do not preserve an existing demo database.
 
+The selected new-PC direction is a fresh database with populated synthetic examples. The expanded seed package passes source4/93 and full real scanner/parser SQLite/MySQL installation and exact repeat; disposable cleanup is verified. Actual target setup/acceptance remain open. See the [fresh-demo package and gates](docs/deployment/fresh-demo-seed-readiness-2026-10-31.md). Do not reseed the existing laptop. Optional `DEMO_SEED_VERIFIED_MEDIA` defaults false and requires the independent fixture database and genuinely ready scanner/parser; it never manufactures clean files or starts a general worker.
+
 ### 1) Requirements
 
 - Docker Desktop with Compose v2

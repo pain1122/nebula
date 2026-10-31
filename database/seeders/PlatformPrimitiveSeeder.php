@@ -25,7 +25,7 @@ class PlatformPrimitiveSeeder extends Seeder
                 'allowed_scopes' => $setting['allowed_scopes'],
                 'description' => $setting['description'],
             ]);
-            SettingValue::updateOrCreate(
+            SettingValue::firstOrCreate(
                 ['setting_definition_id' => $definition->id, 'scope_type' => 'platform', 'scope_key' => 'marketplace'],
                 ['value' => $setting['default']]
             );

@@ -36,7 +36,7 @@ class DoctorProfileSeeder extends Seeder
             $specialties = Specialty::whereIn('slug', $data['specialties'])->get()->keyBy('slug');
             $primary = $specialties->get($data['primary']);
 
-            $profile = DoctorProfile::updateOrCreate(
+            $profile = DoctorProfile::firstOrCreate(
                 ['user_id' => $user->id],
                 [
                     'specialty_id' => $primary?->id,
@@ -47,6 +47,9 @@ class DoctorProfileSeeder extends Seeder
                     'verified' => true,
                 ]
             );
+            if (! $profile->wasRecentlyCreated) {
+                continue;
+            }
             $profile->forceFill(['verified_at' => now(), 'verified_by' => $verifier->id])->save();
 
             $profile->specialties()->sync(

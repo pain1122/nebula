@@ -4,6 +4,8 @@ Target planned for November 1, 2026, Asia/Tehran: ASUS VivoBook, Windows10, repo
 
 The reported hardware should accommodate the current development stack. All eight active runtime images are Linux/AMD64; no ASUS-specific dependency or demonstrated Windows11-only application requirement was found. This is a source/current-laptop audit, not certification that the other machine has passed installation.
 
+The user subsequently chose a **fresh database with populated synthetic examples** for the new PC. The expanded package passes four tests/93 assertions and complete real-scanner/parser SQLite/MySQL installation/exact repeat; operator cleanup is verified. Actual target setup/acceptance remain open: see [the seed package and gates](fresh-demo-seed-readiness-2026-10-31.md). Old database/key/uploads/SeaweedFS-state transfer is optional. Image, dependency, host-toolchain and scanner-network findings still apply. Original findings about transferring old keys/objects below apply only to the existing-state alternative; an independent fresh target uses its own new credentials and empty stores.
+
 ## Findings and required handling
 
 | Priority | Finding | Handling |
@@ -59,7 +61,7 @@ Expected Docker mode: Linux on x86_64/AMD64. Use Compose v2. Keep the existing W
 
 Use a short project path such as `C:\work\checkupino`, away from OneDrive synchronization. Docker recommends a Linux filesystem checkout for faster bind-mounted development, but the current browser/PowerShell acceptance workflow is Windows-hosted; switching that workflow into WSL needs its own path review. A Windows path can continue the current setup with a performance tradeoff.
 
-## Project-scoped transfer inventory
+## Image inventory and optional existing-state transfer
 
 Git provides application source at commit `d481580c659754f201b20b06eb6b86a49f4b08b6`. Preserve unrelated projects; do not copy or restore the entire Docker Desktop VM as a substitute for a Checkupino-only transfer.
 
@@ -75,7 +77,7 @@ Git provides application source at commit `d481580c659754f201b20b06eb6b86a49f4b0
 
 Use Docker image save/load for an image archive, not container export/import. Prepare an exact-image manifest and archive checksum, then verify the loaded images and required tags on the target. No image archive was exported by this audit. A runtime-only archive does not include Docker build caches, npm registries or intermediate frontend build stages; later offline rebuilds require additional preparation.
 
-Private data/config inventory:
+The following private data/config inventory applies only if preserving the existing database later becomes necessary. For the selected fresh setup, configure the new instance independently and create new owned media storage; do not copy old rows or files into it without their matching state.
 
 - Original `.env` and local `.env.production`, including the original encryption/signing keys; `.local/media-evaluation/s3.json`; required existing local acceptance receipts.
 - A consistent logical MySQL backup of `checkupino` with every table, including immutable history, audit rows, protected accounts and the two encrypted queued jobs. Coordinate the backup with file writes; do not tar a live MySQL data directory as an assumed consistent backup.
@@ -86,7 +88,15 @@ Private data/config inventory:
 
 Keep this material private and checksum it outside the Git repository. The original laptop is the rollback source; no backup, restore, stop, reset, new migration, reseed, key generation or credential replacement was executed during this audit.
 
-## Target restore order — preparation, not commands executed
+## Fresh-target order — pending seed-readiness acceptance
+
+1. Run the host preflight, clone the intended revision, load/verify the project images and install or copy matching dependencies.
+2. Verify that the target database and project volumes are new/empty; do not reuse or erase an existing target installation. Configure new local environment/key/storage credentials for that independent instance. Preserve all source-laptop keys and data.
+3. Create the target schema and run the complete, verified local demo seed graph. This is not ready to recommend until the linked seeder gaps and isolated/disposable-MySQL gates pass. Do not enable ordinary workers or treat fixture status rows as real scan/payment proof.
+4. Recreate parser/scanner socket ownership, verify supported definition access and actual synthetic processing, then start the app/Nginx with their overlays and only the static admin service from the production file. Enable only accepted local capabilities after their dependencies pass.
+5. Accept all implemented active-role journeys on the new instance, including legitimate empty states. Existing-state fingerprints from the other laptop are historical and must not be rewritten to manufacture acceptance of a different fresh dataset.
+
+## Existing-state restore alternative — not executed
 
 1. Run the target preflight, clone into the chosen short path, and verify the intended commit. Inspect ports, Docker/WSL versions and available disk space before changes.
 2. Load the project-only image archive and verify its identities/tags. Restore the matching private environment, vendor tree and file snapshot through a controlled transfer.

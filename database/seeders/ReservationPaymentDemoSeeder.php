@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Checkup;
 use App\Models\DoctorVisitSlot;
 use App\Models\DoctorWorkplace;
 use App\Models\Payment;
@@ -10,6 +9,8 @@ use App\Models\PaymentAttempt;
 use App\Models\Reservation;
 use App\Models\ReservationStatus;
 use App\Models\User;
+use App\Services\SchedulingService;
+use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
 
@@ -17,70 +18,62 @@ class ReservationPaymentDemoSeeder extends Seeder
 {
     public function run(): void
     {
-        $patient = User::where('email', 'patient@checkupino.test')->firstOrFail();
-        $secondPatient = User::where('email', 'patient2@checkupino.test')->firstOrFail();
-        $workplace = DoctorWorkplace::query()
-            ->whereHas('hospital', fn ($query) => $query->where('slug', 'mehr-demo-hospital'))
-            ->with(['hospital', 'doctorProfile.user'])
-            ->firstOrFail();
-        $checkup = Checkup::where('slug', 'cardio-eval')->with('category')->firstOrFail();
-        $service = $workplace->checkups()->whereKey($checkup->id)->firstOrFail();
-        $declaredSlot = $workplace->workingWindows()->where('checkup_id', $checkup->id)->firstOrFail();
-        $price = (int) ($declaredSlot->price_override ?? $service->pivot->price_override ?? $checkup->price);
-        $duration = (int) $declaredSlot->visit_duration_minutes;
-        $currency = $declaredSlot->currency_override ?? $service->pivot->currency_override ?? $checkup->currency;
         $today = CarbonImmutable::now('Asia/Tehran')->startOfDay();
-
         $fixtures = [
-            ['key' => 'demo-pending-live', 'user' => $patient, 'status' => ReservationStatus::Pending, 'starts_at' => $today->addDays(8)->setTime(9, 0), 'hold_expires_at' => now()->addHour(), 'payment' => 'unpaid'],
-            ['key' => 'demo-payment-failed', 'user' => $secondPatient, 'status' => ReservationStatus::Pending, 'starts_at' => $today->addDays(9)->setTime(9, 0), 'hold_expires_at' => now()->addHour(), 'payment' => 'failed'],
-            ['key' => 'demo-confirmed-paid', 'user' => $patient, 'status' => ReservationStatus::Confirmed, 'starts_at' => $today->addDays(10)->setTime(9, 0), 'hold_expires_at' => null, 'payment' => 'paid'],
-            ['key' => 'demo-completed-paid', 'user' => $secondPatient, 'status' => ReservationStatus::Completed, 'starts_at' => $today->subDays(10)->setTime(9, 0), 'hold_expires_at' => null, 'payment' => 'paid'],
-            ['key' => 'demo-cancelled', 'user' => $patient, 'status' => ReservationStatus::Cancelled, 'starts_at' => $today->addDays(11)->setTime(9, 0), 'hold_expires_at' => null, 'payment' => 'unpaid'],
-            ['key' => 'demo-expired', 'user' => $secondPatient, 'status' => ReservationStatus::Expired, 'starts_at' => $today->addDays(12)->setTime(9, 0), 'hold_expires_at' => now()->subHour(), 'payment' => 'unpaid'],
+            ['demo-pending-live', 'patient@checkupino.test', ReservationStatus::Pending, 8, 'unpaid', 'mehr-demo-hospital', 'cardio-eval'],
+            ['demo-payment-failed', 'patient2@checkupino.test', ReservationStatus::Pending, 9, 'failed', 'mehr-demo-hospital', 'cardio-eval'],
+            ['demo-confirmed-paid', 'patient@checkupino.test', ReservationStatus::Confirmed, 10, 'paid', 'mehr-demo-hospital', 'cardio-eval'],
+            ['demo-completed-paid', 'patient2@checkupino.test', ReservationStatus::Completed, -10, 'paid', 'mehr-demo-hospital', 'cardio-eval'],
+            ['demo-cancelled', 'patient@checkupino.test', ReservationStatus::Cancelled, 11, 'unpaid', 'mehr-demo-hospital', 'cardio-eval'],
+            ['demo-expired', 'patient2@checkupino.test', ReservationStatus::Expired, 12, 'unpaid', 'mehr-demo-hospital', 'cardio-eval'],
+            ['demo-ready-to-complete', 'patient@checkupino.test', ReservationStatus::Confirmed, -1, 'paid', 'mehr-demo-hospital', 'cardio-eval'],
+            ['demo-doctor2-confirmed', 'patient2@checkupino.test', ReservationStatus::Confirmed, 8, 'paid', 'pars-demo-medical-center', 'liver-panel'],
+            ['demo-doctor2-ready-to-complete', 'patient2@checkupino.test', ReservationStatus::Confirmed, -1, 'paid', 'pars-demo-medical-center', 'liver-panel'],
         ];
 
-        foreach ($fixtures as $fixture) {
-            $startsAt = $fixture['starts_at'];
-            $visitSlot = DoctorVisitSlot::query()->firstOrCreate(
-                [
-                    'doctor_working_window_id' => $declaredSlot->id,
-                    'starts_at' => $startsAt,
-                ],
-                [
-                    'doctor_workplace_id' => $workplace->id,
-                    'checkup_id' => $checkup->id,
-                    'ends_at' => $startsAt->addMinutes($duration),
-                    'price' => $price,
-                    'currency' => $currency,
-                    'is_active' => true,
-                ],
-            );
-            $reservation = Reservation::updateOrCreate(
-                ['booking_idempotency_key' => $fixture['key']],
-                [
-                    'doctor_visit_slot_id' => $visitSlot->id,
-                    'user_id' => $fixture['user']->id,
-                    'doctor_profile_id' => $workplace->doctor_profile_id,
-                    'doctor_workplace_id' => $workplace->id,
-                    'checkup_id' => $checkup->id,
-                    'starts_at' => $startsAt,
-                    'ends_at' => $startsAt->addMinutes($duration),
-                    'duration_minutes' => $duration,
-                    'timezone' => $workplace->hospital->timezone,
-                    'status' => $fixture['status']->value,
-                    'hold_expires_at' => $fixture['hold_expires_at'],
-                    'hospital_name_snapshot' => $workplace->hospital->name,
-                    'doctor_name_snapshot' => $workplace->doctorProfile->user->name,
-                    'checkup_title_snapshot' => $checkup->title,
-                    'category_name_snapshot' => $checkup->category?->name,
-                    'price_snapshot' => $price,
-                    'currency_snapshot' => $currency,
-                ]
-            );
-
-            $this->applyLifecycleTimestamps($reservation, $fixture['status'], $fixture['user']);
-            $this->seedPayment($reservation, $fixture['payment'], $price, $currency);
+        foreach ($fixtures as [$key, $email, $status, $offset, $payment, $hospital, $service]) {
+            if (Reservation::where('booking_idempotency_key', $key)->exists()) {
+                continue;
+            }
+            $patient = User::where('email', $email)->firstOrFail();
+            $workplace = DoctorWorkplace::whereHas('hospital', fn ($q) => $q->where('slug', $hospital))
+                ->with(['hospital', 'doctorProfile.user'])->firstOrFail();
+            $checkup = $workplace->checkups()->where('slug', $service)->with('category')->firstOrFail();
+            $rule = $workplace->workingWindows()->where('checkup_id', $checkup->id)->where('is_active', true)->firstOrFail();
+            app(SchedulingService::class)->materializeRule($rule,
+                Carbon::parse($today->subDays(35)), Carbon::parse($today->addDays(90)));
+            $slots = DoctorVisitSlot::where('doctor_working_window_id', $rule->id)->where('is_active', true)
+                ->whereDoesntHave('reservations');
+            if ($offset < 0) {
+                $cutoff = $offset === -1 ? CarbonImmutable::now('Asia/Tehran')->subHour() : $today->addDays($offset)->endOfDay();
+                $slots->where('ends_at', '<=', $cutoff->utc())->where('starts_at', '>=', $today->subDays(35)->utc())->orderByDesc('starts_at');
+            } else {
+                $slots->where('starts_at', '>=', $today->addDays($offset)->utc())->orderBy('starts_at');
+            }
+            $visitSlot = $slots->firstOrFail();
+            $reservation = Reservation::create([
+                'booking_idempotency_key' => $key,
+                'doctor_visit_slot_id' => $visitSlot->id,
+                'user_id' => $patient->id,
+                'doctor_profile_id' => $workplace->doctor_profile_id,
+                'doctor_workplace_id' => $workplace->id,
+                'checkup_id' => $checkup->id,
+                'starts_at' => $visitSlot->starts_at,
+                'ends_at' => $visitSlot->ends_at,
+                'duration_minutes' => $rule->visit_duration_minutes,
+                'timezone' => $workplace->hospital->timezone,
+                'status' => $status->value,
+                'hold_expires_at' => $status === ReservationStatus::Pending ? now()->addHour()
+                    : ($status === ReservationStatus::Expired ? now()->subHour() : null),
+                'hospital_name_snapshot' => $workplace->hospital->name,
+                'doctor_name_snapshot' => $workplace->doctorProfile->user->name,
+                'checkup_title_snapshot' => $checkup->title,
+                'category_name_snapshot' => $checkup->category?->name,
+                'price_snapshot' => $visitSlot->price,
+                'currency_snapshot' => $visitSlot->currency,
+            ]);
+            $this->applyLifecycleTimestamps($reservation, $status, $patient);
+            $this->seedPayment($reservation, $payment, $visitSlot->price, $visitSlot->currency);
         }
     }
 
@@ -99,7 +92,7 @@ class ReservationPaymentDemoSeeder extends Seeder
             $attributes['cancelled_by'] = $actor->id;
             $attributes['cancellation_reason'] = 'Demo cancellation fixture.';
         } elseif ($status === ReservationStatus::Completed) {
-            $attributes['completed_at'] = now()->subDays(9);
+            $attributes['completed_at'] = $reservation->ends_at->copy()->addMinutes(15);
         } elseif ($status === ReservationStatus::Expired) {
             $attributes['expired_at'] = now();
         }

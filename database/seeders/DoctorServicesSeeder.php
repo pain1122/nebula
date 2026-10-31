@@ -8,7 +8,6 @@ use App\Models\DoctorWorkingWindow;
 use App\Models\DoctorWorkplace;
 use App\Models\MarketplaceHospital;
 use App\Services\SchedulingService;
-use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 
 class DoctorServicesSeeder extends Seeder
@@ -26,9 +25,9 @@ class DoctorServicesSeeder extends Seeder
                     'basic-health-check' => ['price_override' => null],
                 ],
                 'slots' => [
-                    ['cardio-eval', 6, '09:00', '09:45', 13_500_000],
-                    ['stress-test', 6, '10:00', '10:45', null],
-                    ['basic-health-check', 1, '14:00', '14:30', null],
+                    ['cardio-eval', 6, '08:00', '12:00', 45, 13_500_000, ['10:00', '10:15']],
+                    ['stress-test', 6, '13:00', '17:00', 45, null, ['15:00', '15:15']],
+                    ['basic-health-check', 1, '08:00', '16:00', 30, null, ['12:00', '13:00']],
                 ],
             ],
             [
@@ -40,8 +39,8 @@ class DoctorServicesSeeder extends Seeder
                     'stress-test' => ['price_override' => 8_500_000],
                 ],
                 'slots' => [
-                    ['cardio-eval', 3, '10:00', '10:30', null],
-                    ['stress-test', 3, '11:00', '11:45', 9_000_000],
+                    ['cardio-eval', 3, '08:00', '12:00', 30, null, ['10:00', '10:15']],
+                    ['stress-test', 3, '13:00', '17:00', 45, 9_000_000, ['15:00', '15:15']],
                 ],
             ],
             [
@@ -54,9 +53,9 @@ class DoctorServicesSeeder extends Seeder
                     'full-body-check' => ['price_override' => 16_000_000],
                 ],
                 'slots' => [
-                    ['liver-panel', 0, '08:00', '08:30', null],
-                    ['h-pylori-test', 0, '09:00', '09:20', null],
-                    ['full-body-check', 2, '08:00', '09:00', null],
+                    ['liver-panel', 0, '08:00', '12:00', 30, null, ['10:00', '10:15']],
+                    ['h-pylori-test', 0, '13:00', '17:00', 20, null, ['15:00', '15:15']],
+                    ['full-body-check', 2, '08:00', '16:00', 60, null, ['12:00', '13:00']],
                 ],
             ],
         ];
@@ -64,10 +63,14 @@ class DoctorServicesSeeder extends Seeder
         foreach ($workplaces as $data) {
             $profile = DoctorProfile::whereHas('user', fn ($query) => $query->where('email', $data['doctor']))->firstOrFail();
             $hospital = MarketplaceHospital::where('slug', $data['hospital'])->firstOrFail();
-            $workplace = DoctorWorkplace::updateOrCreate(
+            $workplace = DoctorWorkplace::firstOrCreate(
                 ['doctor_profile_id' => $profile->id, 'marketplace_hospital_id' => $hospital->id],
                 ['display_name' => $data['display_name'], 'booking_notes' => 'Demo bookings use the hospital local time.']
             );
+
+            if (! $workplace->wasRecentlyCreated) {
+                continue;
+            }
 
             $servicePivots = [];
             foreach ($data['services'] as $slug => $override) {
@@ -78,9 +81,9 @@ class DoctorServicesSeeder extends Seeder
             }
             $workplace->checkups()->sync($servicePivots);
 
-            foreach ($data['slots'] as [$slug, $weekday, $startsAt, $endsAt, $priceOverride]) {
+            foreach ($data['slots'] as [$slug, $weekday, $startsAt, $endsAt, $duration, $priceOverride, $rest]) {
                 $checkup = Checkup::where('slug', $slug)->firstOrFail();
-                DoctorWorkingWindow::updateOrCreate(
+                $window = DoctorWorkingWindow::firstOrCreate(
                     [
                         'doctor_workplace_id' => $workplace->id,
                         'checkup_id' => $checkup->id,
@@ -89,11 +92,12 @@ class DoctorServicesSeeder extends Seeder
                     ],
                     [
                         'ends_at' => $endsAt.':00',
-                        'visit_duration_minutes' => (int) Carbon::parse($startsAt)->diffInMinutes(Carbon::parse($endsAt)),
+                        'visit_duration_minutes' => $duration,
                         'price_override' => $priceOverride,
                         'currency_override' => $priceOverride === null ? null : 'IRR',
                     ]
                 );
+                $window->breaks()->firstOrCreate(['starts_at' => $rest[0].':00', 'ends_at' => $rest[1].':00']);
             }
         }
 

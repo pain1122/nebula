@@ -14,7 +14,7 @@ class QuestionnaireDemoSeeder extends Seeder
 {
     public function run(): void
     {
-        $questionnaire = Questionnaire::updateOrCreate(
+        $questionnaire = Questionnaire::firstOrCreate(
             ['slug' => 'demo-heart-health-screen'],
             [
                 'author_user_id' => User::where('email', 'rootadmin@checkupino.test')->firstOrFail()->id,
@@ -25,6 +25,10 @@ class QuestionnaireDemoSeeder extends Seeder
                 'published_at' => now(),
             ]
         );
+
+        if (! $questionnaire->wasRecentlyCreated) {
+            return;
+        }
 
         $questions = [
             [

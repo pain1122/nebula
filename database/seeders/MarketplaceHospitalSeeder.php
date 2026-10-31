@@ -43,7 +43,7 @@ class MarketplaceHospitalSeeder extends Seeder
         ];
 
         foreach ($hospitals as $hospital) {
-            MarketplaceHospital::updateOrCreate(
+            MarketplaceHospital::firstOrCreate(
                 ['slug' => $hospital['slug']],
                 $hospital + ['timezone' => 'Asia/Tehran', 'country_code' => 'IR']
             );

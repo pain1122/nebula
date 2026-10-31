@@ -25,7 +25,7 @@ class CheckupSeeder extends Seeder
             $category = $checkup['category'];
             unset($checkup['category']);
 
-            Checkup::updateOrCreate(
+            Checkup::firstOrCreate(
                 ['slug' => $checkup['slug']],
                 $checkup + ['checkup_category_id' => $categoryIds->get($category), 'currency' => 'IRR']
             );

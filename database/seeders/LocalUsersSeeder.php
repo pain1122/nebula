@@ -19,7 +19,7 @@ class LocalUsersSeeder extends Seeder
 
         $password = (string) config('demo.password');
 
-        $rootAdmin = User::updateOrCreate(
+        $rootAdmin = User::firstOrCreate(
             ['email' => 'rootadmin@checkupino.test'],
             [
                 'name' => 'Local Root Admin',
@@ -33,7 +33,7 @@ class LocalUsersSeeder extends Seeder
                 'patient_status' => null,
             ]
         );
-        $admin = User::updateOrCreate(
+        $admin = User::firstOrCreate(
             ['email' => 'admin@checkupino.test'],
             [
                 'name' => 'Local Admin',
@@ -48,7 +48,7 @@ class LocalUsersSeeder extends Seeder
             ]
         );
 
-        $doctor = User::updateOrCreate(
+        $doctor = User::firstOrCreate(
             ['email' => 'doctor@checkupino.test'],
             [
                 'name' => 'Local Doctor',
@@ -63,7 +63,7 @@ class LocalUsersSeeder extends Seeder
             ]
         );
 
-        $patient = User::updateOrCreate(
+        $patient = User::firstOrCreate(
             ['email' => 'patient@checkupino.test'],
             [
                 'name' => 'Local Patient',
@@ -78,7 +78,7 @@ class LocalUsersSeeder extends Seeder
             ]
         );
 
-        $secondDoctor = User::updateOrCreate(
+        $secondDoctor = User::firstOrCreate(
             ['email' => 'doctor2@checkupino.test'],
             [
                 'name' => 'Local Doctor Two',
@@ -93,7 +93,7 @@ class LocalUsersSeeder extends Seeder
             ]
         );
 
-        $secondPatient = User::updateOrCreate(
+        $secondPatient = User::firstOrCreate(
             ['email' => 'patient2@checkupino.test'],
             [
                 'name' => 'Local Patient Two',
@@ -108,14 +108,12 @@ class LocalUsersSeeder extends Seeder
             ]
         );
 
-        $rootAdmin->syncRoles([UserRole::RootAdmin->value]);
-        $admin->syncRoles([UserRole::Admin->value]);
-        $doctor->syncRoles([UserRole::Doctor->value]);
-        $patient->syncRoles([UserRole::Patient->value]);
-        $secondDoctor->syncRoles([UserRole::Doctor->value]);
-        $secondPatient->syncRoles([UserRole::Patient->value]);
-
-        foreach ([$rootAdmin, $admin, $doctor, $patient, $secondDoctor, $secondPatient] as $user) {
+        foreach ([[$rootAdmin, UserRole::RootAdmin], [$admin, UserRole::Admin], [$doctor, UserRole::Doctor],
+            [$patient, UserRole::Patient], [$secondDoctor, UserRole::Doctor], [$secondPatient, UserRole::Patient]] as [$user, $role]) {
+            if (! $user->wasRecentlyCreated) {
+                continue;
+            }
+            $user->syncRoles([$role->value]);
             $user->forceFill([
                 'account_state' => AccountState::Active->value,
                 'account_state_changed_at' => null,

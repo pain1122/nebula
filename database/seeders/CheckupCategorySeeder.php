@@ -16,7 +16,7 @@ class CheckupCategorySeeder extends Seeder
         ];
 
         foreach ($categories as $category) {
-            CheckupCategory::updateOrCreate(['slug' => $category['slug']], $category);
+            CheckupCategory::firstOrCreate(['slug' => $category['slug']], $category);
         }
     }
 }

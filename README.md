@@ -2,6 +2,8 @@
 
 Laravel 12 medical checkup and consultation platform.
 
+**Install, build or deploy:** use the [build and deployment manual](docs/deployment/BUILD_AND_DEPLOY.md) for Windows/WSL2, Linux and macOS, with separate fresh-demo, source-build, image-transfer and existing-data paths. [Production operations](docs/deployment/PRODUCTION_OPERATIONS.md) documents server packaging and remaining release gates. These guides own the current operator sequence; the minimal setup reference below does not establish full demo/production readiness.
+
 Current primary runtime:
 - Laravel Blade web UI with root Vite assets.
 - Sanctum-backed API for auth, booking, admin, doctor, profile, and questionnaire flows.

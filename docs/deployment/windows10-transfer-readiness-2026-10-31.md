@@ -1,5 +1,7 @@
 # Windows 10 transfer readiness — October 31, 2026
 
+November1 operator sequence is now documented in [BUILD_AND_DEPLOY.md](BUILD_AND_DEPLOY.md), covering accepted-image export/load, source-build candidates, dependency/assets setup, independent local configuration, scanner/parser ordering, populated seeds, checks and recovery. Use its fresh-install path for the selected new PC; the old-state inventory below remains an optional restore alternative. The manual's commands/configurations were reviewed without executing a new-machine installation.
+
 Target planned for November 1, 2026, Asia/Tehran: ASUS VivoBook, Windows10, reported16GB DDR4 and probably an11th-generation Intel i7. The operator reports WSL2 and Docker Desktop already work. Exact Windows edition/build, WSL/Docker versions, disk space and a target restore are not verified yet.
 
 The reported hardware should accommodate the current development stack. All eight active runtime images are Linux/AMD64; no ASUS-specific dependency or demonstrated Windows11-only application requirement was found. This is a source/current-laptop audit, not certification that the other machine has passed installation.

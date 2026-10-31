@@ -2,20 +2,15 @@
 
 Status: local demo runtime and user-directory acceptance passed; production environment/release gates remain open
 Created: 2026-06-03
-Last reconciled: 2026-10-01
+Last reconciled: 2026-11-01 (operator-guide links and worker boundary)
+
+Current operator entry points are [BUILD_AND_DEPLOY.md](BUILD_AND_DEPLOY.md) and [PRODUCTION_OPERATIONS.md](PRODUCTION_OPERATIONS.md). They separate the full local demo from this immutable server skeleton and list the remaining production media/TLS/worker gates. Older core examples below describe packaging, not a complete clinical release or permission to start workers.
 
 This deployment path is meant to keep production packaging visible early, so Docker does not become an end-of-project trap.
 
 ## Goal
 
-A target machine should eventually need only Docker plus a runtime env file:
-
-```bash
-cp .env.production.example .env.production
-# edit secrets and URLs
-
-docker compose --env-file .env.production -f docker-compose.prod.yml up -d --build
-```
+A target machine should eventually need Docker plus its verified release/environment package. For current exact configuration, build, first migration, root provisioning and explicit-service startup commands, follow [production operations](PRODUCTION_OPERATIONS.md). Do not start the whole stack as a substitute for those gates.
 
 This is not the final production release process yet. It is a buildable deployment contract that should mature alongside the app.
 
@@ -97,11 +92,7 @@ Keep both runtime switches disabled until the env strategy is stable.
 
 ## Worker Profile
 
-Queue and scheduler services are not started by default. Start them when needed:
-
-```bash
-docker compose --env-file .env.production -f docker-compose.prod.yml --profile workers up -d
-```
+Queue and scheduler services are not started by default. Keep the generic `workers` profile disabled until its exact purpose, queue ownership, supervision and release checks are accepted. It is not the dedicated medical worker or an accepted publication runner. The current manual deliberately starts only explicit core services.
 
 ## Production Rules
 

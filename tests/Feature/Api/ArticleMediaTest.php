@@ -79,6 +79,27 @@ class ArticleMediaTest extends TestCase
                 'inline' => [['id' => $image['asset']['id'], 'language' => 'en']]]];
     }
 
+    public function test_showcase_keeps_safe_image_styles_and_every_supported_text_format(): void
+    {
+        $ids = ['01k7g3sjhb0000000000000001', '01k7g3sjhb0000000000000002', '01k7g3sjhb0000000000000003'];
+        $images = array_map(fn ($id) => ['content_path' => self::BASE.'/'.$id.'/content'], $ids);
+        $sanitizer = new \App\Services\Content\ArticleRichText;
+        foreach (\Database\Seeders\Support\DemoArticleShowcase::translations($images) as $translation) {
+            $safe = $sanitizer->sanitize($translation['body_html'], $ids);
+            foreach (['h2', 'h3', 'h4', 'strong', 'em', 'u', 'ul', 'ol', 'blockquote', 'a', 'figcaption'] as $tag) {
+                $this->assertStringContainsString('<'.$tag, $safe);
+            }
+            $this->assertSame(4, substr_count($safe, '<img '));
+            $this->assertStringContainsString('class="image image-style-side"', $safe);
+            $this->assertSame($safe, $sanitizer->sanitize($safe, $ids));
+        }
+        $hostile = '<figure class="image image-style-side position-fixed" style="position:fixed" onclick="evil()"><img src="'.self::BASE.'/'.$ids[0].'/content"></figure>';
+        $safe = $sanitizer->sanitize($hostile, [$ids[0]]);
+        $this->assertStringContainsString('class="image image-style-side"', $safe);
+        $this->assertStringNotContainsString('position', $safe);
+        $this->assertStringNotContainsString('onclick', $safe);
+    }
+
     public function test_admission_is_private_quarantined_purpose_scoped_and_safe_audited(): void
     {
         $this->signIn();

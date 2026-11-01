@@ -1,6 +1,8 @@
 import { defineProductModule, type RouteLoader } from "../../core";
 
 export interface CheckupinoRouteLoaders {
+  readonly patientArticles: RouteLoader;
+  readonly patientArticleDetail: RouteLoader;
   readonly articles: RouteLoader;
   readonly articleCreate: RouteLoader;
   readonly articleDetail: RouteLoader;
@@ -130,6 +132,14 @@ export const createCheckupinoModule = (loaders: CheckupinoRouteLoaders) =>
         labelKey: "booking.title",
         order: 10,
         routeId: "patient.booking",
+        section: "product",
+      },
+      {
+        icon: "ri-article-line",
+        id: "patient-articles",
+        labelKey: "patientArticles.title",
+        order: 25,
+        routeId: "patient.articles",
         section: "product",
       },
       {
@@ -311,6 +321,22 @@ export const createCheckupinoModule = (loaders: CheckupinoRouteLoaders) =>
         load: loaders.booking,
         path: "book",
         titleKey: "booking.title",
+      },
+      {
+        access: { audience: "authenticated", roles: ["patient"] },
+        breadcrumbs: [],
+        id: "patient.articles",
+        load: loaders.patientArticles,
+        path: "my/articles",
+        titleKey: "patientArticles.title",
+      },
+      {
+        access: { audience: "authenticated", roles: ["patient"] },
+        breadcrumbs: [{ labelKey: "patientArticles.title", routeId: "patient.articles" }],
+        id: "patient.article-detail",
+        load: loaders.patientArticleDetail,
+        path: "my/articles/:articleId",
+        titleKey: "patientArticles.article",
       },
       {
         access: { audience: "authenticated", roles: ["patient"] },

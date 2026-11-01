@@ -24,6 +24,8 @@ vi.mock("ckeditor5", () => {
     List: plugin("List"),
     MediaEmbed: plugin("MediaEmbed"),
     Paragraph: plugin("Paragraph"),
+    Plugin: plugin("Plugin"),
+    ButtonView: class {},
     PasteFromOffice: plugin("PasteFromOffice"),
     Table: plugin("Table"),
     TableToolbar: plugin("TableToolbar"),

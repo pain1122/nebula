@@ -3,6 +3,8 @@ import { createCheckupinoModule } from "../modules/checkupino/manifest";
 
 export const adminProductRegistry = createProductManifest([
   createCheckupinoModule({
+    patientArticles: () => import("../pages/PatientArticles"),
+    patientArticleDetail: () => import("../pages/PatientArticles/ArticleDetail"),
     articles: () => import("../pages/Administration/content/Articles"),
     articleCreate: () =>
       import("../pages/Administration/content/Articles").then((page) => ({

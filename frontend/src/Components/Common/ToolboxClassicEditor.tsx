@@ -196,10 +196,19 @@ export function ArticleClassicEditor({
         Link,
         Image,
         ImageCaption,
+        ImageStyle,
         ImageToolbar,
         ArticleFileManager,
       ],
-      image: { toolbar: ["imageTextAlternative", "toggleImageCaption"] },
+      image: {
+        toolbar: [
+          "imageTextAlternative",
+          "toggleImageCaption",
+          "imageStyle:inline",
+          "imageStyle:block",
+          "imageStyle:side",
+        ],
+      },
       toolbar: [
         "articleFileManager",
         "|",

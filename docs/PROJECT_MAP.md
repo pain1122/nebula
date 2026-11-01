@@ -4,7 +4,7 @@ Snapshot date: 2026-10-24
 
 ## Fast Context For Agents
 
-Current checkpoint: editorial media source/UI accepted on e03d9719/44 assets; real library migration/flags still disabled pending the existing activation gate. See CURRENT_TASK.md and docs/deployment/article-file-manager-2026-10-24.md. Older figures below are historical.
+Current checkpoint: authenticated patient published-article reading and publication-bound media are delivered on November1. See CURRENT_TASK.md and docs/deployment/patient-article-library-2026-11-01.md. Next is stage5 reviewed recommendation-rule/authority planning. Earlier activation/runtime figures below are historical.
 
 Always remember:
 - Laravel 12 + Docker.
@@ -262,9 +262,9 @@ Historical Phase1 baseline as of 2026-08-16:
 
 ## 10) Immediate Next Work
 
-1. Follow active stage3b in [CURRENT_TASK](../CURRENT_TASK.md): current one-page composer is deployed; Schedule is still disabled at runtime. Next prepare/accept its exact guarded migration/flags/dedicated publisher package with separately missing live authorization, then the already approved verified editorial asset/File Manager/editor source work. No repeated source/UX approval, prior writer replay, general queue or scheduler. Patient library and reviewed rules follow.
-2. Continue with the patient published-article library after its exact routes/composition are approved, then reviewed/versioned explainable recommendations and the integrated four-role demo rehearsal. Library reading must work without a health profile; recommendations remain inactive without actual reviewed rules.
-3. Preserve the retained Velzon React18/Bootstrap design, existing EN/Farsi mirror and language-owned direction, metadata-only support privacy, immutable history and SeaweedFS/AWS compatibility. No new dependency/role, protected-account change, queued-job consumption or unapproved UI/RTL change. Medical scanning/fresh uploads remain an independent gate; broad media, CI, portability, quarantine/deletion and optional dashboards stay deferred.
+1. Follow stage5 in [CURRENT_TASK](../CURRENT_TASK.md): prepare the reviewed/versioned article/checkup/self-care rule contract and reviewer authority. Preserve the delivered patient library and user-selected overview/author sidebar. Personal matches stay inactive without actual reviewed rules.
+2. Then accept reviewed examples or explicitly exclude inactive recommendations, and rehearse/freeze one integrated four-role EN/Farsi candidate. Historical positive-save and broader media/scheduling gates remain separately scoped.
+3. Preserve Velzon, language-owned direction, private support boundaries, immutable history and storage compatibility. Current-machine operations are in ignored .local/install; old stopped-worker and two-job instructions do not describe this new instance.
 
 ## 11) Current Open Risks
 

@@ -15,6 +15,18 @@ const admin = { authenticated: true, roles: ["admin"] } as const;
 const rootAdmin = { authenticated: true, roles: ["root-admin"] } as const;
 
 describe("Checkupino product registry", () => {
+  it("keeps the patient article library and details out of staff and guest routes", () => {
+    const patient = { authenticated: true, roles: ["patient"] };
+    const paths = visibleManifestRoutes(adminProductRegistry, patient).map((route) => route.path);
+    expect(paths).toContain("my/articles");
+    expect(paths).toContain("my/articles/:articleId");
+    for (const actor of [guest, admin, rootAdmin, { authenticated: true, roles: ["doctor"] }]) {
+      expect(
+        visibleManifestRoutes(adminProductRegistry, actor).map((route) => route.path),
+      ).not.toContain("my/articles");
+    }
+    expect(JSON.stringify(createProductAdminMenuItems(patient))).toContain("patient-articles");
+  });
   it("owns one canonical record for each approved neutral navigable entry", () => {
     expect(
       adminProductRegistry.routes.map(({ id, moduleId, path, titleKey }) => ({
@@ -116,6 +128,18 @@ describe("Checkupino product registry", () => {
       },
       { id: "patient.booking", moduleId: "checkupino", path: "book", titleKey: "booking.title" },
       {
+        id: "patient.articles",
+        moduleId: "checkupino",
+        path: "my/articles",
+        titleKey: "patientArticles.title",
+      },
+      {
+        id: "patient.article-detail",
+        moduleId: "checkupino",
+        path: "my/articles/:articleId",
+        titleKey: "patientArticles.article",
+      },
+      {
         id: "patient.reservations",
         moduleId: "checkupino",
         path: "my/reservations",
@@ -212,6 +236,12 @@ describe("Checkupino product registry", () => {
           id: "patient-booking",
           moduleId: "checkupino",
           routeId: "patient.booking",
+          section: "product",
+        },
+        {
+          id: "patient-articles",
+          moduleId: "checkupino",
+          routeId: "patient.articles",
           section: "product",
         },
         {
@@ -369,6 +399,7 @@ describe("Checkupino product registry", () => {
       "/my/reservations",
       "/my/questionnaire",
       "/my/questionnaire?view=submissions",
+      "/my/articles",
     ]);
     expect(new Set(leaves(rootAdmin).map((item) => item.link)).size).toBe(leaves(rootAdmin).length);
   });
@@ -376,7 +407,14 @@ describe("Checkupino product registry", () => {
   it.each([
     [
       "patient",
-      ["patient.booking", "patient.reservations", "patient.questionnaire", "patient.medical"],
+      [
+        "patient.booking",
+        "patient.articles",
+        "patient.article-detail",
+        "patient.reservations",
+        "patient.questionnaire",
+        "patient.medical",
+      ],
       "booking.patientPanel",
     ],
     ["doctor", ["doctor.reservations", "doctor.medical"], "booking.doctorPanel"],

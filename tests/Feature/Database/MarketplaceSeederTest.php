@@ -45,8 +45,8 @@ class MarketplaceSeederTest extends TestCase
         $this->assertSame(6, PaymentAttempt::count());
         $this->assertSame(9, QuestionnaireChoice::count());
         foreach (['doctor_working_window_breaks' => 8, 'patient_health_snapshots' => 4,
-            'patient_biometric_observations' => 6, 'questionnaire_submissions' => 4, 'articles' => 6,
-            'article_versions' => 7, 'article_terms' => 5, 'reservation_medical_requests' => 4,
+            'patient_biometric_observations' => 6, 'questionnaire_submissions' => 4, 'articles' => 7,
+            'article_versions' => 8, 'article_terms' => 5, 'reservation_medical_requests' => 4,
             'article_media_assets' => 0, 'reservation_files' => 0, 'reservation_reports' => 0, 'jobs' => 0] as $table => $count) {
             $this->assertSame($count, DB::table($table)->count(), $table);
         }
@@ -61,7 +61,15 @@ class MarketplaceSeederTest extends TestCase
             $this->assertDatabaseHas('articles', ['working_state' => $state]);
         }
         $this->assertSame(1, DB::table('articles')->whereNotNull('archived_at')->count());
-        $this->assertSame(3, DB::table('articles')->whereNotNull('published_version')->count());
+        $this->assertSame(4, DB::table('articles')->whereNotNull('published_version')->count());
+        $showcase = DB::table('articles')->where('slug', \Database\Seeders\Support\DemoArticleShowcase::SLUG)->sole();
+        $this->assertSame(1, (int) $showcase->published_version);
+        foreach (\Database\Seeders\Support\DemoArticleShowcase::translations() as $language => $translation) {
+            $body = $translation['body_html'];
+            $this->assertGreaterThan(600, count(preg_split('/\s+/u', strip_tags($body))), $language);
+            $this->assertStringNotContainsString('{{', $body);
+            $this->assertStringNotContainsString('<img', $body);
+        }
     }
 
     public function test_dated_appointments_use_real_rules_breaks_and_doctor_owned_prices(): void

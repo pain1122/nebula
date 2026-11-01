@@ -67,10 +67,17 @@ export function articleRichHtml(html: string, allowed: readonly string[], displa
       clean.setAttribute("src", display ? imageUrl(id) : imagePath(id));
       clean.setAttribute(
         "alt",
-        (node.getAttribute("alt") ?? "").replace(/[\x00-\x1f\x7f]/g, "").slice(0, 255),
+        Array.from(node.getAttribute("alt") ?? "")
+          .filter((char) => char.charCodeAt(0) >= 32 && char.charCodeAt(0) !== 127)
+          .join("")
+          .slice(0, 255),
       );
     }
-    if (tag === "figure") clean.setAttribute("class", "image");
+    if (tag === "figure")
+      clean.setAttribute(
+        "class",
+        node.classList.contains("image-style-side") ? "image image-style-side" : "image",
+      );
     if (tag === "a") {
       try {
         const href = node.getAttribute("href") ?? "",

@@ -1,5 +1,9 @@
 # TODO - Foundation-to-Product Roadmap
 
+November1 requested library follow-up is delivered: repeat-safe full-length bilingual article, supported typography/image layouts and general published recommendations below the author. See [showcase delivery](deployment/article-showcase-2026-11-01.md) and CURRENT_TASK4e. Next remains stage5 reviewed personal recommendation rules.
+
+November1 current handoff: the authenticated patient article library is delivered and accepted for its bounded local scope. Follow [CURRENT_TASK](../CURRENT_TASK.md) and [delivery evidence](deployment/patient-article-library-2026-11-01.md); next is reviewed recommendation-rule/authority planning. Earlier runtime inventories, activation instructions and intermediate next-action statements below are historical.
+
 October18 requested form-action alignment is deployed on healthy2f7bc492/70 assets, retaining clinical onboarding and all prior privacy safeguards. Hospital/profile/doctor-location/practice/shared-administration/reservation forms group Save and Cancel/Close in one Bootstrap action row; disabled/stale/uncertain and reservation abort semantics remain. Existing focused source115/guards44, typecheck/lint/format/ratchets and36 native ENFA1440/390 action-row/cancel checks pass; current/protected/catalog/finance hashes and two pending jobs preserved. Nine services run; scanner/parser/worker stay stopped. No live save, new URL/dependency/schema/backend Compose or credential change. Read deployment/form-action-row-2026-10-18.md and its immutable acceptance; previous c1173c97 is the static rollback. Existing live-save and current scanner/media gates remain separate.
 
 Snapshot date: 2026-10-24 (Asia/Tehran)
@@ -82,7 +86,7 @@ October22: patient health source is approved/tested (PHP11/126, UI41 and quality
 | 1 | Health-specific MySQL and contract/restore acceptance | Closed:8 MySQL cases,6/61 isolated contract/restore and verified cleanup; fixed catalog1 only. |
 | 2 | Health development activation/served ENFA acceptance | Complete: exact migration/one flag/static deployment,32 assets and16 cohorts/19 groups. Positive health save and personally deferred name save remain separate. |
 | 3 | Approved blog/article/taxonomy source implementation | Editorial/recovery/history42/366, draft44/344, taxonomy37/310, readers35/405 and foundation35/121 complete; health11/126 passes (204/1672). Next four approved UI pages -> focused disposable MySQL -> separate activation/ordinary writes. Medical terms stay fixed. |
-| 4 | Published patient article library/detail | ENFA/role/desktop/mobile acceptance; works without health data and uses safe cover placeholders. |
+| 4 | Published patient article library/detail | Complete for bounded local scope: published-only readers/media, retained overview/author sidebar, ENFA desktop/mobile, native filters/paging/logout, role refusal and ordinary owned publish/draft/archive. See November1 delivery; full release freeze is separate. |
 | 5 | Shared reviewed recommendation rules and owner-only explanations | Actual reviewer/version/freshness/missing-data/content checks; unreviewed rules stay inactive. |
 | 6 | Integrated four-role demo regression, walkthroughs and freeze | One candidate, current availability, truthful accepted/pending gates, no replay of completed writers. |
 
@@ -433,6 +437,8 @@ Phase 3A was authorized September11; complete feature administration was approve
 - [ ] Approved active demo surfaces pass final English/LTR and Persian/RTL visual regression with no unresolved recorded geometry defect.
 
 ## Phase 4 - Blogs and Content
+
+Partially delivered: staff article/taxonomy/media management and authenticated patient published reading are accepted in their recorded scopes. The broad boxes below still include public/tenant/visibility work; they do not mean those completed authenticated slices must be rebuilt.
 
 1. [ ] Implement posts/pages/categories/tags, media, authorship, drafts, scheduling, localization, SEO metadata, and safe archive.
 2. [ ] Add platform-global, tenant-specific, opt-in, and entitlement-gated content visibility.

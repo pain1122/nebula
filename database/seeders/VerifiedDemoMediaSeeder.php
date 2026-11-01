@@ -33,7 +33,7 @@ class VerifiedDemoMediaSeeder extends Seeder
         DemoFixtureContext::guardOwnedDatabase();
         if (! config('demo.verified_media_seed_enabled') || posix_geteuid() !== 33 || User::count() !== 6 || Reservation::count() !== 9
             || Reservation::where('booking_idempotency_key', 'not like', 'demo-%')->exists()
-            || DB::table('articles')->count() !== 6 || DB::table('articles')->where('slug', 'not like', 'demo-seed-%')->exists()
+            || DB::table('articles')->count() !== 7 || DB::table('articles')->where('slug', 'not like', 'demo-seed-%')->exists()
             || ! config('medical.scanner.enabled') || ! config('article_content.enabled')
             || ! config('article_content.media_enabled') || ! config('article_content.presentation_enabled')) {
             throw new LogicException('Verified media fixtures require the complete independent synthetic seed profile and accepted runtime flags.');
@@ -67,6 +67,7 @@ class VerifiedDemoMediaSeeder extends Seeder
             }
             $this->article($actor, 'demo-seed-getting-started', $assets[0], 2, 'draft');
             $this->article($actor, 'demo-seed-prepare-appointment', $assets[1], 1, 'publish');
+            $this->call(ArticleShowcaseSeeder::class);
         } finally {
             config(['medical_parser.test_inline' => $inline]);
         }

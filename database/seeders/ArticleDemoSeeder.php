@@ -81,6 +81,7 @@ class ArticleDemoSeeder extends Seeder
                     $this->action($actor, $article['id'], 'archive');
                 }
             }
+            $this->call(ArticleShowcaseSeeder::class);
         } finally {
             config(['article_content.enabled' => $enabled]);
         }

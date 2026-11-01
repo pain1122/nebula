@@ -151,6 +151,16 @@ const credentialedClient = axios.create({
 
 export const checkupinoTransport = createTransport(createAxiosExecutor(credentialedClient));
 
+export const patientArticleImageUrl = (path: string): string => {
+  if (
+    !/^\/api\/my\/articles\/[0-7][0-9a-hjkmnp-tv-z]{25}\/media\/[0-7][0-9a-hjkmnp-tv-z]{25}\?version_id=[0-7][0-9a-hjkmnp-tv-z]{25}&language=(?:en|fa)$/.test(
+      path,
+    )
+  )
+    throw new TypeError("Patient image path rejected.");
+  return runtimeConfig.backendOrigin + path;
+};
+
 export const articleMediaImagePath = (id: string): string => {
   if (!/^[0-7][0-9a-hjkmnp-tv-z]{25}$/.test(id))
     throw new TypeError("Editorial images require a public identifier.");

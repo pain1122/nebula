@@ -103,6 +103,15 @@ Route::middleware(['auth:sanctum', 'account.active'])->group(function () {
 
 });
 
+Route::middleware([\App\Http\Middleware\ArticleReadPrivacy::class, 'auth:sanctum', 'account.active', 'role:'.UserRole::Patient->value.',sanctum'])
+    ->prefix('my')->group(function () {
+        $reader = \App\Http\Controllers\Api\PatientArticleController::class;
+        Route::get('/articles', [$reader, 'index']);
+        Route::get('/article-taxonomies', [$reader, 'taxonomies']);
+        Route::get('/articles/{articleId}', [$reader, 'show'])->whereUlid('articleId');
+        Route::get('/articles/{articleId}/media/{assetId}', [$reader, 'media'])->whereUlid(['articleId', 'assetId']);
+    });
+
 // Privacy wraps authorization refusals as well as source-gated content reads/writes.
 Route::middleware([\App\Http\Middleware\ArticleReadPrivacy::class, 'auth:sanctum', 'account.active', 'role:'.UserRole::Admin->value.'|'.UserRole::RootAdmin->value.',sanctum'])
     ->prefix('admin')->group(function () {

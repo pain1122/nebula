@@ -1,5 +1,7 @@
 # Fresh demo seed readiness — October 31, 2026
 
+November1 later follow-up adds a seventh full-length bilingual showcase: metadata now7 articles/8 versions; verified media7 articles/11 versions/3 assets/16 references. General published recommended reading is implemented. Current fresh real-scanner/parser SQLite/exact-repeat proof and targeted additive populated-demo acceptance are in [showcase delivery](article-showcase-2026-11-01.md). The six-article counts and MySQL receipts below remain historical evidence; this follow-up did not repeat disposable MySQL acceptance.
+
 The user clarified that the new PC does not need the current database, provided seeders make all implemented features usable. The preferred setup is now an independent fresh database with synthetic demo data. This removes the need to transfer old database rows, their original encryption key, existing private uploads or old SeaweedFS objects. It does not authorize resetting the current laptop, replacing its credentials, deleting volumes or consuming its two pending jobs.
 
 The user selected **populated synthetic demo examples**. The expanded package passes fresh SQLite and disposable MySQL installation, four focused tests/93 assertions, actual isolated scanner/parser processing, and exact repeat preservation. Operator cleanup and exact test-container/network absence are verified. The new-PC setup and walkthrough remain open; this is not certification of the target installation.

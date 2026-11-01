@@ -45,7 +45,8 @@ final class ArticleRichText
             }
         }
         foreach ($document->getElementsByTagName('figure') as $figure) {
-            $figure->setAttribute('class', 'image');
+            $classes = preg_split('/\s+/', $figure->getAttribute('class'));
+            $figure->setAttribute('class', in_array('image-style-side', $classes, true) ? 'image image-style-side' : 'image');
         }
         $result = '';
         foreach ($root->childNodes as $child) {

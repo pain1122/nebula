@@ -1,0 +1,10 @@
+[
+  {"name":"concurrent_draft_versions","mode":"draft","leader":"draft","follower":"draft","expected":["committed","conflict"],"versions":1,"reviews":0},
+  {"name":"exact_duplicate_delivery","mode":"draft","leader":"draft","follower":"draft","duplicate":true,"expected":["committed","committed"],"versions":1,"reviews":0},
+  {"name":"approval_before_edit","mode":"assigned","leader":"approve","follower":"draft","expected":["committed","conflict"],"versions":0,"reviews":1},
+  {"name":"edit_before_approval","mode":"assigned","leader":"draft","follower":"approve","expected":["committed","forbidden"],"versions":1,"reviews":0},
+  {"name":"grant_revoke_before_publish","mode":"reviewed","leader":"revoke","follower":"publish","expected":["committed","conflict"],"versions":0,"reviews":0},
+  {"name":"review_withdraw_before_publish","mode":"reviewed","leader":"withdraw","follower":"publish","expected":["committed","conflict"],"versions":0,"reviews":1},
+  {"name":"retire_before_publish","mode":"reviewed","leader":"retire","follower":"publish","expected":["committed","conflict"],"versions":0,"reviews":0},
+  {"name":"late_audit_rollback","mode":"draft","leader":"draft","follower":"draft","audit_failure":true,"expected":["audit_rolled_back","committed"],"versions":1,"reviews":0}
+]

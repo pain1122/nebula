@@ -112,6 +112,33 @@ Route::middleware([\App\Http\Middleware\ArticleReadPrivacy::class, 'auth:sanctum
         Route::get('/articles/{articleId}/media/{assetId}', [$reader, 'media'])->whereUlid(['articleId', 'assetId']);
     });
 
+Route::middleware([\App\Http\Middleware\ArticleReadPrivacy::class, 'auth:sanctum', 'account.active', 'role:'.UserRole::Patient->value.',sanctum'])
+    ->get('/my/recommendations', [\App\Http\Controllers\Api\RecommendationController::class, 'patient']);
+
+Route::middleware([\App\Http\Middleware\ArticleReadPrivacy::class, 'auth:sanctum', 'account.active', 'role:'.UserRole::Admin->value.'|'.UserRole::RootAdmin->value.',sanctum'])
+    ->prefix('admin/recommendation-rules')->group(function () {
+        $controller = \App\Http\Controllers\Api\RecommendationController::class;
+        Route::get('/', [$controller, 'index']);
+        Route::post('/', [$controller, 'store']);
+        Route::post('/reviewer-grants', [$controller, 'grant']);
+        Route::post('/reviewer-grants/{grantId}/revoke', [$controller, 'revoke'])->whereUlid('grantId');
+        Route::get('/{ruleId}', [$controller, 'show'])->whereUlid('ruleId');
+        Route::get('/{ruleId}/preview', [$controller, 'preview'])->whereUlid('ruleId');
+        Route::get('/{ruleId}/media/{assetId}', [$controller, 'media'])->whereUlid(['ruleId', 'assetId']);
+        Route::put('/{ruleId}', [$controller, 'update'])->whereUlid('ruleId');
+        Route::post('/{ruleId}/actions', [$controller, 'action'])->whereUlid('ruleId');
+    });
+
+Route::middleware([\App\Http\Middleware\ArticleReadPrivacy::class, 'auth:sanctum', 'account.active', 'role:'.UserRole::Doctor->value.',sanctum'])
+    ->prefix('doctor/recommendation-rules')->group(function () {
+        $controller = \App\Http\Controllers\Api\RecommendationController::class;
+        Route::get('/', [$controller, 'index']);
+        Route::get('/{ruleId}', [$controller, 'show'])->whereUlid('ruleId');
+        Route::get('/{ruleId}/preview', [$controller, 'preview'])->whereUlid('ruleId');
+        Route::get('/{ruleId}/media/{assetId}', [$controller, 'media'])->whereUlid(['ruleId', 'assetId']);
+        Route::post('/{ruleId}/actions', [$controller, 'action'])->whereUlid('ruleId');
+    });
+
 // Privacy wraps authorization refusals as well as source-gated content reads/writes.
 Route::middleware([\App\Http\Middleware\ArticleReadPrivacy::class, 'auth:sanctum', 'account.active', 'role:'.UserRole::Admin->value.'|'.UserRole::RootAdmin->value.',sanctum'])
     ->prefix('admin')->group(function () {

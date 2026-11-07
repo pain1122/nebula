@@ -36,6 +36,24 @@ describe("Checkupino product registry", () => {
         titleKey,
       })),
     ).toEqual([
+      {
+        id: "recommendations.rules",
+        moduleId: "checkupino",
+        path: "recommendation-rules",
+        titleKey: "recommendationRules.title",
+      },
+      {
+        id: "recommendations.create",
+        moduleId: "checkupino",
+        path: "recommendation-rules/new",
+        titleKey: "recommendationRules.new",
+      },
+      {
+        id: "recommendations.detail",
+        moduleId: "checkupino",
+        path: "recommendation-rules/:ruleId",
+        titleKey: "recommendationRules.title",
+      },
       ...[
         ["articles", "articles"],
         ["article-create", "articles/new"],
@@ -174,6 +192,12 @@ describe("Checkupino product registry", () => {
       [...adminProductRegistry.navigation].sort((left, right) => left.id.localeCompare(right.id)),
     ).toMatchObject(
       [
+        {
+          id: "recommendation-rules",
+          moduleId: "checkupino",
+          routeId: "recommendations.rules",
+          section: "product",
+        },
         ...[
           "articles",
           "article-create",
@@ -271,6 +295,9 @@ describe("Checkupino product registry", () => {
       "auth.login",
     ]);
     expect(visibleManifestRoutes(adminProductRegistry, admin).map((route) => route.id)).toEqual([
+      "recommendations.rules",
+      "recommendations.create",
+      "recommendations.detail",
       "admin.articles",
       "admin.article-create",
       "admin.article-detail",
@@ -324,6 +351,7 @@ describe("Checkupino product registry", () => {
       "articles",
       "article-create",
       "article-taxonomies",
+      "recommendation-rules",
     ]);
     expect(
       visibleManifestNavigation(adminProductRegistry, rootAdmin).map((item) => item.id),
@@ -346,6 +374,7 @@ describe("Checkupino product registry", () => {
       "articles",
       "article-create",
       "article-taxonomies",
+      "recommendation-rules",
       "admin-general-settings",
       "admin-upload-limits",
       "system-extension-slot",
@@ -377,6 +406,7 @@ describe("Checkupino product registry", () => {
       "/articles",
       "/articles/new",
       "/article-taxonomies",
+      "/recommendation-rules",
     ]);
     expect(leaves(rootAdmin).map((item) => item.link)).toContain("/users");
     expect(leaves(rootAdmin).map((item) => item.link)).toContain("/settings/general");
@@ -421,6 +451,7 @@ describe("Checkupino product registry", () => {
   ] as const)("keeps %s routes and navigation in their own version", (role, routes, header) => {
     const actor = { authenticated: true, roles: [role] };
     expect(visibleManifestRoutes(adminProductRegistry, actor).map((route) => route.id)).toEqual([
+      ...(role === "doctor" ? ["recommendations.rules", "recommendations.detail"] : []),
       "admin.home",
       "user.profile",
       ...routes,
@@ -495,6 +526,7 @@ describe("Checkupino product registry", () => {
       expect.objectContaining({ id: "articles" }),
       expect.objectContaining({ id: "article-create" }),
       expect.objectContaining({ id: "article-taxonomies" }),
+      expect.objectContaining({ id: "recommendation-rules" }),
     ]);
     const rootNavigation = visibleManifestNavigation(manifest, rootAdmin);
     expect(rootNavigation).toEqual([
@@ -516,6 +548,7 @@ describe("Checkupino product registry", () => {
       expect.objectContaining({ id: "articles" }),
       expect.objectContaining({ id: "article-create" }),
       expect.objectContaining({ id: "article-taxonomies" }),
+      expect.objectContaining({ id: "recommendation-rules" }),
       expect.objectContaining({ id: "admin-general-settings" }),
       expect.objectContaining({ id: "admin-upload-limits" }),
       expect.objectContaining({

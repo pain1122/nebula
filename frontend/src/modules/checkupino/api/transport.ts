@@ -168,6 +168,28 @@ export const articleMediaImagePath = (id: string): string => {
 };
 export const articleMediaImageUrl = (id: string) =>
   runtimeConfig.backendOrigin + articleMediaImagePath(id);
+
+export const recommendationImageUrl = (
+  ruleId: string,
+  ruleVersion: number,
+  articleId: string,
+  assetId: string,
+  language: "en" | "fa",
+  doctor: boolean,
+): string => {
+  for (const id of [ruleId, articleId, assetId]) {
+    if (!/^[0-7][0-9a-hjkmnp-tv-z]{25}$/.test(id))
+      throw new Error("Invalid recommendation image identity.");
+  }
+  if (!Number.isSafeInteger(ruleVersion) || ruleVersion < 1 || !["en", "fa"].includes(language))
+    throw new Error("Invalid recommendation image binding.");
+  const query = new URLSearchParams({
+    article_id: articleId,
+    rule_version: String(ruleVersion),
+    language,
+  });
+  return `${runtimeConfig.backendOrigin}/api/${doctor ? "doctor" : "admin"}/recommendation-rules/${ruleId}/media/${assetId}?${query}`;
+};
 export const articleMediaImageId = (value: string): string | null => {
   const prefix = "/api/admin/article-media/";
   const path = value.startsWith(runtimeConfig.backendOrigin + prefix)

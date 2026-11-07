@@ -117,6 +117,7 @@ export const parsePatientArticlePage = (wire: unknown) => {
 };
 export const parsePatientArticle = (wire: unknown) =>
   checkedCard(z.object({ success: z.literal(true), data: detail }).parse(wire).data);
+export const parsePatientArticleCard = (wire: unknown) => checkedCard(card.parse(wire));
 const parseTerms = (wire: unknown) => {
   const result = z
     .object({

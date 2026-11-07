@@ -95,7 +95,13 @@ export const createProductAdminMenuItems = (
       id: "content",
       label: "navigation.content",
       icon: "ri-article-line",
-      ids: ["articles", "article-create", "article-taxonomies", "patient-articles"],
+      ids: [
+        "articles",
+        "article-create",
+        "article-taxonomies",
+        "patient-articles",
+        "recommendation-rules",
+      ],
     },
     {
       id: "settings",

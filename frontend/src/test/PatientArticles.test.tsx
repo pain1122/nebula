@@ -20,6 +20,13 @@ const state = vi.hoisted(() => ({
   detail: vi.fn<(...args: unknown[]) => unknown>(),
   roles: ["patient"],
 }));
+vi.mock("../modules/checkupino/recommendations/api", () => ({
+  usePersonalSuggestionsQuery: () => ({
+    currentData: { state: "unavailable", items: [] },
+    isFetching: false,
+    isError: false,
+  }),
+}));
 vi.mock("../Layouts/ShellAuthContext", () => ({
   useShellAuth: () => ({ userProfile: { id: 8, roles: state.roles } }),
 }));

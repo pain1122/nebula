@@ -12,6 +12,15 @@ class AuditLogger
 {
     /** @var array<string, list<string>> */
     private const SNAPSHOT_ALLOWLISTS = [
+        'recommendation.draft_saved' => ['id', 'version', 'state', 'content_hash', 'action_key', 'request_hash'],
+        'recommendation.submit' => ['id', 'version', 'state', 'action_key', 'request_hash'],
+        'recommendation.approve' => ['id', 'version', 'state', 'action_key', 'request_hash'],
+        'recommendation.reject' => ['id', 'version', 'state', 'action_key', 'request_hash'],
+        'recommendation.withdraw' => ['id', 'version', 'state', 'action_key', 'request_hash'],
+        'recommendation.publish' => ['id', 'version', 'state', 'action_key', 'request_hash'],
+        'recommendation.retire' => ['id', 'version', 'state', 'action_key', 'request_hash'],
+        'recommendation.grant' => ['id', 'scope', 'action_key', 'request_hash'],
+        'recommendation.revoke' => ['id', 'scope', 'action_key', 'request_hash'],
         'admin.article_media.uploaded' => ['id', 'status', 'revision', 'checksum_sha256', 'mime_type', 'size_bytes'],
         'admin.article_media.validated' => ['id', 'status', 'revision', 'checksum_sha256', 'mime_type', 'size_bytes'],
         'admin.article_media.validation_failed' => ['id', 'status', 'revision', 'checksum_sha256', 'mime_type', 'size_bytes'],

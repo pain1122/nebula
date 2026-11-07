@@ -11,6 +11,7 @@ import {
   type PatientArticleDetail,
 } from "../../modules/checkupino/patientArticles/api";
 import { ArticleCover, ArticleStatus, PatientArticleAccess } from "./index";
+import PersonalSuggestions from "./PersonalSuggestions";
 
 function RecommendedReading({
   article,
@@ -183,6 +184,7 @@ function Detail() {
                           </h5>
                         </div>
                       </div>
+                      <PersonalSuggestions articleId={article.id} language={language} />
                       <RecommendedReading
                         key={`${article.version_id}-${language}`}
                         article={article}

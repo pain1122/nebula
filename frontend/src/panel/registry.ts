@@ -3,6 +3,11 @@ import { createCheckupinoModule } from "../modules/checkupino/manifest";
 
 export const adminProductRegistry = createProductManifest([
   createCheckupinoModule({
+    recommendationRules: () => import("../pages/Recommendations"),
+    recommendationRuleCreate: () =>
+      import("../pages/Recommendations").then((page) => ({ default: page.NewRule })),
+    recommendationRuleDetail: () =>
+      import("../pages/Recommendations").then((page) => ({ default: page.RuleWorkspace })),
     patientArticles: () => import("../pages/PatientArticles"),
     patientArticleDetail: () => import("../pages/PatientArticles/ArticleDetail"),
     articles: () => import("../pages/Administration/content/Articles"),

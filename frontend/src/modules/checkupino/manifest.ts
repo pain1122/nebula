@@ -1,6 +1,9 @@
 import { defineProductModule, type RouteLoader } from "../../core";
 
 export interface CheckupinoRouteLoaders {
+  readonly recommendationRules: RouteLoader;
+  readonly recommendationRuleCreate: RouteLoader;
+  readonly recommendationRuleDetail: RouteLoader;
   readonly patientArticles: RouteLoader;
   readonly patientArticleDetail: RouteLoader;
   readonly articles: RouteLoader;
@@ -56,6 +59,14 @@ export const createCheckupinoModule = (loaders: CheckupinoRouteLoaders) =>
     id: "checkupino",
     kind: "product",
     navigation: [
+      {
+        id: "recommendation-rules",
+        icon: "ri-git-branch-line",
+        order: 27,
+        labelKey: "recommendationRules.title",
+        routeId: "recommendations.rules",
+        section: "product",
+      },
       ...[
         { id: "medical-requests", icon: "ri-folder-shield-2-line", order: 13 },
         { id: "questionnaires", icon: "ri-survey-line", order: 14 },
@@ -168,6 +179,30 @@ export const createCheckupinoModule = (loaders: CheckupinoRouteLoaders) =>
       },
     ],
     routes: [
+      {
+        id: "recommendations.rules",
+        path: "recommendation-rules",
+        load: loaders.recommendationRules,
+        access: { audience: "authenticated", roles: ["admin", "root-admin", "doctor"] },
+        breadcrumbs: [],
+        titleKey: "recommendationRules.title",
+      },
+      {
+        id: "recommendations.create",
+        path: "recommendation-rules/new",
+        load: loaders.recommendationRuleCreate,
+        access: { audience: "authenticated", roles: adminRoles },
+        breadcrumbs: [{ labelKey: "recommendationRules.title", routeId: "recommendations.rules" }],
+        titleKey: "recommendationRules.new",
+      },
+      {
+        id: "recommendations.detail",
+        path: "recommendation-rules/:ruleId",
+        load: loaders.recommendationRuleDetail,
+        access: { audience: "authenticated", roles: ["admin", "root-admin", "doctor"] },
+        breadcrumbs: [{ labelKey: "recommendationRules.title", routeId: "recommendations.rules" }],
+        titleKey: "recommendationRules.title",
+      },
       ...[
         { id: "articles", path: "articles", load: loaders.articles },
         { id: "article-create", path: "articles/new", load: loaders.articleCreate },
